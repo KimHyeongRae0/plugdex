@@ -1,0 +1,158 @@
+{
+  "baseline": {
+    "backend": {
+      "mypy": true,
+      "ruff": true,
+      "import": true,
+      "pytest": true
+    },
+    "frontend": {
+      "typecheck": true,
+      "build": true
+    }
+  },
+  "restored_clean": true,
+  "summary": {
+    "probes": 8,
+    "caught": 4,
+    "missed": 4
+  },
+  "probes": [
+    {
+      "id": "be-type-error",
+      "domain": "backend",
+      "defect": "타입 불일치 (int를 str로 반환)",
+      "file": "app/utils.py",
+      "gates": {
+        "mypy": false,
+        "ruff": true,
+        "import": true,
+        "pytest": true
+      },
+      "caught": true,
+      "caught_by": [
+        "mypy"
+      ],
+      "predicted_caught": true,
+      "prediction_held": true
+    },
+    {
+      "id": "be-owner-filter",
+      "domain": "backend",
+      "defect": "목록 조회에서 소유자 필터 제거 — 남의 데이터가 보임",
+      "file": "app/api/routes/items.py",
+      "gates": {
+        "mypy": true,
+        "ruff": true,
+        "import": true,
+        "pytest": true
+      },
+      "caught": false,
+      "caught_by": [],
+      "predicted_caught": false,
+      "prediction_held": true
+    },
+    {
+      "id": "be-sort-flip",
+      "domain": "backend",
+      "defect": "정렬 방향 뒤집기 (최신순 → 오래된순)",
+      "file": "app/api/routes/items.py",
+      "gates": {
+        "mypy": true,
+        "ruff": true,
+        "import": true,
+        "pytest": true
+      },
+      "caught": false,
+      "caught_by": [],
+      "predicted_caught": false,
+      "prediction_held": true
+    },
+    {
+      "id": "be-off-by-one",
+      "domain": "backend",
+      "defect": "페이지 크기 off-by-one (limit → limit-1)",
+      "file": "app/api/routes/items.py",
+      "gates": {
+        "mypy": true,
+        "ruff": true,
+        "import": true,
+        "pytest": true
+      },
+      "caught": false,
+      "caught_by": [],
+      "predicted_caught": false,
+      "prediction_held": true
+    },
+    {
+      "id": "be-syntax-error",
+      "domain": "backend",
+      "defect": "문법 오류 (파싱 불가) — 고친 델타 게이트 회귀 확인용",
+      "file": "app/utils.py",
+      "gates": {
+        "mypy": false,
+        "ruff": false,
+        "import": false,
+        "pytest": false
+      },
+      "caught": true,
+      "caught_by": [
+        "mypy",
+        "ruff",
+        "import",
+        "pytest"
+      ],
+      "predicted_caught": true,
+      "prediction_held": true
+    },
+    {
+      "id": "be-swallow-404",
+      "domain": "backend",
+      "defect": "없는 아이템 조회 시 404 대신 None 반환",
+      "file": "app/api/routes/items.py",
+      "gates": {
+        "mypy": true,
+        "ruff": true,
+        "import": true,
+        "pytest": false
+      },
+      "caught": true,
+      "caught_by": [
+        "pytest"
+      ],
+      "predicted_caught": false,
+      "prediction_held": false
+    },
+    {
+      "id": "fe-render-nothing",
+      "domain": "frontend",
+      "defect": "컴포넌트가 아무것도 렌더하지 않음 (조기 null 반환)",
+      "file": "src/components/Common/NotFound.tsx",
+      "gates": {
+        "typecheck": true,
+        "build": true
+      },
+      "caught": false,
+      "caught_by": [],
+      "predicted_caught": false,
+      "prediction_held": true
+    },
+    {
+      "id": "fe-type-error",
+      "domain": "frontend",
+      "defect": "타입 불일치 (number를 string에 할당)",
+      "file": "src/__probe.tsx",
+      "gates": {
+        "typecheck": false,
+        "build": false
+      },
+      "caught": true,
+      "caught_by": [
+        "typecheck",
+        "build"
+      ],
+      "predicted_caught": true,
+      "prediction_held": true
+    }
+  ]
+}
