@@ -26,6 +26,12 @@ only because a plan reviewer read the loader.
 - `packages/data/src/schema.ts` — the withdrawal field on the run header
 - `packages/data/src/load.ts` — honouring it, and the corpus's two views
 - `packages/data/src/*.test.ts` — unit coverage
+- `packages/data/src/index.ts` — the public surface the new type and error are exported through
+- `docs/WORKFLOW.md`, `CLAUDE.md` — the new rule's row in the normative rules table and the
+  `verify.sh` composition line, so a rule ID is not enforced by a gate while being absent
+  from every table a reader consults. The same touch corrects the drift PDX-003 left
+  behind: `check-src.sh` appears in no script table and the SRC-01 verify step is missing
+  from the composition line
 - `bench/data/runs/*.acceptance.json` — the withdrawal field written onto the affected run
 - `bench/harness/fisher.py` — reading the field instead of the filename prefix
 - `bench/DERIVATIONS.md` — the derivation entry this change produces
@@ -61,12 +67,21 @@ only because a plan reviewer read the loader.
       this ticket exists to end is proven ended, not asserted
 - [ ] AC-4: **the Python side reads the field too.** `fisher.py` selects on the record's
       withdrawal field rather than a filename prefix, and its self-validation still passes.
-      A filename-prefix comparison surviving anywhere in `bench/harness/` is a BLOCK
+      **No filename comparison may decide whether a live record enters an analysis pool.**
+      Exempt: selections over a frozen historical corpus read through `git show <commit>:`,
+      whose records can never carry the field — `derive_d001.py` reads the corpus as it
+      stood at `63735e6` and excludes nothing from a live pool.
+      (Corrected in place per CLAIM-01: this clause first read "a filename-prefix
+      comparison surviving anywhere in `bench/harness/` is a BLOCK", which the plan review
+      verified would block the forensic selections at `derive_d001.py:100/:101/:138` and
+      even a task-name prefix at `:50`. The AC now states the property it was protecting —
+      inclusion in a live pool — rather than a syntax it happened to notice.)
 - [ ] AC-5: **a gate makes the disagreement impossible to reintroduce.**
       `scripts/check-data-universe.sh` BLOCKs (a) a run whose filename says withdrawn
-      while its record does not, or the reverse, and (b) any remaining filename-based
-      exclusion in the harness. Proven by golden cases on both sides, replayed by
-      `check-gates.sh`
+      while its record does not, or the reverse, and (b) a filename comparison in the
+      harness that decides a live record's inclusion in an analysis pool — under AC-4's
+      wording and its frozen-corpus exemption. Proven by golden cases on both sides,
+      replayed by `check-gates.sh`
 - [ ] AC-6: **the change is derived, not asserted.** `bench/DERIVATIONS.md` gains an entry
       recording what the corpus contains before and after, with the command that
       reproduces both — including the fact that the published figures do not change,
