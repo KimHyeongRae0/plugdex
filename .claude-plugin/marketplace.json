@@ -1,0 +1,49 @@
+{
+  "name": "plugdex",
+  "owner": {
+    "name": "plugdex",
+    "url": "https://github.com/KimHyeongRae0/plugdex"
+  },
+  "plugins": [
+    {
+      "name": "caveman",
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      },
+      "description": "caveman by Julius Brussee — measured by plugdex"
+    },
+    {
+      "name": "karpathy",
+      "source": {
+        "source": "github",
+        "repo": "multica-ai/andrej-karpathy-skills"
+      },
+      "description": "andrej-karpathy-skills by forrestchang — measured by plugdex"
+    },
+    {
+      "name": "mattpocock",
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills"
+      },
+      "description": "mattpocock-skills by Matt Pocock — measured by plugdex"
+    },
+    {
+      "name": "ponytail",
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      },
+      "description": "ponytail by Dietrich Gebert — measured by plugdex"
+    },
+    {
+      "name": "superpowers",
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers"
+      },
+      "description": "superpowers by Jesse Vincent — measured by plugdex"
+    }
+  ]
+}

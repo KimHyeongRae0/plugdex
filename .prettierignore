@@ -13,3 +13,8 @@ bench/
 # nobody reviews. Prose wrapping is deliberate; the tables are read in source as often
 # as rendered.
 *.md
+
+# Recorded upstream manifests are other people's declarations about themselves, kept
+# byte-for-byte so our listing can be audited against them (DEC-011). Reformatting one
+# would make it our rendering of their words rather than their words.
+packages/registry/attribution/

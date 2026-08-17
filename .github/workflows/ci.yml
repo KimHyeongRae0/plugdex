@@ -142,6 +142,15 @@ jobs:
       # passing locally, where dist/ is left over from the last verify run.
       - name: Build the workspace
         run: pnpm build
+      # PDX-003's AC-5 runs a real `claude plugin marketplace add` + `claude plugin
+      # install`, because the product's premise is that the hub installs and an
+      # assertion that stops at manifest syntax does not test that. The CLI is not on
+      # the runner, and the scenario deliberately FAILS rather than skips when it is
+      # absent — a skip would leave the premise unproven while the run stayed green.
+      # The install itself needs no credentials: it clones the pack's public repository
+      # and writes into a scratch CLAUDE_CONFIG_DIR the scenario creates.
+      - name: Install the Claude Code CLI (PDX-003 AC-5 needs a real install)
+        run: npm install -g @anthropic-ai/claude-code
       # The browser driver is NOT installed here yet. The catalogue lands with
       # PDX-004, and until a scenario actually drives a browser, installing one
       # is two minutes of runner time per PR buying nothing. The step returns
