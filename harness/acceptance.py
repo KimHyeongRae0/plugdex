@@ -28,7 +28,7 @@ Usage:
 Environment:
     DIC_FIXTURE   path to the seeded fixture repo (defaults to the vendored copy)
 """
-import argparse, json, os, re, subprocess, sys
+import argparse, hashlib, json, os, re, subprocess, sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -43,7 +43,7 @@ FIXTURE_ROOT = Path(os.environ.get(
 SHARED_NM = FIXTURE_ROOT / "node_modules"
 
 BACKEND = FIXTURE_ROOT / "backend"
-VENV_PY = BACKEND / ".venv-gate" / "bin" / "python"
+VENV_PY = Path(os.environ.get("DIC_VENV", ROOT / ".gate-venv")) / "bin" / "python"
 
 TSC_TIMEOUT = 300
 BUILD_TIMEOUT = 420
@@ -96,13 +96,71 @@ def classify(output):
 
 
 def link_node_modules(cell_dir):
-    """Symlink the shared node_modules into the cell root, if not already present."""
+    """Decide which dependency set grades this cell, and report which one it was.
+
+    Under the `as-shipped` regime the agent has a shell and installs its own dependencies, so
+    the cell already carries a real node_modules. That is the correct thing to grade against —
+    declaring a dependency and installing it is itself a result. Overwriting it with the shared
+    link would erase the difference between the two regimes.
+    """
     nm = cell_dir / "node_modules"
 
-    if nm.exists() or nm.is_symlink():
-        return
+    if nm.is_symlink():
+        return "shared"
+
+    if nm.exists():
+        return "cell-local"
 
     nm.symlink_to(SHARED_NM, target_is_directory=True)
+
+    return "shared"
+
+
+def npm_inventory():
+    """Every top-level package actually installed in the shared node_modules, as `name@version`.
+
+    The frontend verdict depends on this list. Whether `import { Command } from "cmdk"` is a
+    failure to declare a dependency or a clean compile is decided here. Mid-experiment this list
+    changed (2026-08-16 00:38, four packages appeared that no package.json declares) and the same
+    task flipped from 4/12 passing to 12/12. Every result file therefore carries this fingerprint,
+    and results with different fingerprints are never compared.
+    """
+    names = []
+
+    for d in sorted(SHARED_NM.iterdir()) if SHARED_NM.is_dir() else []:
+        if d.name.startswith("."):
+            continue
+
+        scoped = d.name.startswith("@")
+
+        for e in (sorted(d.iterdir()) if scoped else [d]):
+            pkg = e / "package.json"
+
+            if not pkg.is_file():
+                continue
+
+            prefix = f"{d.name}/" if scoped else ""
+
+            try:
+                names.append(f"{prefix}{e.name}@{json.loads(pkg.read_text()).get('version', '?')}")
+            except (json.JSONDecodeError, OSError):
+                names.append(f"{prefix}{e.name}@unreadable")
+
+    return sorted(names)
+
+
+def environment():
+    """Fingerprint of the grading environment, stored with every result file."""
+    inv = npm_inventory()
+    _, ls_out = run_cmd(FIXTURE_ROOT, ["npm", "ls", "--depth=99"], 120)
+    extraneous = sorted({m.group(1) for m in re.finditer(r"([@\w./-]+@[\d][^\s]*) extraneous", ls_out)})
+
+    return {"npm_packages": len(inv),
+            "npm_fingerprint": hashlib.sha256("\n".join(inv).encode()).hexdigest()[:16],
+            "npm_extraneous": extraneous,
+            "npm_installed": inv,
+            "node": run_cmd(FIXTURE_ROOT, ["node", "--version"], 30)[1].strip(),
+            "python_gate": str(VENV_PY)}
 
 
 SKIP_DIRS = {".git", "node_modules", "dist", ".venv", ".venv-gate",
@@ -285,11 +343,11 @@ def score_cell(cell_dir):
     new_files = changed_files(cell_dir)
     fe_files = [f for f in (new_files or []) if f.startswith("frontend/")]
 
-    link_node_modules(cell_dir)
+    deps = link_node_modules(cell_dir)
 
     ok_tsc, out_tsc = run_cmd(fe, ["npx", "tsc", "-p", "tsconfig.build.json", "--noEmit"], TSC_TIMEOUT)
     rec = {"cell": cell_dir.name, "task": task, "arm": arm, "model": model, "rep": rep,
-           "valid": True, "domain": "frontend", "wrote_code": bool(fe_files),
+           "valid": True, "domain": "frontend", "deps": deps, "wrote_code": bool(fe_files),
            "new_files": new_files, "n_frontend_files": len(fe_files),
            "typecheck": ok_tsc, "typecheck_reason": None if ok_tsc else classify(out_tsc),
            "typecheck_out": None if ok_tsc else out_tsc[-1200:]}
@@ -341,9 +399,17 @@ def main():
 
             print(f"  {rec['cell']:52} {mark}", flush=True)
 
+    env = environment()
     dest = Path(a.out) if a.out else run_dir / "acceptance.json"
-    dest.write_text(json.dumps(out, indent=2, ensure_ascii=False), encoding="utf-8")
+    dest.write_text(json.dumps({"run": run_dir.name, "env": env, "cells": out},
+                               indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nwrote {dest} ({len(out)} cells)")
+    print(f"environment npm={env['npm_fingerprint']} ({env['npm_packages']} pkgs, "
+          f"extraneous={len(env['npm_extraneous'])})")
+
+    if env["npm_extraneous"]:
+        print("WARNING: packages are installed that no package.json declares. This grading "
+              f"cannot be compared with a different fingerprint -> {env['npm_extraneous']}")
 
 
 if __name__ == "__main__":

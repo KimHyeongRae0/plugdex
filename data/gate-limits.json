@@ -21,7 +21,7 @@
     {
       "id": "be-type-error",
       "domain": "backend",
-      "defect": "타입 불일치 (int를 str로 반환)",
+      "defect": "type mismatch (returns int where str is declared)",
       "file": "app/utils.py",
       "gates": {
         "mypy": false,
@@ -39,7 +39,7 @@
     {
       "id": "be-owner-filter",
       "domain": "backend",
-      "defect": "목록 조회에서 소유자 필터 제거 — 남의 데이터가 보임",
+      "defect": "owner filter dropped from the list query — other users' rows leak",
       "file": "app/api/routes/items.py",
       "gates": {
         "mypy": true,
@@ -55,7 +55,7 @@
     {
       "id": "be-sort-flip",
       "domain": "backend",
-      "defect": "정렬 방향 뒤집기 (최신순 → 오래된순)",
+      "defect": "sort direction reversed (newest-first becomes oldest-first)",
       "file": "app/api/routes/items.py",
       "gates": {
         "mypy": true,
@@ -71,7 +71,7 @@
     {
       "id": "be-off-by-one",
       "domain": "backend",
-      "defect": "페이지 크기 off-by-one (limit → limit-1)",
+      "defect": "page size off by one (limit becomes limit - 1)",
       "file": "app/api/routes/items.py",
       "gates": {
         "mypy": true,
@@ -87,7 +87,7 @@
     {
       "id": "be-syntax-error",
       "domain": "backend",
-      "defect": "문법 오류 (파싱 불가) — 고친 델타 게이트 회귀 확인용",
+      "defect": "syntax error (file does not parse) — regression check for the delta gate",
       "file": "app/utils.py",
       "gates": {
         "mypy": false,
@@ -108,7 +108,7 @@
     {
       "id": "be-swallow-404",
       "domain": "backend",
-      "defect": "없는 아이템 조회 시 404 대신 None 반환",
+      "defect": "missing item returns None instead of raising 404",
       "file": "app/api/routes/items.py",
       "gates": {
         "mypy": true,
@@ -126,7 +126,7 @@
     {
       "id": "fe-render-nothing",
       "domain": "frontend",
-      "defect": "컴포넌트가 아무것도 렌더하지 않음 (조기 null 반환)",
+      "defect": "component renders nothing (early null return)",
       "file": "src/components/Common/NotFound.tsx",
       "gates": {
         "typecheck": true,
@@ -140,7 +140,7 @@
     {
       "id": "fe-type-error",
       "domain": "frontend",
-      "defect": "타입 불일치 (number를 string에 할당)",
+      "defect": "type mismatch (number assigned to string)",
       "file": "src/__probe.tsx",
       "gates": {
         "typecheck": false,

@@ -105,3 +105,61 @@ backend tasks") — the analysis is fixed here before the numbers are seen:
 ## Change log
 
 - 2026-08-16 — initial version, written before execution.
+
+## Outcome of the predictions
+
+Recorded after the runs. The predictions above are left exactly as written. Two of the six
+failed, and both failures were mine in the same direction: I assumed superpowers' zeros were
+an artefact of my harness, and they were not.
+
+| # | Prediction | Outcome |
+|---|---|---|
+| 1 | Under `as-shipped`, superpowers produces code in a majority of cells | **Failed.** 0 of 9. The round-1 zeros were not a harness artefact. |
+| 2 | Cost and duration rise for every arm under `as-shipped` | **Held.** Median cost ×3.0 baseline, ×2.6 ponytail, ×2.0 karpathy, ×1.4 superpowers; duration ×2.4, ×2.5, ×2.0, ×1.3. |
+| 3 | Compile pass rate rises under `as-shipped`, most for superpowers | **Not evaluable for superpowers** (no code to grade). Reported for the other arms in the results table. |
+| 4 | `ponytail+superpowers` produces more code than ponytail alone | **Failed.** Median delivered lines 198 → 0. |
+| 5 | The interaction is not simply additive | **Held, but not by the anticipated mechanism.** It is not that the effects combine unevenly; one arm zeroes the other out. |
+| 6 | caveman shows a smaller LOC reduction than ponytail | **Held.** caveman −3.6% (p = 0.125, inconclusive) against ponytail −17.9% (p = 0.031, significant), paired across 7 tasks. |
+
+### What superpowers actually does
+
+The reason predictions 1, 4, and 5 came out the way they did is a single behaviour, and it is
+the pack working as designed rather than failing:
+
+> **Classification: Bounded.** This is a new component that builds on the existing React Hook
+> Form + Zod + Radix UI infrastructure already in the codebase. […] Now let me ask a few
+> clarifying questions to refine the design:
+> **First question:** What's the primary use case for this wizard?
+>
+> <sub>`runs/20260816-113302/tmpl-fe-wizard__superpowers__haiku__0`, verbatim final output</sub>
+
+Every valid superpowers cell was checked, not a sample:
+
+| Condition | Cells ending in a clarifying question |
+|---|--:|
+| `blocked`, 12 tasks, both domains, haiku | 47 / 48 |
+| `as-shipped`, 3 tasks, haiku | 18 / 18 |
+| `as-shipped`, 3 tasks, **sonnet** | 3 / 3 |
+| **Total** | **68 / 69** |
+
+The 18 as-shipped cells include the 9 `ponytail+superpowers` cells: loading ponytail alongside
+it does not suppress the behaviour.
+
+In an interactive session this is good behaviour — arguably better than guessing. In a headless
+run, a CI job, or any unattended agent, it means **zero delivered code**, and the session ends
+with a question nobody will answer. That is the finding, and it is a statement about the
+deployment context, not about the quality of the pack's rules.
+
+The sonnet row exists because the obvious objection to a haiku-only result is that a stronger
+model would push through the ambiguity. It does not.
+
+### Limits of this round
+
+- One model family, two models. Nothing here speaks to other agent runtimes.
+- Experiment A was cut from five frontend tasks to three (`datepicker`, `command`, `wizard`)
+  once the as-shipped regime turned out to cost roughly three times as much per cell. The
+  three retained tasks are the ones Experiment B also uses, which is why A and B share one
+  factorial grid rather than being two separate runs.
+- `colorpicker` appears in the as-shipped data with 3 cells from an interrupted run. It is
+  excluded from the paired tests, because pairing one arm on more tasks than another is not a
+  paired test. `analyze.py --tasks` does the exclusion; no cells were deleted.

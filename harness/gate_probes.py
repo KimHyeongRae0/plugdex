@@ -33,7 +33,7 @@ FIXTURE = Path(os.environ.get(
     ROOT / "arms/ponytail/benchmarks/agentic/fixtures/full-stack-fastapi-template"))
 BACKEND = FIXTURE / "backend"
 FRONTEND = FIXTURE / "frontend"
-VENV_PY = BACKEND / ".venv-gate" / "bin" / "python"
+VENV_PY = Path(os.environ.get("DIC_VENV", ROOT / ".gate-venv")) / "bin" / "python"
 
 DB_ENV = {"POSTGRES_SERVER": os.environ.get("PGHOST_ADDR", "127.0.0.1"),
           "POSTGRES_PORT": os.environ.get("PGPORT_NUM", "55432"),

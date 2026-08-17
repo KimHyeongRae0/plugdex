@@ -42,15 +42,23 @@ export DIC_FIXTURE=/path/to/full-stack-fastapi-template
 # 2. Frontend gate deps — the fixture is an npm workspace, so this hoists to the root
 cd "$DIC_FIXTURE" && npm install
 
-# 3. Backend gate deps
-cd "$DIC_FIXTURE/backend"
-python3 -m venv .venv-gate
-./.venv-gate/bin/pip install -e .
-./.venv-gate/bin/pip install pytest mypy ruff coverage
+# 3. Backend gate deps — keep the virtualenv OUTSIDE the fixture (see the warning below)
+export DIC_VENV="$HOME/.cache/dic-gate-venv"
+python3 -m venv "$DIC_VENV"
+"$DIC_VENV/bin/pip" install -e "$DIC_FIXTURE/backend"
+"$DIC_VENV/bin/pip" install pytest mypy ruff coverage
 
 # 4. Re-grade a run
 python3 harness/acceptance.py /path/to/runs/20260816-020247 --workers 4
 ```
+
+**Keep every tool you install outside the fixture directory.** The runner copies the whole
+fixture into each cell, so anything sitting inside it is duplicated once per cell. A
+virtualenv placed at `$DIC_FIXTURE/backend/.venv-gate` during development was copied 305
+times and consumed 68 GB before the disk filled. `acceptance.py` and `gate_probes.py` both
+read the interpreter path from `DIC_VENV` for this reason, and the runner's copy filter
+excludes `.venv*`, `venv*`, `node_modules`, and the tool caches — but the filter is a second
+line of defence, not the first.
 
 The output should match the corresponding `*.acceptance.json` in `data/runs/`.
 
@@ -68,7 +76,7 @@ createdb -h 127.0.0.1 -p 55432 -U postgres app
 cd "$DIC_FIXTURE/backend"
 POSTGRES_SERVER=127.0.0.1 POSTGRES_PORT=55432 POSTGRES_USER=postgres \
 POSTGRES_PASSWORD=changethis POSTGRES_DB=app \
-  ./.venv-gate/bin/python -m alembic upgrade head
+  "$DIC_VENV/bin/python" -m alembic upgrade head
 
 cd -
 PGPORT_NUM=55432 python3 harness/gate_probes.py --out data/gate-limits.json

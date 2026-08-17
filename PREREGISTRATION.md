@@ -160,3 +160,43 @@ conclusion. Four were found during the runs described here:
 Failure 14 was found by the gate probes themselves: on a parse error mypy stops after one
 diagnostic, which matched the baseline count and let syntax errors through the backend gate.
 Comparing diagnostic sets instead of counts fixed it, and `be-syntax-error` is now a probe.
+
+### Two more, found while preparing round two
+
+| # | Failure | The false conclusion it would have produced |
+|---|---|---|
+| 15 | Four packages (`cmdk`, `@radix-ui/react-popover`, `react-day-picker`, `date-fns`) were installed into the shared `node_modules` mid-experiment and declared by no `package.json` | "The frontend compile rate reproduced at 37% and 40%" — the two runs were graded against different dependency sets |
+| 16 | The runner recorded the model, the date, and the Claude Code version, but **not the prompt it sent** | The same "reproduced twice" claim; the two runs also differed in the appended system prompt, and nothing in the output said so |
+
+Failure 15 was found by an impossible result: the same task, same arm, same model, same regime
+went from 4/12 passing to 12/12. `npm ls` labelled the four packages `extraneous` — installed,
+required by nothing. Removing them (`npm prune`) left the pristine fixture passing every gate.
+`acceptance.py` now records an environment fingerprint (`npm_fingerprint`, the hash of every
+installed package at its installed version) in every result file, lists any extraneous package,
+and records per cell whether it was graded against the shared dependency set or one the agent
+installed itself. Results with different fingerprints are not compared.
+
+Pruning did not close the gap, which is how failure 16 surfaced. Recovering the two runs'
+configurations from the session history showed they had been given different instructions: run
+`20260815-225842` carried an appended sentence —
+
+> If the ticket is ambiguous, state your assumption in a comment and implement anyway — do not
+> stop to ask clarifying questions. This is a ticket, not a conversation.
+
+— that was removed before every later run, as the correction for failure 9. Regraded in one
+environment on the five tasks they share, the two runs are 29.3% and 43.3% (Fisher exact
+p = 0.129, inconclusive at this sample size). **They are not a replication of each other.** The
+earlier claim that the frontend rate reproduced across two runs is withdrawn.
+
+The mechanism is visible in the cells: told to implement anyway, agents delivered more —
+5 to 7 files including tests and example components, against 1 to 2 files without the
+instruction — and more code failed to typecheck. Whether that instruction genuinely lowers
+compile rates is a separate question this data cannot settle at n = 58 versus 60.
+
+Both failures share one cause: **the experiment was edited while it was running.** The fixture
+gained packages, and the harness gained and lost a sentence, with no record of either in the
+output. Both halves are now closed: the fingerprint covers the environment, and the runner writes
+`_invocation.json` next to every cell — the full resolved argv, the ticket, the appended system
+prompt, and the regime — plus the regime, the `NO_RUN` text, and a hash of the runner itself into
+each run's `results.json`. Any two runs can now be checked for comparability before their numbers
+are put in the same table.

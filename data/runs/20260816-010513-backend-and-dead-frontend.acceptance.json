@@ -1,2816 +1,3087 @@
-[
-  {
-    "cell": "tmpl-be-archive__baseline__haiku__0",
-    "task": "tmpl-be-archive",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/add_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx",
-      "frontend/src/components/Items/columns.tsx"
+{
+  "run": "20260816-010513",
+  "env": {
+    "npm_packages": 256,
+    "npm_fingerprint": "4b140e75d7dc1828",
+    "npm_extraneous": [],
+    "npm_undeclared_toplevel": 209,
+    "npm_installed": [
+      "@babel/code-frame@7.29.7",
+      "@babel/compat-data@7.29.7",
+      "@babel/core@7.29.7",
+      "@babel/generator@7.29.8",
+      "@babel/helper-compilation-targets@7.29.7",
+      "@babel/helper-globals@7.29.7",
+      "@babel/helper-module-imports@7.29.7",
+      "@babel/helper-module-transforms@7.29.7",
+      "@babel/helper-string-parser@7.29.7",
+      "@babel/helper-validator-identifier@7.29.7",
+      "@babel/helper-validator-option@7.29.7",
+      "@babel/helpers@7.29.7",
+      "@babel/parser@7.29.8",
+      "@babel/template@7.29.7",
+      "@babel/traverse@7.29.8",
+      "@babel/types@7.29.8",
+      "@biomejs/biome@2.5.8",
+      "@biomejs/cli-darwin-arm64@2.5.8",
+      "@esbuild/darwin-arm64@0.28.2",
+      "@floating-ui/core@1.8.0",
+      "@floating-ui/dom@1.8.0",
+      "@floating-ui/react-dom@2.1.9",
+      "@floating-ui/utils@0.2.12",
+      "@hey-api/json-schema-ref-parser@1.0.6",
+      "@hey-api/openapi-ts@0.73.0",
+      "@hookform/resolvers@5.9.0",
+      "@jridgewell/gen-mapping@0.3.13",
+      "@jridgewell/remapping@2.3.5",
+      "@jridgewell/resolve-uri@3.1.2",
+      "@jridgewell/sourcemap-codec@1.5.5",
+      "@jridgewell/trace-mapping@0.3.31",
+      "@jsdevtools/ono@7.1.3",
+      "@playwright/test@1.58.2",
+      "@radix-ui/number@1.1.3",
+      "@radix-ui/primitive@1.1.7",
+      "@radix-ui/react-arrow@1.1.15",
+      "@radix-ui/react-avatar@1.2.6",
+      "@radix-ui/react-checkbox@1.3.11",
+      "@radix-ui/react-collection@1.1.15",
+      "@radix-ui/react-compose-refs@1.1.5",
+      "@radix-ui/react-context@1.2.2",
+      "@radix-ui/react-dialog@1.1.23",
+      "@radix-ui/react-direction@1.1.4",
+      "@radix-ui/react-dismissable-layer@1.1.19",
+      "@radix-ui/react-dropdown-menu@2.1.24",
+      "@radix-ui/react-focus-guards@1.1.6",
+      "@radix-ui/react-focus-scope@1.1.16",
+      "@radix-ui/react-id@1.1.4",
+      "@radix-ui/react-label@2.1.15",
+      "@radix-ui/react-menu@2.1.24",
+      "@radix-ui/react-popper@1.3.7",
+      "@radix-ui/react-portal@1.1.17",
+      "@radix-ui/react-presence@1.1.10",
+      "@radix-ui/react-primitive@2.1.10",
+      "@radix-ui/react-radio-group@1.4.7",
+      "@radix-ui/react-roving-focus@1.1.19",
+      "@radix-ui/react-scroll-area@1.2.18",
+      "@radix-ui/react-select@2.3.7",
+      "@radix-ui/react-separator@1.1.15",
+      "@radix-ui/react-slot@1.3.3",
+      "@radix-ui/react-tabs@1.1.21",
+      "@radix-ui/react-tooltip@1.2.16",
+      "@radix-ui/react-use-callback-ref@1.1.4",
+      "@radix-ui/react-use-controllable-state@1.2.6",
+      "@radix-ui/react-use-effect-event@0.0.5",
+      "@radix-ui/react-use-is-hydrated@0.1.3",
+      "@radix-ui/react-use-layout-effect@1.1.4",
+      "@radix-ui/react-use-previous@1.1.4",
+      "@radix-ui/react-use-rect@1.1.4",
+      "@radix-ui/react-use-size@1.1.4",
+      "@radix-ui/react-visually-hidden@1.2.11",
+      "@radix-ui/rect@1.1.3",
+      "@rolldown/pluginutils@1.0.1",
+      "@rollup/rollup-darwin-arm64@4.62.4",
+      "@standard-schema/utils@0.3.0",
+      "@swc/core-darwin-arm64@1.16.0",
+      "@swc/core@1.16.0",
+      "@swc/counter@0.1.3",
+      "@swc/types@0.1.28",
+      "@tailwindcss/node@4.3.3",
+      "@tailwindcss/oxide-darwin-arm64@4.3.3",
+      "@tailwindcss/oxide@4.3.3",
+      "@tailwindcss/vite@4.3.3",
+      "@tanstack/history@1.162.1",
+      "@tanstack/query-core@5.101.4",
+      "@tanstack/query-devtools@5.101.4",
+      "@tanstack/react-query-devtools@5.101.4",
+      "@tanstack/react-query@5.101.4",
+      "@tanstack/react-router-devtools@1.167.1",
+      "@tanstack/react-router@1.170.29",
+      "@tanstack/react-store@0.9.3",
+      "@tanstack/react-table@8.21.3",
+      "@tanstack/router-core@1.171.24",
+      "@tanstack/router-devtools-core@1.168.1",
+      "@tanstack/router-devtools@1.167.1",
+      "@tanstack/router-generator@1.167.30",
+      "@tanstack/router-plugin@1.168.32",
+      "@tanstack/router-utils@1.162.2",
+      "@tanstack/store@0.9.3",
+      "@tanstack/table-core@8.21.3",
+      "@tanstack/virtual-file-routes@1.162.0",
+      "@types/estree@1.0.9",
+      "@types/json-schema@7.0.15",
+      "@types/node@25.9.5",
+      "@types/react-dom@19.2.4",
+      "@types/react@19.2.18",
+      "@vitejs/plugin-react-swc@4.3.3",
+      "acorn@8.18.0",
+      "ansi-colors@4.1.3",
+      "ansis@4.3.1",
+      "argparse@2.0.1",
+      "aria-hidden@1.2.6",
+      "asynckit@0.4.0",
+      "axios@1.16.0",
+      "babel-dead-code-elimination@1.0.12",
+      "baseline-browser-mapping@2.11.14",
+      "browserslist@4.28.8",
+      "bundle-name@4.1.0",
+      "c12@2.0.1",
+      "call-bind-apply-helpers@1.0.2",
+      "caniuse-lite@1.0.30001809",
+      "chokidar@5.0.0",
+      "chownr@2.0.0",
+      "citty@0.1.6",
+      "class-variance-authority@0.7.1",
+      "clsx@2.1.1",
+      "color-support@1.1.3",
+      "combined-stream@1.0.8",
+      "commander@13.0.0",
+      "confbox@0.1.8",
+      "consola@3.4.2",
+      "convert-source-map@2.0.0",
+      "cookie-es@3.1.1",
+      "csstype@3.2.3",
+      "debug@4.4.3",
+      "default-browser-id@5.0.1",
+      "default-browser@5.5.0",
+      "define-lazy-prop@3.0.0",
+      "defu@6.1.7",
+      "delayed-stream@1.0.0",
+      "destr@2.0.5",
+      "detect-libc@2.1.2",
+      "detect-node-es@1.1.0",
+      "diff@8.0.4",
+      "dotenv@17.4.2",
+      "dunder-proto@1.0.1",
+      "electron-to-chromium@1.5.407",
+      "enhanced-resolve@5.24.5",
+      "es-define-property@1.0.1",
+      "es-errors@1.3.0",
+      "es-object-atoms@1.1.2",
+      "es-set-tostringtag@2.1.0",
+      "esbuild@0.28.2",
+      "escalade@3.2.0",
+      "fdir@6.5.0",
+      "follow-redirects@1.16.0",
+      "form-data@4.0.6",
+      "frontend@0.0.0",
+      "fs-minipass@2.1.0",
+      "fsevents@2.3.2",
+      "function-bind@1.1.2",
+      "gensync@1.0.0-beta.2",
+      "get-intrinsic@1.3.0",
+      "get-nonce@1.0.1",
+      "get-proto@1.0.1",
+      "giget@1.2.5",
+      "goober@2.1.19",
+      "gopd@1.2.0",
+      "graceful-fs@4.2.11",
+      "handlebars@4.7.8",
+      "has-symbols@1.1.0",
+      "has-tostringtag@1.0.2",
+      "hasown@2.0.4",
+      "is-docker@3.0.0",
+      "is-inside-container@1.0.0",
+      "is-wsl@3.1.1",
+      "isbot@5.2.1",
+      "jiti@2.7.0",
+      "js-tokens@4.0.0",
+      "js-yaml@4.3.1",
+      "jsesc@3.1.0",
+      "json5@2.2.3",
+      "lightningcss-darwin-arm64@1.32.0",
+      "lightningcss@1.32.0",
+      "lodash@4.18.1",
+      "lru-cache@5.1.1",
+      "lucide-react@0.563.0",
+      "magic-string@0.30.21",
+      "math-intrinsics@1.1.0",
+      "mime-db@1.52.0",
+      "mime-types@2.1.35",
+      "minimist@1.2.8",
+      "minipass@5.0.0",
+      "minizlib@2.1.2",
+      "mkdirp@1.0.4",
+      "mlly@1.8.2",
+      "ms@2.1.3",
+      "nanoid@3.3.18",
+      "neo-async@2.6.2",
+      "next-themes@0.4.6",
+      "node-fetch-native@1.6.7",
+      "node-releases@2.0.53",
+      "nypm@0.5.4",
+      "ohash@1.1.6",
+      "open@10.1.2",
+      "pathe@2.0.3",
+      "perfect-debounce@1.0.0",
+      "picocolors@1.1.1",
+      "picomatch@4.0.5",
+      "pkg-types@1.3.1",
+      "playwright-core@1.58.2",
+      "playwright@1.58.2",
+      "postcss@8.5.26",
+      "prettier@3.9.6",
+      "proxy-from-env@2.1.0",
+      "rc9@2.1.2",
+      "react-dom@19.2.8",
+      "react-error-boundary@6.1.3",
+      "react-hook-form@7.85.0",
+      "react-icons@5.7.0",
+      "react-remove-scroll-bar@2.3.8",
+      "react-remove-scroll@2.7.2",
+      "react-style-singleton@2.2.3",
+      "react@19.2.8",
+      "readdirp@5.1.1",
+      "rollup@4.62.4",
+      "run-applescript@7.1.0",
+      "scheduler@0.27.0",
+      "semver@6.3.1",
+      "seroval-plugins@1.6.2",
+      "seroval@1.6.2",
+      "sonner@2.0.8",
+      "source-map-js@1.2.1",
+      "source-map@0.6.1",
+      "tailwind-merge@3.6.0",
+      "tailwindcss@4.3.3",
+      "tapable@2.3.3",
+      "tar@6.2.1",
+      "tinyexec@0.3.2",
+      "tinyglobby@0.2.17",
+      "tslib@2.8.1",
+      "tw-animate-css@1.4.0",
+      "typescript@5.9.3",
+      "ufo@1.6.4",
+      "uglify-js@3.19.3",
+      "undici-types@7.24.6",
+      "unplugin@3.3.0",
+      "update-browserslist-db@1.3.1",
+      "use-callback-ref@1.3.3",
+      "use-sidecar@1.1.3",
+      "use-sync-external-store@1.6.0",
+      "vite@7.3.6",
+      "webpack-virtual-modules@0.6.2",
+      "wordwrap@1.0.0",
+      "yallist@3.1.1",
+      "zod@4.4.3"
     ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/models.py",
-        "assignment",
-        "Incompatible types in assignment (expression has type \"bool | None\", base class \"ItemBase\" defined the type as \"bool\")"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
+    "node": "v22.14.0",
+    "python_gate": "/Users/hyeongraekim/Desktop/project/pack-pilot/.gate-venv/bin/python"
   },
-  {
-    "cell": "tmpl-be-archive__baseline__haiku__1",
-    "task": "tmpl-be-archive",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/add_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py",
-      "frontend/src/client/sdk.gen.ts",
-      "frontend/src/client/types.gen.ts",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-archive__baseline__haiku__2",
-    "task": "tmpl-be-archive",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/a5f7b2c4d9e1_add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "E712",
-        "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__karpathy__haiku__0",
-    "task": "tmpl-be-archive",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/b4c8d2e1f9a0_add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/crud.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx",
-      "frontend/src/components/Items/UnarchiveItem.tsx",
-      "frontend/src/components/Items/columns.tsx"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 5,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "E712",
-        "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__karpathy__haiku__1",
-    "task": "tmpl-be-archive",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/3f8c5a9d2e41_add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "E712",
-        "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__karpathy__haiku__2",
-    "task": "tmpl-be-archive",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/20260816_000001_add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/crud.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py",
-      "frontend/src/client/sdk.gen.ts",
-      "frontend/src/client/types.gen.ts",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 5,
-    "new_diags": [
-      [
-        "mypy",
-        "app/models.py",
-        "unused-ignore",
-        "Unused \"type: ignore\" comment"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__mattpocock__haiku__0",
-    "task": "tmpl-be-archive",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py",
-      "frontend/src/client/sdk.gen.ts",
-      "frontend/src/client/types.gen.ts",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx",
-      "frontend/tests/items.spec.ts"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "E712",
-        "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__mattpocock__haiku__1",
-    "task": "tmpl-be-archive",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/abc123def456_add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx",
-      "frontend/src/components/Items/columns.tsx"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-archive__mattpocock__haiku__2",
-    "task": "tmpl-be-archive",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-archive__ponytail__haiku__0",
-    "task": "tmpl-be-archive",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/g1a2b3c4d5e6f_add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "E712",
-        "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__ponytail__haiku__1",
-    "task": "tmpl-be-archive",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/3d8f5e2a9c14_add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "E712",
-        "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__ponytail__haiku__2",
-    "task": "tmpl-be-archive",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/a1b2c3d4e5f6_add_is_archived_to_item.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py",
-      "frontend/src/components/Items/ArchiveItem.tsx",
-      "frontend/src/components/Items/ItemActionsMenu.tsx",
-      "frontend/src/components/Items/columns.tsx"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-archive__superpowers__haiku__0",
-    "task": "tmpl-be-archive",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__superpowers__haiku__1",
-    "task": "tmpl-be-archive",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-archive__superpowers__haiku__2",
-    "task": "tmpl-be-archive",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__baseline__haiku__0",
-    "task": "tmpl-be-count",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-be-count__baseline__haiku__1",
-    "task": "tmpl-be-count",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: Not logged in · Please run /login"
-  },
-  {
-    "cell": "tmpl-be-count__baseline__haiku__2",
-    "task": "tmpl-be-count",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-count__karpathy__haiku__0",
-    "task": "tmpl-be-count",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__karpathy__haiku__1",
-    "task": "tmpl-be-count",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__karpathy__haiku__2",
-    "task": "tmpl-be-count",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__mattpocock__haiku__0",
-    "task": "tmpl-be-count",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-count__mattpocock__haiku__1",
-    "task": "tmpl-be-count",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__mattpocock__haiku__2",
-    "task": "tmpl-be-count",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__ponytail__haiku__0",
-    "task": "tmpl-be-count",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-count__ponytail__haiku__1",
-    "task": "tmpl-be-count",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__ponytail__haiku__2",
-    "task": "tmpl-be-count",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "type-arg",
-        "Missing type arguments for generic type \"dict\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__superpowers__haiku__0",
-    "task": "tmpl-be-count",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__superpowers__haiku__1",
-    "task": "tmpl-be-count",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-count__superpowers__haiku__2",
-    "task": "tmpl-be-count",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-csv__baseline__haiku__0",
-    "task": "tmpl-be-csv",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__baseline__haiku__1",
-    "task": "tmpl-be-csv",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__baseline__haiku__2",
-    "task": "tmpl-be-csv",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__karpathy__haiku__0",
-    "task": "tmpl-be-csv",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__karpathy__haiku__1",
-    "task": "tmpl-be-csv",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__karpathy__haiku__2",
-    "task": "tmpl-be-csv",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__mattpocock__haiku__0",
-    "task": "tmpl-be-csv",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__mattpocock__haiku__1",
-    "task": "tmpl-be-csv",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__mattpocock__haiku__2",
-    "task": "tmpl-be-csv",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__ponytail__haiku__0",
-    "task": "tmpl-be-csv",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__ponytail__haiku__1",
-    "task": "tmpl-be-csv",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__ponytail__haiku__2",
-    "task": "tmpl-be-csv",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-csv__superpowers__haiku__0",
-    "task": "tmpl-be-csv",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-csv__superpowers__haiku__1",
-    "task": "tmpl-be-csv",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-csv__superpowers__haiku__2",
-    "task": "tmpl-be-csv",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__baseline__haiku__0",
-    "task": "tmpl-be-dailycount",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "arg-type",
-        "Argument 1 to \"count\" has incompatible type \"UUID\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None\""
+  "cells": [
+    {
+      "cell": "tmpl-be-archive__baseline__haiku__0",
+      "task": "tmpl-be-archive",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/add_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx",
+        "frontend/src/components/Items/columns.tsx"
       ],
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "F401",
-        "`datetime.date` imported but unused"
-      ]
-    ],
-    "n_new_diags": 2,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__baseline__haiku__1",
-    "task": "tmpl-be-dailycount",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "operator",
-        "Unsupported operand types for <= (\"datetime\" and \"None\")"
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/models.py",
+          "assignment",
+          "Incompatible types in assignment (expression has type \"bool | None\", base class \"ItemBase\" defined the type as \"bool\")"
+        ]
       ],
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "operator",
-        "Unsupported operand types for > (\"datetime\" and \"None\")"
-      ]
-    ],
-    "n_new_diags": 2,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__baseline__haiku__2",
-    "task": "tmpl-be-dailycount",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "operator",
-        "Unsupported operand types for <= (\"datetime\" and \"None\")"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__karpathy__haiku__0",
-    "task": "tmpl-be-dailycount",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "arg-type",
-        "Argument 1 to \"count\" has incompatible type \"UUID\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None\""
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__baseline__haiku__1",
+      "task": "tmpl-be-archive",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/add_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py",
+        "frontend/src/client/sdk.gen.ts",
+        "frontend/src/client/types.gen.ts",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx"
       ],
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "operator",
-        "Unsupported operand types for <= (\"datetime\" and \"None\")"
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-archive__baseline__haiku__2",
+      "task": "tmpl-be-archive",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/a5f7b2c4d9e1_add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
       ],
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 3,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__karpathy__haiku__1",
-    "task": "tmpl-be-dailycount",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-dailycount__karpathy__haiku__2",
-    "task": "tmpl-be-dailycount",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "arg-type",
-        "Argument 2 to \"Cast\" has incompatible type \"Function[Any]\"; expected \"type[TypeEngine[Any]] | TypeEngine[Any]\""
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "E712",
+          "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
+        ]
       ],
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 2,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__mattpocock__haiku__0",
-    "task": "tmpl-be-dailycount",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "operator",
-        "Unsupported operand types for <= (\"datetime\" and \"None\")"
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__karpathy__haiku__0",
+      "task": "tmpl-be-archive",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/b4c8d2e1f9a0_add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/crud.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx",
+        "frontend/src/components/Items/UnarchiveItem.tsx",
+        "frontend/src/components/Items/columns.tsx"
       ],
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "operator",
-        "Unsupported operand types for > (\"datetime\" and \"None\")"
-      ]
-    ],
-    "n_new_diags": 2,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__mattpocock__haiku__1",
-    "task": "tmpl-be-dailycount",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "arg-type",
-        "Argument 1 to \"Cast\" has incompatible type \"datetime | None\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement\""
+      "wrote_code": true,
+      "n_backend_files": 5,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "E712",
+          "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
+        ]
       ],
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "arg-type",
-        "Argument 1 to \"count\" has incompatible type \"UUID\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None\""
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__karpathy__haiku__1",
+      "task": "tmpl-be-archive",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/3f8c5a9d2e41_add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx"
       ],
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "arg-type",
-        "Argument 2 to \"Cast\" has incompatible type \"_FunctionGenerator\"; expected \"type[TypeEngine[Any]] | TypeEngine[Any]\""
-      ]
-    ],
-    "n_new_diags": 3,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__mattpocock__haiku__2",
-    "task": "tmpl-be-dailycount",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "assignment",
-        "Incompatible types in assignment (expression has type \"Callable[[Any], int]\", target has type \"int\")"
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "E712",
+          "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
+        ]
       ],
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"tuple[Any, int]\" has no attribute \"date\""
-      ]
-    ],
-    "n_new_diags": 2,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__ponytail__haiku__0",
-    "task": "tmpl-be-dailycount",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"tuple[Any, int]\" has no attribute \"day\""
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__karpathy__haiku__2",
+      "task": "tmpl-be-archive",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/20260816_000001_add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/crud.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py",
+        "frontend/src/client/sdk.gen.ts",
+        "frontend/src/client/types.gen.ts",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx"
       ],
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "F401",
-        "`datetime.date` imported but unused"
-      ]
-    ],
-    "n_new_diags": 2,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__ponytail__haiku__1",
-    "task": "tmpl-be-dailycount",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-dailycount__ponytail__haiku__2",
-    "task": "tmpl-be-dailycount",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "arg-type",
-        "Argument 1 to \"count\" has incompatible type \"UUID\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__superpowers__haiku__0",
-    "task": "tmpl-be-dailycount",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__superpowers__haiku__1",
-    "task": "tmpl-be-dailycount",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-dailycount__superpowers__haiku__2",
-    "task": "tmpl-be-dailycount",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__baseline__haiku__0",
-    "task": "tmpl-be-search",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__baseline__haiku__1",
-    "task": "tmpl-be-search",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"contains\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__baseline__haiku__2",
-    "task": "tmpl-be-search",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__karpathy__haiku__0",
-    "task": "tmpl-be-search",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__karpathy__haiku__1",
-    "task": "tmpl-be-search",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py",
-      "backend/tests/utils/item.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__karpathy__haiku__2",
-    "task": "tmpl-be-search",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py",
-      "backend/tests/utils/item.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__mattpocock__haiku__0",
-    "task": "tmpl-be-search",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py",
-      "backend/tests/utils/item.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
+      "wrote_code": true,
+      "n_backend_files": 5,
+      "new_diags": [
+        [
+          "mypy",
+          "app/models.py",
+          "unused-ignore",
+          "Unused \"type: ignore\" comment"
+        ]
       ],
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 2,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__mattpocock__haiku__1",
-    "task": "tmpl-be-search",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py",
-      "backend/tests/utils/item.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__mattpocock__haiku__2",
-    "task": "tmpl-be-search",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py",
-      "backend/tests/utils/item.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__ponytail__haiku__0",
-    "task": "tmpl-be-search",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py",
-      "backend/tests/utils/item.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__ponytail__haiku__1",
-    "task": "tmpl-be-search",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py",
-      "backend/tests/utils/item.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__ponytail__haiku__2",
-    "task": "tmpl-be-search",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "attr-defined",
-        "\"str\" has no attribute \"ilike\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__superpowers__haiku__0",
-    "task": "tmpl-be-search",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__superpowers__haiku__1",
-    "task": "tmpl-be-search",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-search__superpowers__haiku__2",
-    "task": "tmpl-be-search",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__baseline__haiku__0",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__baseline__haiku__1",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 1,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__baseline__haiku__2",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: API Error: Your computer went to sleep mid-response. The response above may be i"
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__karpathy__haiku__0",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/crud.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__karpathy__haiku__1",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/crud.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__karpathy__haiku__2",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__mattpocock__haiku__0",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__mattpocock__haiku__1",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 3,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "I001",
-        "Import block is un-sorted or un-formatted"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__mattpocock__haiku__2",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/001_add_unique_title_constraint.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [
-      [
-        "mypy",
-        "app/api/routes/items.py",
-        "union-attr",
-        "Item \"None\" of \"Item | None\" has no attribute \"id\""
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__ponytail__haiku__0",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: API Error: Your computer went to sleep mid-response. The response above may be i"
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__ponytail__haiku__1",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 2,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__ponytail__haiku__2",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/api/routes/items.py",
-      "backend/app/crud.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__superpowers__haiku__0",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [
-      "backend/app/alembic/versions/add_unique_owner_title_constraint.py",
-      "backend/app/api/routes/items.py",
-      "backend/app/models.py",
-      "backend/tests/api/routes/test_items.py"
-    ],
-    "wrote_code": true,
-    "n_backend_files": 4,
-    "new_diags": [
-      [
-        "ruff",
-        "app/api/routes/items.py",
-        "F541",
-        "f-string without any placeholders"
-      ]
-    ],
-    "n_new_diags": 1,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__superpowers__haiku__1",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "no-work (cost=0 or turns<=1)"
-  },
-  {
-    "cell": "tmpl-be-uniquetitle__superpowers__haiku__2",
-    "task": "tmpl-be-uniquetitle",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": true,
-    "domain": "backend",
-    "new_files": [],
-    "wrote_code": false,
-    "n_backend_files": 0,
-    "new_diags": [],
-    "n_new_diags": 0,
-    "import_ok": true,
-    "import_out": null,
-    "passes": false
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__baseline__haiku__0",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__baseline__haiku__1",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__baseline__haiku__2",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__karpathy__haiku__0",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__karpathy__haiku__1",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__karpathy__haiku__2",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__mattpocock__haiku__0",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__mattpocock__haiku__1",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__mattpocock__haiku__2",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__ponytail__haiku__0",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__ponytail__haiku__1",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__ponytail__haiku__2",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__superpowers__haiku__0",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__superpowers__haiku__1",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-colorpicker__superpowers__haiku__2",
-    "task": "tmpl-fe-colorpicker",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__baseline__haiku__0",
-    "task": "tmpl-fe-command",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__baseline__haiku__1",
-    "task": "tmpl-fe-command",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__baseline__haiku__2",
-    "task": "tmpl-fe-command",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__karpathy__haiku__0",
-    "task": "tmpl-fe-command",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__karpathy__haiku__1",
-    "task": "tmpl-fe-command",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__karpathy__haiku__2",
-    "task": "tmpl-fe-command",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__mattpocock__haiku__0",
-    "task": "tmpl-fe-command",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__mattpocock__haiku__1",
-    "task": "tmpl-fe-command",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__mattpocock__haiku__2",
-    "task": "tmpl-fe-command",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__ponytail__haiku__0",
-    "task": "tmpl-fe-command",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__ponytail__haiku__1",
-    "task": "tmpl-fe-command",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__ponytail__haiku__2",
-    "task": "tmpl-fe-command",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__superpowers__haiku__0",
-    "task": "tmpl-fe-command",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__superpowers__haiku__1",
-    "task": "tmpl-fe-command",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-command__superpowers__haiku__2",
-    "task": "tmpl-fe-command",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__baseline__haiku__0",
-    "task": "tmpl-fe-datepicker",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "frontend",
-    "wrote_code": true,
-    "new_files": [
-      "frontend/DATE_PICKER_README.md",
-      "frontend/package.json",
-      "frontend/src/components/Examples/DatePickerExample.tsx",
-      "frontend/src/components/ui/calendar.tsx",
-      "frontend/src/components/ui/date-picker.tsx",
-      "frontend/src/components/ui/popover.tsx"
-    ],
-    "n_frontend_files": 6,
-    "typecheck": false,
-    "typecheck_reason": "type-error",
-    "typecheck_out": "src/components/Examples/DatePickerExample.tsx(20,5): error TS2353: Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.\nsrc/components/ui/calendar.tsx(3,1): error TS6133: 'Button' is declared but its value is never read.\nsrc/components/ui/calendar.tsx(43,9): error TS6133: 'nextMonth' is declared but its value is never read.\nsrc/components/ui/date-picker.tsx(60,11): error TS2322: Type '(date: Date | undefined) => void' is not assignable to type '(date: Date | { from?: Date | undefined; to?: Date | undefined; } | undefined) => void'.\n  Types of parameters 'date' and 'date' are incompatible.\n    Type 'Date | { from?: Date | undefined; to?: Date | undefined; } | undefined' is not assignable to type 'Date | undefined'.\n      Type '{ from?: Date | undefined; to?: Date | undefined; }' is missing the following properties from type 'Date': toDateString, toTimeString, toLocaleDateString, toLocaleTimeString, and 37 more.\n",
-    "build": false,
-    "build_reason": "skipped-typecheck-failed",
-    "passes": false
-  },
-  {
-    "cell": "tmpl-fe-datepicker__baseline__haiku__1",
-    "task": "tmpl-fe-datepicker",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__baseline__haiku__2",
-    "task": "tmpl-fe-datepicker",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__karpathy__haiku__0",
-    "task": "tmpl-fe-datepicker",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__karpathy__haiku__1",
-    "task": "tmpl-fe-datepicker",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__karpathy__haiku__2",
-    "task": "tmpl-fe-datepicker",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__mattpocock__haiku__0",
-    "task": "tmpl-fe-datepicker",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__mattpocock__haiku__1",
-    "task": "tmpl-fe-datepicker",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__mattpocock__haiku__2",
-    "task": "tmpl-fe-datepicker",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__ponytail__haiku__0",
-    "task": "tmpl-fe-datepicker",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": true,
-    "domain": "frontend",
-    "wrote_code": true,
-    "new_files": [
-      "frontend/src/components/ui/date-picker.tsx"
-    ],
-    "n_frontend_files": 1,
-    "typecheck": true,
-    "typecheck_reason": null,
-    "typecheck_out": null,
-    "build": true,
-    "build_reason": null,
-    "build_out": null,
-    "passes": true
-  },
-  {
-    "cell": "tmpl-fe-datepicker__ponytail__haiku__1",
-    "task": "tmpl-fe-datepicker",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__ponytail__haiku__2",
-    "task": "tmpl-fe-datepicker",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__superpowers__haiku__0",
-    "task": "tmpl-fe-datepicker",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__superpowers__haiku__1",
-    "task": "tmpl-fe-datepicker",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-datepicker__superpowers__haiku__2",
-    "task": "tmpl-fe-datepicker",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__baseline__haiku__0",
-    "task": "tmpl-fe-rating",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__baseline__haiku__1",
-    "task": "tmpl-fe-rating",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__baseline__haiku__2",
-    "task": "tmpl-fe-rating",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__karpathy__haiku__0",
-    "task": "tmpl-fe-rating",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__karpathy__haiku__1",
-    "task": "tmpl-fe-rating",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__karpathy__haiku__2",
-    "task": "tmpl-fe-rating",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__mattpocock__haiku__0",
-    "task": "tmpl-fe-rating",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__mattpocock__haiku__1",
-    "task": "tmpl-fe-rating",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__mattpocock__haiku__2",
-    "task": "tmpl-fe-rating",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__ponytail__haiku__0",
-    "task": "tmpl-fe-rating",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__ponytail__haiku__1",
-    "task": "tmpl-fe-rating",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__ponytail__haiku__2",
-    "task": "tmpl-fe-rating",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__superpowers__haiku__0",
-    "task": "tmpl-fe-rating",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__superpowers__haiku__1",
-    "task": "tmpl-fe-rating",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-rating__superpowers__haiku__2",
-    "task": "tmpl-fe-rating",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__baseline__haiku__0",
-    "task": "tmpl-fe-wizard",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__baseline__haiku__1",
-    "task": "tmpl-fe-wizard",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__baseline__haiku__2",
-    "task": "tmpl-fe-wizard",
-    "arm": "baseline",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__karpathy__haiku__0",
-    "task": "tmpl-fe-wizard",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__karpathy__haiku__1",
-    "task": "tmpl-fe-wizard",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__karpathy__haiku__2",
-    "task": "tmpl-fe-wizard",
-    "arm": "karpathy",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__mattpocock__haiku__0",
-    "task": "tmpl-fe-wizard",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__mattpocock__haiku__1",
-    "task": "tmpl-fe-wizard",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__mattpocock__haiku__2",
-    "task": "tmpl-fe-wizard",
-    "arm": "mattpocock",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__ponytail__haiku__0",
-    "task": "tmpl-fe-wizard",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__ponytail__haiku__1",
-    "task": "tmpl-fe-wizard",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__ponytail__haiku__2",
-    "task": "tmpl-fe-wizard",
-    "arm": "ponytail",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__superpowers__haiku__0",
-    "task": "tmpl-fe-wizard",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 0,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__superpowers__haiku__1",
-    "task": "tmpl-fe-wizard",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 1,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  },
-  {
-    "cell": "tmpl-fe-wizard__superpowers__haiku__2",
-    "task": "tmpl-fe-wizard",
-    "arm": "superpowers",
-    "model": "haiku",
-    "rep": 2,
-    "valid": false,
-    "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
-  }
-]
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__mattpocock__haiku__0",
+      "task": "tmpl-be-archive",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py",
+        "frontend/src/client/sdk.gen.ts",
+        "frontend/src/client/types.gen.ts",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx",
+        "frontend/tests/items.spec.ts"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "E712",
+          "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__mattpocock__haiku__1",
+      "task": "tmpl-be-archive",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/abc123def456_add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx",
+        "frontend/src/components/Items/columns.tsx"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-archive__mattpocock__haiku__2",
+      "task": "tmpl-be-archive",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-archive__ponytail__haiku__0",
+      "task": "tmpl-be-archive",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/g1a2b3c4d5e6f_add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "E712",
+          "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__ponytail__haiku__1",
+      "task": "tmpl-be-archive",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/3d8f5e2a9c14_add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "E712",
+          "Avoid equality comparisons to `False`; use `not Item.is_archived:` for false checks"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__ponytail__haiku__2",
+      "task": "tmpl-be-archive",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/a1b2c3d4e5f6_add_is_archived_to_item.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py",
+        "frontend/src/components/Items/ArchiveItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx",
+        "frontend/src/components/Items/columns.tsx"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-archive__superpowers__haiku__0",
+      "task": "tmpl-be-archive",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__superpowers__haiku__1",
+      "task": "tmpl-be-archive",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-archive__superpowers__haiku__2",
+      "task": "tmpl-be-archive",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__baseline__haiku__0",
+      "task": "tmpl-be-count",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-be-count__baseline__haiku__1",
+      "task": "tmpl-be-count",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: Not logged in · Please run /login"
+    },
+    {
+      "cell": "tmpl-be-count__baseline__haiku__2",
+      "task": "tmpl-be-count",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-count__karpathy__haiku__0",
+      "task": "tmpl-be-count",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__karpathy__haiku__1",
+      "task": "tmpl-be-count",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__karpathy__haiku__2",
+      "task": "tmpl-be-count",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__mattpocock__haiku__0",
+      "task": "tmpl-be-count",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-count__mattpocock__haiku__1",
+      "task": "tmpl-be-count",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__mattpocock__haiku__2",
+      "task": "tmpl-be-count",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__ponytail__haiku__0",
+      "task": "tmpl-be-count",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-count__ponytail__haiku__1",
+      "task": "tmpl-be-count",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__ponytail__haiku__2",
+      "task": "tmpl-be-count",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "type-arg",
+          "Missing type arguments for generic type \"dict\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__superpowers__haiku__0",
+      "task": "tmpl-be-count",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__superpowers__haiku__1",
+      "task": "tmpl-be-count",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-count__superpowers__haiku__2",
+      "task": "tmpl-be-count",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-csv__baseline__haiku__0",
+      "task": "tmpl-be-csv",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__baseline__haiku__1",
+      "task": "tmpl-be-csv",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__baseline__haiku__2",
+      "task": "tmpl-be-csv",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__karpathy__haiku__0",
+      "task": "tmpl-be-csv",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__karpathy__haiku__1",
+      "task": "tmpl-be-csv",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__karpathy__haiku__2",
+      "task": "tmpl-be-csv",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__mattpocock__haiku__0",
+      "task": "tmpl-be-csv",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__mattpocock__haiku__1",
+      "task": "tmpl-be-csv",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__mattpocock__haiku__2",
+      "task": "tmpl-be-csv",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__ponytail__haiku__0",
+      "task": "tmpl-be-csv",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__ponytail__haiku__1",
+      "task": "tmpl-be-csv",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__ponytail__haiku__2",
+      "task": "tmpl-be-csv",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-csv__superpowers__haiku__0",
+      "task": "tmpl-be-csv",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-csv__superpowers__haiku__1",
+      "task": "tmpl-be-csv",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-csv__superpowers__haiku__2",
+      "task": "tmpl-be-csv",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__baseline__haiku__0",
+      "task": "tmpl-be-dailycount",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "arg-type",
+          "Argument 1 to \"count\" has incompatible type \"UUID\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None\""
+        ],
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "F401",
+          "`datetime.date` imported but unused"
+        ]
+      ],
+      "n_new_diags": 2,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__baseline__haiku__1",
+      "task": "tmpl-be-dailycount",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "operator",
+          "Unsupported operand types for <= (\"datetime\" and \"None\")"
+        ],
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "operator",
+          "Unsupported operand types for > (\"datetime\" and \"None\")"
+        ]
+      ],
+      "n_new_diags": 2,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__baseline__haiku__2",
+      "task": "tmpl-be-dailycount",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "operator",
+          "Unsupported operand types for <= (\"datetime\" and \"None\")"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__karpathy__haiku__0",
+      "task": "tmpl-be-dailycount",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "arg-type",
+          "Argument 1 to \"count\" has incompatible type \"UUID\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None\""
+        ],
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "operator",
+          "Unsupported operand types for <= (\"datetime\" and \"None\")"
+        ],
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 3,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__karpathy__haiku__1",
+      "task": "tmpl-be-dailycount",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-dailycount__karpathy__haiku__2",
+      "task": "tmpl-be-dailycount",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "arg-type",
+          "Argument 2 to \"Cast\" has incompatible type \"Function[Any]\"; expected \"type[TypeEngine[Any]] | TypeEngine[Any]\""
+        ],
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 2,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__mattpocock__haiku__0",
+      "task": "tmpl-be-dailycount",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "operator",
+          "Unsupported operand types for <= (\"datetime\" and \"None\")"
+        ],
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "operator",
+          "Unsupported operand types for > (\"datetime\" and \"None\")"
+        ]
+      ],
+      "n_new_diags": 2,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__mattpocock__haiku__1",
+      "task": "tmpl-be-dailycount",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "arg-type",
+          "Argument 1 to \"Cast\" has incompatible type \"datetime | None\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement\""
+        ],
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "arg-type",
+          "Argument 1 to \"count\" has incompatible type \"UUID\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None\""
+        ],
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "arg-type",
+          "Argument 2 to \"Cast\" has incompatible type \"_FunctionGenerator\"; expected \"type[TypeEngine[Any]] | TypeEngine[Any]\""
+        ]
+      ],
+      "n_new_diags": 3,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__mattpocock__haiku__2",
+      "task": "tmpl-be-dailycount",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "assignment",
+          "Incompatible types in assignment (expression has type \"Callable[[Any], int]\", target has type \"int\")"
+        ],
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"tuple[Any, int]\" has no attribute \"date\""
+        ]
+      ],
+      "n_new_diags": 2,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__ponytail__haiku__0",
+      "task": "tmpl-be-dailycount",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"tuple[Any, int]\" has no attribute \"day\""
+        ],
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "F401",
+          "`datetime.date` imported but unused"
+        ]
+      ],
+      "n_new_diags": 2,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__ponytail__haiku__1",
+      "task": "tmpl-be-dailycount",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-dailycount__ponytail__haiku__2",
+      "task": "tmpl-be-dailycount",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "arg-type",
+          "Argument 1 to \"count\" has incompatible type \"UUID\"; expected \"ColumnElement[Any] | _HasClauseElement[Any] | SQLCoreOperations[Any] | ExpressionElementRole[Any] | TypedColumnsClauseRole[Any] | Callable[[], ColumnElement[Any]] | LambdaElement | Literal['*', 1] | None\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__superpowers__haiku__0",
+      "task": "tmpl-be-dailycount",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__superpowers__haiku__1",
+      "task": "tmpl-be-dailycount",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-dailycount__superpowers__haiku__2",
+      "task": "tmpl-be-dailycount",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__baseline__haiku__0",
+      "task": "tmpl-be-search",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__baseline__haiku__1",
+      "task": "tmpl-be-search",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"contains\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__baseline__haiku__2",
+      "task": "tmpl-be-search",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__karpathy__haiku__0",
+      "task": "tmpl-be-search",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__karpathy__haiku__1",
+      "task": "tmpl-be-search",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py",
+        "backend/tests/utils/item.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__karpathy__haiku__2",
+      "task": "tmpl-be-search",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py",
+        "backend/tests/utils/item.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__mattpocock__haiku__0",
+      "task": "tmpl-be-search",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py",
+        "backend/tests/utils/item.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ],
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 2,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__mattpocock__haiku__1",
+      "task": "tmpl-be-search",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py",
+        "backend/tests/utils/item.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__mattpocock__haiku__2",
+      "task": "tmpl-be-search",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py",
+        "backend/tests/utils/item.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__ponytail__haiku__0",
+      "task": "tmpl-be-search",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py",
+        "backend/tests/utils/item.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__ponytail__haiku__1",
+      "task": "tmpl-be-search",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py",
+        "backend/tests/utils/item.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__ponytail__haiku__2",
+      "task": "tmpl-be-search",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "attr-defined",
+          "\"str\" has no attribute \"ilike\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__superpowers__haiku__0",
+      "task": "tmpl-be-search",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__superpowers__haiku__1",
+      "task": "tmpl-be-search",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-search__superpowers__haiku__2",
+      "task": "tmpl-be-search",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__baseline__haiku__0",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__baseline__haiku__1",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 1,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__baseline__haiku__2",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: API Error: Your computer went to sleep mid-response. The response above may be i"
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__karpathy__haiku__0",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/crud.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__karpathy__haiku__1",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/crud.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__karpathy__haiku__2",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__mattpocock__haiku__0",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__mattpocock__haiku__1",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 3,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "I001",
+          "Import block is un-sorted or un-formatted"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__mattpocock__haiku__2",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/001_add_unique_title_constraint.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [
+        [
+          "mypy",
+          "app/api/routes/items.py",
+          "union-attr",
+          "Item \"None\" of \"Item | None\" has no attribute \"id\""
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__ponytail__haiku__0",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: API Error: Your computer went to sleep mid-response. The response above may be i"
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__ponytail__haiku__1",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 2,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__ponytail__haiku__2",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/crud.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__superpowers__haiku__0",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [
+        "backend/app/alembic/versions/add_unique_owner_title_constraint.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/models.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "wrote_code": true,
+      "n_backend_files": 4,
+      "new_diags": [
+        [
+          "ruff",
+          "app/api/routes/items.py",
+          "F541",
+          "f-string without any placeholders"
+        ]
+      ],
+      "n_new_diags": 1,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__superpowers__haiku__1",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "no-work (cost=0 or turns<=1)"
+    },
+    {
+      "cell": "tmpl-be-uniquetitle__superpowers__haiku__2",
+      "task": "tmpl-be-uniquetitle",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": true,
+      "domain": "backend",
+      "new_files": [],
+      "wrote_code": false,
+      "n_backend_files": 0,
+      "new_diags": [],
+      "n_new_diags": 0,
+      "import_ok": true,
+      "import_out": null,
+      "passes": false
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__baseline__haiku__0",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__baseline__haiku__1",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__baseline__haiku__2",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__karpathy__haiku__0",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__karpathy__haiku__1",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__karpathy__haiku__2",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__mattpocock__haiku__0",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__mattpocock__haiku__1",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__mattpocock__haiku__2",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__ponytail__haiku__0",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__ponytail__haiku__1",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__ponytail__haiku__2",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__superpowers__haiku__0",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__superpowers__haiku__1",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-colorpicker__superpowers__haiku__2",
+      "task": "tmpl-fe-colorpicker",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__baseline__haiku__0",
+      "task": "tmpl-fe-command",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__baseline__haiku__1",
+      "task": "tmpl-fe-command",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__baseline__haiku__2",
+      "task": "tmpl-fe-command",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__karpathy__haiku__0",
+      "task": "tmpl-fe-command",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__karpathy__haiku__1",
+      "task": "tmpl-fe-command",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__karpathy__haiku__2",
+      "task": "tmpl-fe-command",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__mattpocock__haiku__0",
+      "task": "tmpl-fe-command",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__mattpocock__haiku__1",
+      "task": "tmpl-fe-command",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__mattpocock__haiku__2",
+      "task": "tmpl-fe-command",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__ponytail__haiku__0",
+      "task": "tmpl-fe-command",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__ponytail__haiku__1",
+      "task": "tmpl-fe-command",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__ponytail__haiku__2",
+      "task": "tmpl-fe-command",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__superpowers__haiku__0",
+      "task": "tmpl-fe-command",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__superpowers__haiku__1",
+      "task": "tmpl-fe-command",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-command__superpowers__haiku__2",
+      "task": "tmpl-fe-command",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__baseline__haiku__0",
+      "task": "tmpl-fe-datepicker",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "frontend",
+      "deps": "shared",
+      "wrote_code": true,
+      "new_files": [
+        "frontend/DATE_PICKER_README.md",
+        "frontend/package.json",
+        "frontend/src/components/Examples/DatePickerExample.tsx",
+        "frontend/src/components/ui/calendar.tsx",
+        "frontend/src/components/ui/date-picker.tsx",
+        "frontend/src/components/ui/popover.tsx"
+      ],
+      "n_frontend_files": 6,
+      "typecheck": false,
+      "typecheck_reason": "missing-dep",
+      "typecheck_out": "ts/Examples/DatePickerExample.tsx(20,5): error TS2353: Object literal may only specify known properties, and 'required_error' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidType<unknown>> | undefined; message?: string | undefined; }'.\nsrc/components/ui/calendar.tsx(3,1): error TS6133: 'Button' is declared but its value is never read.\nsrc/components/ui/calendar.tsx(43,9): error TS6133: 'nextMonth' is declared but its value is never read.\nsrc/components/ui/date-picker.tsx(60,11): error TS2322: Type '(date: Date | undefined) => void' is not assignable to type '(date: Date | { from?: Date | undefined; to?: Date | undefined; } | undefined) => void'.\n  Types of parameters 'date' and 'date' are incompatible.\n    Type 'Date | { from?: Date | undefined; to?: Date | undefined; } | undefined' is not assignable to type 'Date | undefined'.\n      Type '{ from?: Date | undefined; to?: Date | undefined; }' is missing the following properties from type 'Date': toDateString, toTimeString, toLocaleDateString, toLocaleTimeString, and 37 more.\nsrc/components/ui/popover.tsx(2,35): error TS2307: Cannot find module '@radix-ui/react-popover' or its corresponding type declarations.\n",
+      "build": false,
+      "build_reason": "skipped-typecheck-failed",
+      "passes": false
+    },
+    {
+      "cell": "tmpl-fe-datepicker__baseline__haiku__1",
+      "task": "tmpl-fe-datepicker",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__baseline__haiku__2",
+      "task": "tmpl-fe-datepicker",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__karpathy__haiku__0",
+      "task": "tmpl-fe-datepicker",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__karpathy__haiku__1",
+      "task": "tmpl-fe-datepicker",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__karpathy__haiku__2",
+      "task": "tmpl-fe-datepicker",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__mattpocock__haiku__0",
+      "task": "tmpl-fe-datepicker",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__mattpocock__haiku__1",
+      "task": "tmpl-fe-datepicker",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__mattpocock__haiku__2",
+      "task": "tmpl-fe-datepicker",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__ponytail__haiku__0",
+      "task": "tmpl-fe-datepicker",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": true,
+      "domain": "frontend",
+      "deps": "shared",
+      "wrote_code": true,
+      "new_files": [
+        "frontend/src/components/ui/date-picker.tsx"
+      ],
+      "n_frontend_files": 1,
+      "typecheck": true,
+      "typecheck_reason": null,
+      "typecheck_out": null,
+      "build": true,
+      "build_reason": null,
+      "build_out": null,
+      "passes": true
+    },
+    {
+      "cell": "tmpl-fe-datepicker__ponytail__haiku__1",
+      "task": "tmpl-fe-datepicker",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__ponytail__haiku__2",
+      "task": "tmpl-fe-datepicker",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__superpowers__haiku__0",
+      "task": "tmpl-fe-datepicker",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__superpowers__haiku__1",
+      "task": "tmpl-fe-datepicker",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-datepicker__superpowers__haiku__2",
+      "task": "tmpl-fe-datepicker",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__baseline__haiku__0",
+      "task": "tmpl-fe-rating",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__baseline__haiku__1",
+      "task": "tmpl-fe-rating",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__baseline__haiku__2",
+      "task": "tmpl-fe-rating",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__karpathy__haiku__0",
+      "task": "tmpl-fe-rating",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__karpathy__haiku__1",
+      "task": "tmpl-fe-rating",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__karpathy__haiku__2",
+      "task": "tmpl-fe-rating",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__mattpocock__haiku__0",
+      "task": "tmpl-fe-rating",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__mattpocock__haiku__1",
+      "task": "tmpl-fe-rating",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__mattpocock__haiku__2",
+      "task": "tmpl-fe-rating",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__ponytail__haiku__0",
+      "task": "tmpl-fe-rating",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__ponytail__haiku__1",
+      "task": "tmpl-fe-rating",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__ponytail__haiku__2",
+      "task": "tmpl-fe-rating",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__superpowers__haiku__0",
+      "task": "tmpl-fe-rating",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__superpowers__haiku__1",
+      "task": "tmpl-fe-rating",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-rating__superpowers__haiku__2",
+      "task": "tmpl-fe-rating",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__baseline__haiku__0",
+      "task": "tmpl-fe-wizard",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__baseline__haiku__1",
+      "task": "tmpl-fe-wizard",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__baseline__haiku__2",
+      "task": "tmpl-fe-wizard",
+      "arm": "baseline",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__karpathy__haiku__0",
+      "task": "tmpl-fe-wizard",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__karpathy__haiku__1",
+      "task": "tmpl-fe-wizard",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__karpathy__haiku__2",
+      "task": "tmpl-fe-wizard",
+      "arm": "karpathy",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__mattpocock__haiku__0",
+      "task": "tmpl-fe-wizard",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__mattpocock__haiku__1",
+      "task": "tmpl-fe-wizard",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__mattpocock__haiku__2",
+      "task": "tmpl-fe-wizard",
+      "arm": "mattpocock",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__ponytail__haiku__0",
+      "task": "tmpl-fe-wizard",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__ponytail__haiku__1",
+      "task": "tmpl-fe-wizard",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__ponytail__haiku__2",
+      "task": "tmpl-fe-wizard",
+      "arm": "ponytail",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__superpowers__haiku__0",
+      "task": "tmpl-fe-wizard",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 0,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__superpowers__haiku__1",
+      "task": "tmpl-fe-wizard",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 1,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    },
+    {
+      "cell": "tmpl-fe-wizard__superpowers__haiku__2",
+      "task": "tmpl-fe-wizard",
+      "arm": "superpowers",
+      "model": "haiku",
+      "rep": 2,
+      "valid": false,
+      "invalid_reason": "api_error: You've hit your session limit · resets 3:40am (Asia/Seoul)"
+    }
+  ]
+}
