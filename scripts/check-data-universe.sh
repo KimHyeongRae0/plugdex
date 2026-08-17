@@ -13,13 +13,11 @@
 # the repository could say so.
 #
 # **The boundary of what this gate enforces.** The principle above covers every
-# run-level governing fact. Round one enforces it for withdrawal only. `_regime` — a
-# condition that moves the baseline build rate from 35% to 73% — is still read off the
-# filename inside the very function DATA-02d probes. That is deliberate, disclosed, and
-# has a successor ticket: see the harness-debt table in DESIGN.md, row "regime is a
-# record, not a filename". A reader this gate blocks should be able to see where its
-# coverage stops without reading the design doc, which is why this paragraph is here and
-# not only there.
+# run-level governing fact. Two are enforced here: withdrawal (a, b, c) and regime
+# (e, f, g). Both were filename-derived once, and the regime — a condition that moves the
+# baseline build rate from 35% to 73% — was the second half of DEC-015, closed by PDX-017
+# under DEC-019. If a third such fact appears, it belongs on the record and in this gate,
+# not in a name.
 #
 # Violations:
 #   DATA-02a  a filename claims withdrawal while the record it names does not
@@ -28,12 +26,21 @@
 #             nothing to argue with is a deletion
 #   DATA-02d  a filename comparison decides whether a live record enters an analysis
 #             pool, proven behaviourally rather than by grep
+#   DATA-02e  a record does not say which regime it ran under — absent must never read
+#             as `blocked`, which is the pre-PDX-017 default with a field in front of it
+#   DATA-02f  a regime outside {blocked, as-shipped}, near-misses included. A parser that
+#             trims or case-folds would move a run between conditions on a typo
+#   DATA-02g  a filename comparison decides a record's regime, again proven behaviourally
+#             against a corpus whose names contradict its records
 #
 # Precedence: a file that trips DATA-02c is skipped by the agreement checks (a and b).
 # A malformed withdrawal has no well-formed field for them to agree with, so reporting
 # both would be one defect counted twice — and it would make the golden set's
 # EXPECT_PATTERN prove less than it appears to. Two cases in this repository have already
-# tripped a second rule by accident; the precedence is designed against that.
+# tripped a second rule by accident; the precedence is designed against that. The same
+# rule holds one field over: a record tripping DATA-02e or DATA-02f is skipped by every
+# other regime check, because a record with no legible regime has nothing for the
+# behavioural probe to disagree with.
 #
 # ASSERT-01: the probe prints a sentinel on its success path, an empty or unprefixed
 # capture is "the gate did not run" rather than a clean bill of health, and the scanned
@@ -82,6 +89,8 @@ import tempfile
 
 runs = pathlib.Path(os.environ["RUNS_DIR"])
 harness = pathlib.Path(os.environ["HARNESS_DIR"])
+REGIMES = ("blocked", "as-shipped")
+
 violations = []
 records = 0
 
@@ -132,6 +141,20 @@ for path in sorted(runs.glob("*.acceptance.json")):
             "withdrawn field — the exclusion exists only in the name"
         )
 
+    # Regime, by presence and then by value. Matched exactly: no trimming, no case
+    # folding. `Blocked` and `as shipped` are typos, and a gate forgiving enough to
+    # accept them is a gate that lets a run change condition on a stray keystroke.
+    if "regime" not in record:
+        violations.append(
+            f"DATA-02e {name}: the record does not say which regime it ran under — "
+            "absent must never read as blocked"
+        )
+    elif record["regime"] not in REGIMES:
+        violations.append(
+            f"DATA-02f {name}: regime is {record['regime']!r}, expected one of "
+            f"{', '.join(REGIMES)}"
+        )
+
 # DATA-02d. A grep would catch the spelling of the last bug; this catches the mechanism.
 # Two records are planted whose filenames and records disagree on purpose, and the real
 # loader is asked what it pools.
@@ -140,9 +163,11 @@ loader = harness / "fisher.py"
 if not loader.exists():
     violations.append(f"DATA-02d {loader}: the analysis loader is missing — nothing was probed")
 else:
-    def synthetic(run, withdrawn):
+    def synthetic(run, withdrawn, regime):
         record = {
             "run": run,
+            # Deliberately contradicting the filename in both directions: see probe_runs.
+            "regime": regime,
             "env": {
                 "npm_fingerprint": "data02probe000000",
                 "npm_undeclared_toplevel": 0,
@@ -176,15 +201,21 @@ else:
     # however it is spelled, drops these cells and fails the first floor below.
     # marked: the record says withdrawn, the name does not. A loader that reads names
     # pools these cells and fails the second.
+    #
+    # The same two records also carry the DATA-02g decoy, so one sandbox covers both
+    # fields: the first is named without `as-shipped` and recorded as `as-shipped`, and
+    # the third is named `as-shipped` and recorded as `blocked`. A loader deriving the
+    # regime from the name gets both backwards, whichever way it is spelled.
     probe_runs = {
-        "20200101-000000-withdrawn-by-name-only": False,
-        "20200102-000000-marked-in-its-record": True,
+        "20200101-000000-withdrawn-by-name-only": (False, "as-shipped"),
+        "20200102-000000-marked-in-its-record": (True, "blocked"),
+        "20200103-000000-as-shipped-in-name-only": (False, "blocked"),
     }
 
     with tempfile.TemporaryDirectory() as sandbox:
-        for run, withdrawn in probe_runs.items():
+        for run, (withdrawn, regime) in probe_runs.items():
             target = pathlib.Path(sandbox, f"{run}.acceptance.json")
-            target.write_text(json.dumps(synthetic(run, withdrawn)), encoding="utf-8")
+            target.write_text(json.dumps(synthetic(run, withdrawn, regime)), encoding="utf-8")
 
         sys.path.insert(0, str(harness.resolve()))
 
@@ -224,6 +255,24 @@ else:
                     "the withdrawn view is unreachable"
                 )
 
+            # DATA-02g, over the pooled view so the withdrawn record is checked too.
+            expected = {run: regime for run, (_, regime) in probe_runs.items()}
+            mislabelled = sorted(
+                f"{cell['_run']} read as {cell.get('_regime')!r}, recorded as {expected[cell['_run']]!r}"
+                for cell in pooled
+                if cell.get("_run") in expected and cell.get("_regime") != expected[cell["_run"]]
+            )
+
+            if not pooled:
+                violations.append(
+                    "DATA-02g: the probe corpus produced no cells — nothing was checked"
+                )
+            elif mislabelled:
+                violations.append(
+                    "DATA-02g: the analysis loader reports a regime the record does not "
+                    "carry, so a filename is deciding it — " + "; ".join(mislabelled[:2])
+                )
+
 print("SENTINEL " + json.dumps({"records": records, "violations": len(violations)}))
 
 for line in violations:
@@ -253,4 +302,4 @@ if [[ "$VIOLATIONS" -gt 0 ]]; then
   exit 1
 fi
 
-echo -e "${GREEN}✅ DATA-02 PASS — $RECORDS records, every withdrawal on the record and no filename deciding a pool${NC}"
+echo -e "${GREEN}✅ DATA-02 PASS — $RECORDS records, every withdrawal and every regime on the record and no filename deciding either${NC}"

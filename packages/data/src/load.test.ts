@@ -9,7 +9,9 @@ import {
   MalformedRecordError,
   MissingEnvironmentAuditError,
   MissingFingerprintError,
+  MissingRegimeError,
   MixedEnvironmentError,
+  UnknownRegimeError,
   UnreasonedWithdrawalError,
 } from './load.js';
 
@@ -29,11 +31,33 @@ type RecordSpec = {
    * are JSON somebody wrote by hand.
    */
   withdrawn?: unknown;
+
+  /**
+   * Written verbatim, and `null` means "omit the key entirely" so a spec can plant the
+   * record shape that has no regime at all.
+   *
+   * A fixture may default; the parser may not. Every spec that is not about the regime
+   * gets `blocked` so it keeps testing what it was written to test — PDX-017 made the
+   * field required, which would otherwise have turned every one of these into a regime
+   * test by accident.
+   */
+  regime?: unknown;
+
+  /** Cells to write, when a test needs more than the single default cell. */
+  cells?: readonly Record<string, unknown>[];
 };
 
-const buildRecord = ({ run, fingerprint, audited = true, withdrawn }: RecordSpec) => ({
+const buildRecord = ({
+  run,
+  fingerprint,
+  audited = true,
+  withdrawn,
+  regime = 'blocked',
+  cells,
+}: RecordSpec) => ({
   run,
   ...(withdrawn === undefined ? {} : { withdrawn }),
+  ...(regime === null ? {} : { regime }),
   env: {
     npm_packages: 2,
     ...(fingerprint === null ? {} : { npm_fingerprint: fingerprint }),
@@ -43,7 +67,7 @@ const buildRecord = ({ run, fingerprint, audited = true, withdrawn }: RecordSpec
     node: 'v22.14.0',
     python_gate: '/tmp/python',
   },
-  cells: [
+  cells: cells ?? [
     {
       cell: `t__baseline__haiku__0`,
       task: 't',
@@ -304,4 +328,144 @@ test('the committed corpus partitions into exactly its two views', () => {
       `${record.run} is withdrawn with no reason`,
     );
   }
+});
+
+/*
+ * The regime — PDX-017. It is the second run-level fact this package moved out of a
+ * filename and onto the record, and the tests below are synthetic throughout so none of
+ * them depends on which runs happen to exist. The single exception is the committed-corpus
+ * partition at the end, which is there precisely to catch a corpus the parser accepts and
+ * the two views then disagree about.
+ */
+
+test('filtering by regime returns only that condition, and no filter returns both', () => {
+  const dir = plantCorpus({
+    records: [
+      { run: '20260816-092732', fingerprint: 'abc123', regime: 'blocked' },
+      { run: '20260816-094958', fingerprint: 'abc123', regime: 'as-shipped' },
+    ],
+  });
+
+  const blocked = loadAcceptanceRecords({ dir, regime: 'blocked' });
+  const asShipped = loadAcceptanceRecords({ dir, regime: 'as-shipped' });
+  const both = loadAcceptanceRecords({ dir });
+
+  assert.deepEqual(
+    blocked.records.map((record) => record.run),
+    ['20260816-092732'],
+  );
+
+  assert.deepEqual(
+    asShipped.records.map((record) => record.run),
+    ['20260816-094958'],
+  );
+
+  assert.equal(both.records.length, 2);
+  assert.equal(blocked.cells.length + asShipped.cells.length, both.cells.length);
+});
+
+test('a record with no regime is refused rather than read as blocked', () => {
+  const dir = plantCorpus({
+    records: [{ run: '20260816-092732', fingerprint: 'abc123', regime: null }],
+  });
+
+  assert.throws(() => loadAcceptanceRecords({ dir }), MissingRegimeError);
+});
+
+test('a near-miss regime value is refused — no trimming, no case folding', () => {
+  // Four values in one test on purpose: a parser that trimmed or lowercased would pass
+  // three of them and fail only the empty string, which would read as a mostly-working
+  // parser rather than as the defect it is.
+  for (const value of ['Blocked', 'as shipped', 'blocked ', '']) {
+    const dir = plantCorpus({
+      records: [{ run: '20260816-092732', fingerprint: 'abc123', regime: value }],
+    });
+
+    assert.throws(
+      () => loadAcceptanceRecords({ dir }),
+      UnknownRegimeError,
+      `regime ${JSON.stringify(value)} was accepted`,
+    );
+  }
+});
+
+test('a regime no record carries returns an empty corpus, never a fallback to everything', () => {
+  const dir = plantCorpus({
+    records: [{ run: '20260816-092732', fingerprint: 'abc123', regime: 'blocked' }],
+  });
+
+  const corpus = loadAcceptanceRecords({ dir, regime: 'as-shipped' });
+
+  assert.equal(corpus.records.length, 0);
+  assert.equal(corpus.cells.length, 0);
+  assert.equal(corpus.fingerprint, 'abc123');
+});
+
+test('regime and withdrawal are independent facts, and neither exempts the other', () => {
+  const dir = plantCorpus({
+    records: [
+      { run: '20260816-092732', fingerprint: 'abc123', regime: 'as-shipped' },
+      {
+        run: '20260816-094958',
+        fingerprint: 'abc123',
+        regime: 'as-shipped',
+        withdrawn: reasoned,
+      },
+    ],
+  });
+
+  const corpus = loadAcceptanceRecords({ dir, regime: 'as-shipped' });
+
+  assert.deepEqual(
+    corpus.records.map((record) => record.run),
+    ['20260816-092732'],
+  );
+
+  assert.deepEqual(
+    corpus.withdrawnRecords.map((record) => record.run),
+    ['20260816-094958'],
+  );
+
+  assert.equal(corpus.withdrawnRecords[0]?.regime, 'as-shipped');
+});
+
+test('a malformed record outside the asked-for regime still refuses the corpus', () => {
+  // The narrowing happens after every record is parsed, so the refusals do not depend on
+  // the question asked. A filter that could hide a broken record would make this loader
+  // report a clean corpus to one caller and a broken one to another.
+  const dir = plantCorpus({
+    records: [
+      { run: '20260816-092732', fingerprint: 'abc123', regime: 'blocked' },
+      { run: '20260816-094958', fingerprint: 'abc123', regime: 'nonsense' },
+    ],
+  });
+
+  assert.throws(() => loadAcceptanceRecords({ dir, regime: 'blocked' }), UnknownRegimeError);
+});
+
+test('a record missing both the fingerprint and the regime fails on the fingerprint', () => {
+  // The check order is load-bearing: `tests/e2e/PDX-002-records-are-traceable.sh` AC-3
+  // plants exactly this record and requires MissingFingerprintError by name. Pinned here
+  // so the order cannot drift out from under a scenario in another directory.
+  const dir = plantCorpus({
+    records: [{ run: '20260816-092732', fingerprint: null, regime: null }],
+  });
+
+  assert.throws(() => loadAcceptanceRecords({ dir }), MissingFingerprintError);
+});
+
+test('the committed corpus partitions into exactly its two regimes', () => {
+  const dir = '../../bench/data/runs';
+  const everything = loadAcceptanceRecords({ dir });
+  const blocked = loadAcceptanceRecords({ dir, regime: 'blocked' });
+  const asShipped = loadAcceptanceRecords({ dir, regime: 'as-shipped' });
+
+  assert.ok(blocked.cells.length > 0, 'no committed record ran blocked');
+  assert.ok(asShipped.cells.length > 0, 'no committed record ran as-shipped');
+
+  assert.equal(
+    blocked.cells.length + asShipped.cells.length,
+    everything.cells.length,
+    'a record is in neither regime or in both',
+  );
 });

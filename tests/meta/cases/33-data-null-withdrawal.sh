@@ -35,6 +35,10 @@ record = {
     ],
 }
 
+# PDX-017 made the regime required. These cases are about withdrawal, so every planted
+# record carries a legal one and the case keeps testing what it was written to test.
+record["regime"] = "blocked"
+
 if withdrawn == "full":
     record["withdrawn"] = {"reason": "planted", "recorded_at": "2026-01-01T00:00:00+09:00"}
 elif withdrawn == "empty-reason":
@@ -66,6 +70,8 @@ def load_cells(include_withdrawn=False, runs_dir="bench/data/runs"):
         for cell in record["cells"]:
             cell = dict(cell)
             cell["_run"] = os.path.basename(path).split(".")[0]
+            # Read off the record, so DATA-02g stays green and each case trips one rule.
+            cell["_regime"] = record["regime"]
             cells.append(cell)
 
     return cells

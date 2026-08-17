@@ -39,6 +39,19 @@ export type RunEnv = {
   readonly pythonGate: string;
 };
 
+/**
+ * The condition a run executed under.
+ *
+ * `blocked` withheld Bash and appended a write-don't-run instruction; `as-shipped` gave
+ * the agent the ticket and nothing else, with Bash allowed. The two are not variants of
+ * one setting — they move the baseline build rate from 25% to 73%, so the condition
+ * decides what almost every published figure means, and pooling them produces a rate that
+ * describes neither. The union is closed on purpose: a near-miss like `Blocked` or
+ * `as shipped` is a typo that would move a run between conditions, which is the failure
+ * this type exists to make impossible.
+ */
+export type Regime = 'blocked' | 'as-shipped';
+
 /** Why a cell was excluded from analysis. `null` when the cell is valid. */
 export type InvalidReason = string | null;
 
@@ -140,6 +153,18 @@ export type AcceptanceRecord = {
 
   readonly env: RunEnv;
 
+  /**
+   * The condition the run executed under. Required, and never defaulted.
+   *
+   * It lived in the filename until PDX-017 — `"as-shipped" in name`, evaluated in one
+   * Python function that the TypeScript half of this project could not see. The ten names
+   * happened to encode it correctly and nothing checked that they did, which is the same
+   * shape as the withdrawal defect one field over (DEC-015, DEC-019). Making it optional
+   * with a default would restore exactly that behaviour with somewhere to hide, so a
+   * record that does not say is refused rather than assumed.
+   */
+  readonly regime: Regime;
+
   readonly cells: readonly Cell[];
 
   /**
@@ -166,12 +191,17 @@ export type AcceptanceCorpus = {
   readonly cells: readonly Cell[];
 
   /**
-   * Every withdrawn record in `dir`, whichever view was asked for.
+   * Every withdrawn record in scope, whichever withdrawal view was asked for.
    *
    * What was pulled is a property of the corpus, not of the caller's question, so this
    * list does not change between the default and pooled views. A consumer that reports a
    * figure can therefore say what was left out without loading the directory twice, and a
    * corpus that silently dropped a run is distinguishable from one that never had it.
+   *
+   * A `regime` filter does narrow it, because that option changes which runs are in scope
+   * at all rather than how an in-scope run is reported — a blocked-regime figure that
+   * disclosed an as-shipped withdrawal would be naming an exclusion from a pool it never
+   * described.
    */
   readonly withdrawnRecords: readonly AcceptanceRecord[];
 };

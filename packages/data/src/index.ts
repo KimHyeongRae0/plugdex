@@ -11,6 +11,9 @@ export {
   parseAcceptanceRecord,
   MalformedRecordError,
   MissingFingerprintError,
+  MissingEnvironmentAuditError,
+  MissingRegimeError,
+  UnknownRegimeError,
   MixedEnvironmentError,
   UnreasonedWithdrawalError,
 } from './load.js';
@@ -20,6 +23,7 @@ export type {
   AcceptanceRecord,
   Cell,
   InvalidReason,
+  Regime,
   RunEnv,
   TypecheckReason,
   Withdrawal,
