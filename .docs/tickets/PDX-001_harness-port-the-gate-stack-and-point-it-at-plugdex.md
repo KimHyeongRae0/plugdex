@@ -1,6 +1,6 @@
 # PDX-001 — Port the gate harness and point it at plugdex
 
-- Status: IN_PROGRESS
+- Status: DONE
 - Created: 2026-08-17
 
 ## 1. Goal

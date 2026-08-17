@@ -16,6 +16,6 @@ export const entries = [{
 }];
 export const declaredAuthor = () => '';
 export const readManifest = () => ({});
-export const readSource = () => ({ repo: 'o/r', commit: '', path: 'p', readAt: '2026-08-17', stars: 1 });
+export const readSource = () => ({ repo: 'o/r', commit: '', path: 'p', readAt: '2026-08-17', stars: 1, receipt: { starsCommand: 'gh api repos/o/r --jq .stargazers_count', readAt: '2026-08-17T00:00:00Z', fullName: 'o/r', forks: 0 } });
 JS
 }

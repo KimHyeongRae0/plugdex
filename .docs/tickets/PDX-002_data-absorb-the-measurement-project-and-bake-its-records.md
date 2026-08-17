@@ -1,6 +1,6 @@
 # PDX-002 — Absorb the measurement project and bake its records
 
-- Status: TODO
+- Status: DONE
 - Created: 2026-08-17
 
 ## 1. Goal
