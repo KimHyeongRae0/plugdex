@@ -53,13 +53,19 @@ FIXTURES="packages/registry/test/fixtures"
 # ---------------------------------------------------------------------------
 ENTRY_REPORT=$(node --input-type=module -e "
   import { entries } from './packages/registry/dist/index.js';
-  const required = ['packId','displayName','author','upstreamRepo','license','installSource','listingProvenance','optOutContact'];
+  const required = ['packId','displayName','author','upstreamRepo','license','stars','installSource','listingProvenance','optOutContact'];
   const bad = [];
   for (const e of entries) {
     for (const f of required) {
       const v = e[f];
       if (v === undefined || v === null) { bad.push(\`\${e.packId ?? '?'}.\${f}: missing\`); continue; }
       // Attribution fields are tagged values, not bare strings.
+      if (f === 'stars') {
+        // A star count with no read date is a claim with no expiry, which is the one
+        // shape a number on a provenance site must not have.
+        if (typeof v.count !== 'number' || !v.readAt) bad.push(\`\${e.packId}.stars: not recorded with the date it was read\`);
+        continue;
+      }
       if (['author','upstreamRepo','license'].includes(f)) {
         if (typeof v !== 'object' || !('from' in v)) { bad.push(\`\${e.packId}.\${f}: untagged\`); continue; }
         if (v.from === 'curated' && !v.why) bad.push(\`\${e.packId}.\${f}: curated with no why\`);
@@ -145,23 +151,21 @@ fi
 # Non-emptiness is checked FIRST. With no generator, two runs both produce nothing and
 # "identical" would be vacuously true — the fake-green the plan review flagged.
 #
-# The regeneration is compared in the sandbox rather than over the tracked file. Writing
-# the tracked marketplace.json in place and restoring it only on the failure branch leaves
-# it corrupted if the build dies mid-write, which is a review finding from round 3.
+# The regeneration goes to the sandbox via `--out` and the tracked file is never written.
+# An earlier version regenerated in place and restored only on the diff-fail branch, so a
+# generator dying mid-write left the committed manifest corrupted — a round-3 review
+# finding, and the report review then caught that the claimed fix had not closed it.
 # ---------------------------------------------------------------------------
 if [[ ! -s "$MARKET" ]]; then
   fail "AC-3: $MARKET is missing or empty — nothing to compare"
+elif ! node packages/registry/dist/generate-cli.js --out "$SB/regen.json" >"$SB/gen.log" 2>&1; then
+  fail "AC-3: the generator failed to run — $(tail -1 "$SB/gen.log")"
+elif [[ ! -s "$SB/regen.json" ]]; then
+  fail "AC-3: the generator wrote nothing — there is no second copy to compare"
+elif ! diff -q "$MARKET" "$SB/regen.json" >/dev/null 2>&1; then
+  fail "AC-3: regenerating produced a different file — output is not deterministic"
 else
-  cp "$MARKET" "$SB/first.json"
-
-  if ! pnpm --filter @plugdex/registry run generate --silent >"$SB/gen.log" 2>&1; then
-    fail "AC-3: the generator failed to run — $(tail -1 "$SB/gen.log")"
-  elif ! diff -q "$SB/first.json" "$MARKET" >/dev/null 2>&1; then
-    cp "$SB/first.json" "$MARKET"
-    fail "AC-3: regenerating changed the file — output is not deterministic"
-  else
-    pass "AC-3: regeneration is byte-identical ($(wc -c < "$MARKET" | tr -d ' ') bytes)"
-  fi
+  pass "AC-3: regeneration is byte-identical ($(wc -c < "$MARKET" | tr -d ' ') bytes)"
 fi
 
 # ---------------------------------------------------------------------------
@@ -239,7 +243,7 @@ print('SENTINEL ' + (plugins[0]['name'] + ' ' + d['name'] if plugins else ''))
         install_pack
     }; then
       fail "AC-5: install failed for ${FIRST_PACK}@${MKT_NAME} — $(tail -2 "$SB/install.log" | tr '\n' ' ')"
-    elif claude plugin list 2>/dev/null | grep -q "$FIRST_PACK"; then
+    elif INSTALLED=$(claude plugin list 2>/dev/null) && grep -q "$FIRST_PACK" <<<"$INSTALLED"; then
       pass "AC-5: ${FIRST_PACK}@${MKT_NAME} installed over ${TRANSPORT} and appears in the installed list"
     else
       fail "AC-5: install exited 0 but ${FIRST_PACK} is not in 'claude plugin list' — exit code alone asserted nothing"

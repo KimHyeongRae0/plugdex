@@ -14,6 +14,7 @@ export const entries = [{
   optOutContact: '',
 }];
 export const declaredAuthor = () => '';
+export const readSource = () => ({ repo: 'o/r', commit: 'abc', path: 'p', readAt: '2026-08-17', stars: 1 });
 export const readManifest = () => ({});
 JS
 }

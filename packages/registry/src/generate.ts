@@ -42,25 +42,64 @@ export interface Marketplace {
 const describe = ({ entry }: { entry: PackEntry }): string =>
   `${entry.displayName} by ${entry.author.value} — measured by plugdex`;
 
-/** The manifest, built from the entries in a stable order. */
-export const buildMarketplace = (): Marketplace => ({
+/**
+ * Thrown when two entries claim the same `packId`.
+ *
+ * The emitted manifest is keyed by name, so a duplicate would not be an error at
+ * generation and a silent last-writer-wins at install: one listing would quietly stand in
+ * for another, which on a provenance site means installing one author's work from a page
+ * about someone else's.
+ */
+export class DuplicatePackIdError extends Error {
+  override readonly name = 'DuplicatePackIdError';
+
+  constructor({ packId }: { packId: string }) {
+    super(`${packId}: two entries share this packId — the emitted manifest would keep only one`);
+  }
+}
+
+/**
+ * The manifest, built from the entries in a stable order.
+ *
+ * `from` defaults to the real listings and exists so the duplicate guard can be tested
+ * against the function that enforces it. A test that rebuilds the check on its own inputs
+ * proves the test, not the code.
+ *
+ * @throws {DuplicatePackIdError} two entries share a `packId`
+ */
+export const buildMarketplace = ({
+  from = entries,
+}: { from?: readonly PackEntry[] } = {}): Marketplace => ({
   name: 'plugdex',
   owner: { name: 'plugdex', url: 'https://github.com/KimHyeongRae0/plugdex' },
-  plugins: [...entries]
+  plugins: [...from]
     .sort((a, b) => a.packId.localeCompare(b.packId))
-    .map((entry) => ({
-      name: entry.packId,
-      source: entry.installSource,
-      description: describe({ entry }),
-    })),
+    .map((entry, index, sorted) => {
+      if (index > 0 && sorted[index - 1]?.packId === entry.packId) {
+        throw new DuplicatePackIdError({ packId: entry.packId });
+      }
+
+      return {
+        name: entry.packId,
+        source: entry.installSource,
+        description: describe({ entry }),
+      };
+    }),
 });
 
-/** Writes the manifest. Returns what it wrote, so a caller can assert on it. */
-export const writeMarketplace = (): string => {
+/**
+ * Writes the manifest. Returns what it wrote, so a caller can assert on it.
+ *
+ * `to` exists so a caller can regenerate somewhere else. The determinism check needs a
+ * second copy to compare against, and generating over the tracked file to get one means a
+ * generator that dies mid-write leaves the committed manifest corrupted — a round-3 review
+ * finding, and one that the earlier restore-on-failure branch did not actually close.
+ */
+export const writeMarketplace = ({ to = MARKETPLACE_PATH }: { to?: string } = {}): string => {
   const serialized = `${JSON.stringify(buildMarketplace(), null, 2)}\n`;
 
-  mkdirSync(dirname(MARKETPLACE_PATH), { recursive: true });
-  writeFileSync(MARKETPLACE_PATH, serialized, 'utf8');
+  mkdirSync(dirname(to), { recursive: true });
+  writeFileSync(to, serialized, 'utf8');
 
   return serialized;
 };

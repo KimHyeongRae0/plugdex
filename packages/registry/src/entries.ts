@@ -10,13 +10,13 @@
  * id drifted from its arm id would vanish from the catalogue while still being measured.
  */
 import type { PackEntry } from './schema.js';
-import { declaredAuthor, fromUpstream, readManifest } from './upstream.js';
+import { fromUpstream, recordedStars } from './upstream.js';
 
 const OPT_OUT = 'https://github.com/KimHyeongRae0/plugdex/issues/new?labels=opt-out';
 
 /** An `upstream`-tagged author read from the pack's own manifest. */
 const upstreamAuthor = ({ packId }: { packId: string }) =>
-  fromUpstream({ packId, value: declaredAuthor({ manifest: readManifest({ packId }) }) });
+  fromUpstream({ packId, field: 'author' });
 
 export const entries: readonly PackEntry[] = [
   {
@@ -35,6 +35,7 @@ export const entries: readonly PackEntry[] = [
       value: 'unstated',
       why: 'the pack manifest declares no license; we do not infer one on the author behalf',
     },
+    stars: recordedStars({ packId: 'ponytail' }),
     installSource: { source: 'github', repo: 'DietrichGebert/ponytail' },
     listingProvenance: {
       how: 'measured',
@@ -46,8 +47,9 @@ export const entries: readonly PackEntry[] = [
     packId: 'superpowers',
     displayName: 'superpowers',
     author: upstreamAuthor({ packId: 'superpowers' }),
-    upstreamRepo: fromUpstream({ packId: 'superpowers', value: 'obra/superpowers' }),
-    license: fromUpstream({ packId: 'superpowers', value: 'MIT' }),
+    upstreamRepo: fromUpstream({ packId: 'superpowers', field: 'repository' }),
+    license: fromUpstream({ packId: 'superpowers', field: 'license' }),
+    stars: recordedStars({ packId: 'superpowers' }),
     installSource: { source: 'github', repo: 'obra/superpowers' },
     listingProvenance: {
       how: 'measured',
@@ -69,6 +71,7 @@ export const entries: readonly PackEntry[] = [
       value: 'unstated',
       why: 'the pack manifest declares no license; we do not infer one on the author behalf',
     },
+    stars: recordedStars({ packId: 'caveman' }),
     installSource: { source: 'github', repo: 'JuliusBrussee/caveman' },
     listingProvenance: {
       how: 'measured',
@@ -90,7 +93,8 @@ export const entries: readonly PackEntry[] = [
       value: 'multica-ai/andrej-karpathy-skills',
       why: 'the pack manifest declares no repository field; this is the origin the measured copy was cloned from, and it belongs to neither the packager named in the manifest nor the author of the source CLAUDE.md',
     },
-    license: fromUpstream({ packId: 'karpathy', value: 'MIT' }),
+    license: fromUpstream({ packId: 'karpathy', field: 'license' }),
+    stars: recordedStars({ packId: 'karpathy' }),
     installSource: { source: 'github', repo: 'multica-ai/andrej-karpathy-skills' },
     listingProvenance: {
       how: 'measured',
@@ -102,8 +106,9 @@ export const entries: readonly PackEntry[] = [
     packId: 'mattpocock',
     displayName: 'mattpocock-skills',
     author: upstreamAuthor({ packId: 'mattpocock' }),
-    upstreamRepo: fromUpstream({ packId: 'mattpocock', value: 'mattpocock/skills' }),
-    license: fromUpstream({ packId: 'mattpocock', value: 'MIT' }),
+    upstreamRepo: fromUpstream({ packId: 'mattpocock', field: 'repository' }),
+    license: fromUpstream({ packId: 'mattpocock', field: 'license' }),
+    stars: recordedStars({ packId: 'mattpocock' }),
     installSource: { source: 'github', repo: 'mattpocock/skills' },
     listingProvenance: {
       how: 'measured',

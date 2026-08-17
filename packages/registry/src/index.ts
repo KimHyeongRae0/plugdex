@@ -1,10 +1,17 @@
 export { entries, excludedArms } from './entries.js';
-export { buildMarketplace, MARKETPLACE_PATH, type Marketplace } from './generate.js';
+export {
+  buildMarketplace,
+  DuplicatePackIdError,
+  MARKETPLACE_PATH,
+  type Marketplace,
+} from './generate.js';
 export type {
   Attributed,
   InstallSource,
   ListingProvenance,
+  ManifestSource,
   PackEntry,
+  StarsAtRecordTime,
   UpstreamManifest,
 } from './schema.js';
 export {
@@ -13,4 +20,6 @@ export {
   fromUpstream,
   MissingManifestError,
   readManifest,
+  readSource,
+  recordedStars,
 } from './upstream.js';

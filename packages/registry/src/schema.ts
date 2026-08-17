@@ -32,6 +32,34 @@ export interface InstallSource {
   readonly repo: string;
 }
 
+/**
+ * A star count and the moment it was true.
+ *
+ * A bare number would be a claim with no expiry, and stars move. Recording when it was
+ * read is what lets a reader decide whether to believe it, which is the same discipline
+ * the measurement records follow.
+ */
+export interface StarsAtRecordTime {
+  readonly count: number;
+  /** ISO date the count was read. */
+  readonly readAt: string;
+}
+
+/**
+ * Where a recorded manifest came from.
+ *
+ * DEC-011 records a pack's manifest verbatim so our listing can be audited against it.
+ * Without the commit it was read from, the audit has no fixed point: the upstream file
+ * changes and the recorded copy silently becomes a claim about a version nobody can name.
+ */
+export interface ManifestSource {
+  readonly repo: string;
+  readonly commit: string;
+  readonly path: string;
+  readonly readAt: string;
+  readonly stars: number;
+}
+
 /** How a pack came to be listed, and how its author can have that undone. */
 export interface ListingProvenance {
   readonly how: 'measured' | 'requested' | 'curated';
@@ -46,6 +74,7 @@ export interface PackEntry {
   readonly author: Attributed;
   readonly upstreamRepo: Attributed;
   readonly license: Attributed;
+  readonly stars: StarsAtRecordTime;
   readonly installSource: InstallSource;
   readonly listingProvenance: ListingProvenance;
   readonly optOutContact: string;
