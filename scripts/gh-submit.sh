@@ -5,14 +5,14 @@
 # Creating them with raw `gh issue create` / `gh pr create` is forbidden
 # (CLAUDE.md) — this wrapper makes every submission come out identical:
 #
-#   - body comes from the TMPL-01-gated draft (.docs/drafts/{issue,pr}-ont-###.md)
+#   - body comes from the TMPL-01-gated draft (.docs/drafts/{issue,pr}-pdx-###.md)
 #   - title is derived, never hand-typed:
 #       issue: "PDX-###: <Title from the ticket H1>"
 #       pr:    the HEAD commit title (already "PDX-###: <summary> (#N)")
 #   - assignee is ALWAYS the authenticated user (resolved at runtime)
 #   - labels are derived deterministically:
 #       area  = the known area the ticket slug starts with, longest match
-#               (harness core cli mcp studio docs-gen)
+#               (site data registry harness docs)
 #       type  = from the branch prefix: feat->enhancement, fix->bug,
 #               docs->documentation, chore->chore
 #     missing labels are created on the fly (idempotent)
@@ -67,10 +67,10 @@ fi
 
 # ---- derived labels ----
 # Area = the known area the ticket slug starts with. Prefix matching (not a
-# first-hyphen-token cut) so hyphenated areas like docs-gen are reachable;
-# longest match wins so docs-gen never collapses to a shorter area.
+# first-hyphen-token cut) so a multi-word area stays reachable; longest match
+# wins so a longer area never collapses to a shorter one that prefixes it.
 SLUG=$(basename "$TICKET_FILE" | sed "s/^${TICKET_ID}_//; s/\.md$//")
-AREA_LABELS="harness core cli mcp studio docs-gen"
+AREA_LABELS="site data registry harness docs"
 LABELS=()
 AREA_MATCH=""
 for a in $AREA_LABELS; do
