@@ -44,6 +44,7 @@ commonly called "Karpathy's skills" is listed as `andrej-karpathy-skills` by
 | `tests/e2e/PDX-003-the-hub-installs.sh` | The scenario |
 | `.github/workflows/ci.yml` | Installs the Claude Code CLI so AC-5 can run on the runner |
 | `.prettierignore` | Recorded manifests exempted from formatting (DEC-013) |
+| `scripts/check-structure.sh`, `CLAUDE.md` | `.claude-plugin/` registered in the layout — the path is fixed by the CLI, so it is registered rather than relocated |
 | `DESIGN.md` | DEC-012, DEC-013, DEC-014 |
 
 ## 3. Plan Compliance

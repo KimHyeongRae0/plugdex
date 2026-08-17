@@ -53,7 +53,10 @@ for f in * .[!.]*; do
 done
 
 # ---- ST-07: known top-level directories ----
-KNOWN_DIRS='^(packages|bench|docs|\.docs|scripts|tests|\.git|\.github|\.claude|node_modules)$'
+# `.claude-plugin/` holds the generated marketplace manifest. The name is fixed by the
+# Claude Code CLI — it is where `claude plugin marketplace add` looks — so it is
+# registered rather than relocated.
+KNOWN_DIRS='^(packages|bench|docs|\.docs|scripts|tests|\.git|\.github|\.claude|\.claude-plugin|node_modules)$'
 for d in */ .[!.]*/; do
   [[ -d "$d" ]] || continue
   name="${d%/}"
