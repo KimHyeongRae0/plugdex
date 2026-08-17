@@ -8,6 +8,8 @@ export default tseslint.config(
       '.docs/**',
       '.claude/**',
       '**/.astro/**',
+      // Imported, not authored here (PDX-002).
+      'bench/**',
     ],
   },
   ...tseslint.configs.recommended,

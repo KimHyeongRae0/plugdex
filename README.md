@@ -35,8 +35,10 @@ anyone's code.
 
 ## Status
 
-Early. The measurement harness and its data exist; the catalogue is being built ticket
-by ticket. Numbers on the site are traceable to a fingerprinted run or they are not on
+Early. The catalogue is being built ticket by ticket on top of measurements that are
+already in this repository: [`bench/`](bench/) holds the harness and every graded run,
+imported with its history intact so a preregistration still provably precedes the runs
+it predicts. Numbers on the site are traceable to a fingerprinted run or they are not on
 the site (DATA-01).
 
 ## Withdrawals

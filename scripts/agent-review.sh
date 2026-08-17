@@ -39,7 +39,7 @@ rubric_items() {
     cat <<'EOF'
 P1	Scope fidelity: the plan stays inside the ticket's Scope.Allowed / NotAllowed and addresses every AC
 P2	Step granularity: steps touch 1-3 files each and are independently verifiable
-P3	Decision consistency: no conflict with DESIGN.md decisions or docs/DECISIONS.md
+P3	Decision consistency: no conflict with the DESIGN.md decision log
 P4	Test plan: concrete e2e file(s) with explicit RED and GREEN conditions covering each AC
 P5	Risk coverage: risks, mitigations, and Out of Scope are explicit
 P6	Language policy: the plan and referenced artifacts are English-only (LANG-01)
@@ -95,10 +95,10 @@ if [[ "$MODE" == "prompt" ]]; then
   echo ""
   cat <<EOF
 You are the review agent for the ${PROMPT_TYPE} document of the plugdex project
-(a TypeScript library that turns a zod-declared domain ontology into two rails:
-generated agent-facing docs and a governed MCP server with human-in-the-loop
-approvals and a tamper-evident audit log). The normative spec is DESIGN.md
-(Korean, LANG-01 allowlisted).
+(the hub for agent behaviour packs: a static catalogue plus a generated
+marketplace, where every listing carries a measured verdict — we ran the pack
+against real tickets and built the code it delivered). The normative spec is
+DESIGN.md.
 
 ## CARDINAL RULE (must acknowledge)
 GitHub-external actions (commit/push/issue/PR/merge/release) are forbidden without an
@@ -106,17 +106,16 @@ explicit user instruction. This review itself is read-only — do not run git mu
 and do not write comments recommending commit/push either.
 
 ## LANG-01 (must acknowledge)
-This repository is English-only (sole allowlisted exception: DESIGN.md, the Korean
-normative spec — product data, not prose). Write your entire review in English. Flag
-any non-allowlisted Korean text you find in the reviewed artifacts as a Blocker.
+This repository is English-only with NO allowlist — DESIGN.md included. Write your
+entire review in English. Flag any Korean text you find in the reviewed artifacts as
+a Blocker.
 
 ## Context (read first, in this order)
 1. CLAUDE.md                  (project instructions, rules CR-01 / LANG-01)
 2. docs/WORKFLOW.md           (the 9-stage gate cycle — you are gate ${PROMPT_TYPE_TITLE} review)
-3. DESIGN.md                  (product design + decision log — Korean, allowlisted)
-4. docs/DECISIONS.md          (build-time decision log DEC-###, if present)
-5. ${TICKET_FILE:-".docs/tickets/${TICKET_ID}_*.md"} (current ticket — part of what you review)
-6. ${TARGET_FILE}             (${PROMPT_TYPE_TITLE} document — part of what you review)
+3. DESIGN.md                  (product design, reference designs, decision log DEC-###)
+4. ${TICKET_FILE:-".docs/tickets/${TICKET_ID}_*.md"} (current ticket — part of what you review)
+5. ${TARGET_FILE}             (${PROMPT_TYPE_TITLE} document — part of what you review)
 
 ## What to review (evaluate these together)
 1. **The ticket itself** — are Goal/Scope/AC/Edge Cases clear, are ACs objectively
@@ -133,17 +132,17 @@ EOF
   if [[ "$PROMPT_TYPE" == "plan" ]]; then
     cat <<EOF
 - Are the plan steps small enough (1–3 files per step)?
-- Are applied rule/decision IDs stated (LANG-01, DESIGN.md D-IDs, DECISIONS.md entries)?
+- Are applied rule/decision IDs stated (LANG-01, DESIGN.md sections, DEC-### entries)?
 - Is the risk identification sufficient?
 - Is Out of Scope explicit?
 - Does it match the ticket's Scope.Allowed / NotAllowed?
-- Does it conflict with decisions recorded in DESIGN.md or docs/DECISIONS.md?
+- Does it conflict with decisions recorded in the DESIGN.md decision log?
 - **REF-01** — for a mapped ticket (PDX-002+), does §8.5 References Consulted show each
   required reference actually opened (Y + note)? PDX-001 is exempt (see check-references.sh).
 - **§7 Test Plan mandatory (TDD)** — are the e2e scenario file(s), RED condition, and
   GREEN condition concrete? Is the unit-test decision justified?
 - **§8 Feature Tags** — can this ticket be mapped to regression scenarios?
-- **LANG-01** — any non-allowlisted non-English text in the plan or referenced
+- **LANG-01** — any non-English text in the plan or referenced
   artifacts is a Blocker.
 EOF
   else
@@ -164,7 +163,7 @@ EOF
 - **Is CR-01 Compliance YES** — no trace of commit/push/issue/PR executed without
   explicit user instruction (check git log + report Risks/Notes)?
 - **LANG-01** — verification command: \`./scripts/check-language.sh\` must pass; any
-  non-allowlisted Korean text in code, comments, docs, or fixtures is a Blocker.
+  Korean text in code, comments, docs, or fixtures is a Blocker.
 EOF
   fi
 

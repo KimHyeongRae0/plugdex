@@ -30,11 +30,11 @@ body:
     attributes:
       label: Area
       options:
-        - core
-        - cli
-        - mcp
-        - studio
-        - docs-gen
+        - site
+        - data
+        - registry
+        - harness
+        - docs
         - other
     validations:
       required: true
