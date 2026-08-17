@@ -32,12 +32,25 @@ echo "PDX-002 — records are traceable"
 # files at the root, so a pathspec-filtered log correctly shows only the merge.
 # The commits are reached through the graft merge's second parent instead.
 # ---------------------------------------------------------------------------
-GRAFT=$(git log --format='%H %P' | awk 'NF==3 {print $1; exit}')
+#
+# The graft is identified by what its second parent CONTAINS, not by being the first
+# merge in the log. On CI that heuristic picks the wrong commit: GitHub checks a pull
+# request out as `refs/pull/N/merge`, a merge of the branch into base, whose second
+# parent is `main` — so the scenario read main's history, found no PREREGISTRATION-2.md,
+# and failed on CI while passing locally. Searching for the merge whose second parent
+# holds the file at its root finds the import no matter what else has been merged.
+GRAFT=""
+IMPORTED_TIP=""
+while read -r sha p1 p2; do
+  [[ -n "$p2" ]] || continue
+  if git cat-file -e "$p2:PREREGISTRATION-2.md" 2>/dev/null; then
+    GRAFT="$sha"; IMPORTED_TIP="$p2"; break
+  fi
+done < <(git log --format='%H %P')
 
 if [[ -z "$GRAFT" ]]; then
-  fail "AC-1: no merge commit found — bench/ was never imported"
+  fail "AC-1: no merge whose second parent holds PREREGISTRATION-2.md — bench/ was never imported"
 else
-  IMPORTED_TIP=$(git log -1 --format=%P "$GRAFT" | awk '{print $2}')
   N_COMMITS=$(git rev-list --count "$IMPORTED_TIP" 2>/dev/null || echo 0)
 
   if [[ "$N_COMMITS" -lt 4 ]]; then
