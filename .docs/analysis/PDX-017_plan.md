@@ -321,36 +321,55 @@ that made the evidence honest rather than merely correct.
 
 ## 9. Agent Review
 
-_(placeholder — review not yet written)_
-
 ### Reviewer
-- Model:
-- Reviewed at:
+- Model: Fable 5
+- Reviewed at: 2026-08-18 00:53
 
 ### Verdict
 - [ ] APPROVED
-- [ ] APPROVED_WITH_NOTES
+- [x] APPROVED_WITH_NOTES
 - [ ] NEEDS_REVISION
 
 ### Rubric
 
 | ID | Item | Verdict | Evidence |
 |---|---|---|---|
-| P1 | Goal and scope: the plan's goal matches the ticket, and Scope Check shows Allowed/NotAllowed respected | | |
-| P2 | Steps: concrete, ordered, each naming its files, implementable without further design decisions | | |
-| P3 | Design soundness: the mechanisms proposed are correct, and no proposed decision contradicts DESIGN.md or the decision log | | |
-| P4 | Test plan: TDD-real (a RED that must fail before implementation), PLAN-01 and ASSERT-01 respected | | |
-| P5 | Risks: the real ones are named, with what would be done about each | | |
-| P6 | Rules/decisions applied: the rules this ticket touches are named and correctly interpreted | | |
-| P7 | REF-01: required references for this ticket are shown consulted with a note | | |
+| P1 | Goal and scope: the plan's goal matches the ticket, and Scope Check shows Allowed/NotAllowed respected | PASS | Every file steps 1-12 touch is in the ticket's Scope.Allowed (including the round-1 amendments: `bench/harness/acceptance.py`, `tests/e2e/PDX-002-*`, `tests/e2e/PDX-016-*`), and each of AC-1..AC-7 has a step plus a RED/GREEN row in §7; §2's "touches only" list is stale against steps 11-12 — carried as comment 1, not a scope breach |
+| P2 | Steps: concrete, ordered, each naming its files, implementable without further design decisions | PASS | The coin-flip decisions are pre-made in the step text: parse order fixed in step 1 (matches `load.ts` — fingerprint at src/load.ts:103 before audit at :109), two distinct error names, DEC-019 chosen with its reason, and a golden-case construction table showing each case trips exactly one rule |
+| P3 | Design soundness: the mechanisms proposed are correct, and no proposed decision contradicts DESIGN.md or the decision log | PASS | Re-verified first-hand: DESIGN.md's log ends at DEC-015 (lines 155-169) while DEC-016..018 are held by PDX-004's approved plan and shipped code (`packages/data/src/verdict.ts:9,34`, `verdict.test.ts`, `global.css`), so DEC-019 is collision-free and no dangling DEC-016 reference survives in this plan or the ticket; step 12 matches `acceptance.py` reality (it writes `{run, env, cells}`, has no `--regime`, and `20260817-162601`'s `results.json` carries top-level `"regime": "blocked"` beside `no_run_prompt` and `run_py_sha256`) |
+| P4 | Test plan: TDD-real (a RED that must fail before implementation), PLAN-01 and ASSERT-01 respected | PASS | RED verified by execution: `grep -rn regime packages/data/src/` exits 1, zero of the 10 acceptance records carry a `regime` key, `fisher.py:106` still derives it from the name, and `check-data-universe.sh` defines only DATA-02a-d; floors, sentinels, and the regimes-sum-to-unfiltered check satisfy ASSERT-01; one PLAN-01 wording overreach carried as comment 2 |
+| P5 | Risks: the real ones are named, with what would be done about each | PASS | The blast-radius enumeration was re-derived independently — `git ls-files \| grep -v bench/data/runs \| xargs grep -ln npm_fingerprint` yields exactly the constructors steps 1/11/12 cover, and the two other `acceptance.json`-referencing candidates construct nothing (`PDX-001` e2e greps a string; `derive_d001.py` reads the frozen corpus directly at :55-60 and calls `load_cells` only at :173, with no filename-regime logic of its own) |
+| P6 | Rules/decisions applied: the rules this ticket touches are named and correctly interpreted | PASS | §6 names DATA-02/DATA-01/CLAIM-01/GATE-01/ASSERT-01/PLAN-01/DEC-005/DEC-015 and produces DEC-019; the step-6 claim that only `docs/WORKFLOW.md` carries the "withdrawal only" sentence checks out (WORKFLOW.md §3 DATA-02 row has it, CLAUDE.md's row does not, and `check-data-universe.sh` header lines 16-18 carry the copy step 5 removes) |
+| P7 | REF-01: required references for this ticket are shown consulted with a note | PASS | `./scripts/check-references.sh .docs/analysis/PDX-017_plan.md` → "PDX-017 has no mapped references — nothing required / REF-01 PASS" (exit 0); §8.5 nonetheless records three references Y + note, and both preregistration citations plus the D-002 table were re-read and match (`PREREGISTRATION.md:91`, `PREREGISTRATION-2.md:67`, `PREREGISTRATION-3.md:29`, `bench/README.md:85-88`) |
 
 ### Comments
-1.
+1. **§2's "every step touches only ..." list is stale against the plan's own steps 11-12.**
+   It omits `bench/harness/acceptance.py`, `tests/e2e/PDX-002-records-are-traceable.sh`,
+   and `tests/e2e/PDX-016-the-corpus-agrees-with-itself.sh` — the three round-1 additions
+   the ticket's Scope.Allowed now names. Nothing out-of-scope is touched, so this is a
+   sentence that lags its own document, not a scope defect. Rides to the report (REV-02).
+2. **§6's PLAN-01 bullet overclaims by four figures.** It says the scenario asserts 25%,
+   73%, 5/20, and 8/11, but no §7 row pins them — AC-3's comparison uses equality and
+   floors, and AC-4/AC-6 anchor only the D-002 rows and `derive_d001.py`'s pair. The
+   figures are correct today (re-derived from the live corpus: blocked baseline build
+   5/20, as-shipped 8/11, pooled 13/31), so either add them as AC-3 anchors when writing
+   the scenario or narrow §6's sentence in the report. Rides to the report (REV-02).
+3. **The step-12 test row is labelled "AC-2 (writer)" but ticket AC-2 is about the
+   loader.** The writer behaviour is ticket-Allowed and well-specified; the label just
+   borrows an AC number that does not cover it. Cosmetic.
+4. Round-1 closure checks were all re-verified first-hand and hold: the DEC-019 skip, the
+   step-11 enumeration, the step-12 writer gap and `162601`'s machine-written regime, the
+   step-1 parse order against `PDX-002-records-are-traceable.sh:131-149` (its synthetic
+   record `{"run":"synthetic","env":{},"cells":[]}` misses both fields and accepts only
+   `MissingFingerprintError`), and §1's evidence tiers — the handoff per-run table names
+   regimes for exactly the seven runs the plan says (its `225842`, `222615`, and `162601`
+   rows carry no regime), and the corpus holds exactly 3 valid sonnet superpowers cells in
+   each of `222615` and `162601`, so the 6/6 decomposition is as stated.
 
 ### Blockers (only if NEEDS_REVISION)
--
+- None.
 
 ## 10. Final Plan Status
 
-- Agent: _(pending)_
+- Agent: APPROVED_WITH_NOTES (round 2, Fable 5, 2026-08-18 00:53 — 0 blockers; round-1 closures verified first-hand; 3 non-blocking comments ride to the report per REV-02)
 - Human: _(pending)_
