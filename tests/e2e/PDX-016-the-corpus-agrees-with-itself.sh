@@ -126,6 +126,8 @@ for entry in spec:
 
     if "withdrawn" in entry:
         record["withdrawn"] = entry["withdrawn"]
+    elif entry.get("null_withdrawal"):
+        record["withdrawn"] = None
 
     with open(os.path.join(target, f"{run}.acceptance.json"), "w", encoding="utf-8") as handle:
         json.dump(record, handle)
@@ -531,6 +533,10 @@ python3 "$SB/plant.py" "$SB/decoy-runs" "[
   {\"run\": \"20200105-000000-innocent-name-but-pulled\", \"cells\": 2, \"withdrawn\": $REASONED}
 ]" 2>/dev/null
 
+python3 "$SB/plant.py" "$SB/null-runs" '[
+  {"run": "20200106-000000-explicitly-null", "cells": 2, "null_withdrawal": true}
+]' 2>/dev/null
+
 cat > "$SB/ac4.py" <<'PY'
 import json, os, subprocess, sys
 
@@ -576,6 +582,26 @@ if len(pooled) != 5 or len(pooled_runs) != 2:
         "wanted 5 across 2"
     )
 
+# An explicit `"withdrawn": null` is where the two loaders would part company without
+# anybody noticing: `.get()` reads it as absent, the TypeScript parser refuses it. Both
+# must refuse, or a malformed withdrawal means one thing on one side of the project and
+# another on the other.
+null_corpus = os.path.join(sandbox, "null-runs")
+refusal = "nothing raised"
+
+try:
+    load_cells(runs_dir=null_corpus)
+except ValueError as error:
+    refusal = "ValueError"
+except Exception as error:
+    refusal = type(error).__name__
+
+if refusal != "ValueError":
+    problems.append(
+        f"an explicit null withdrawal produced {refusal} — the Python loader read it as "
+        "absent while the TypeScript loader refuses it"
+    )
+
 # The self-validation is a property of this module and must still be alive after the edit.
 selftest = subprocess.run(
     ["python3", os.path.join(root, "bench", "harness", "fisher.py")],
@@ -587,7 +613,8 @@ if "textbook tables validated" not in selftest.stdout:
 
 detail = (
     "no filename constant survives; on a corpus whose names contradict its records the "
-    "loader believes the records (3 cells default, 5 pooled); self-validation still runs"
+    "loader believes the records (3 cells default, 5 pooled); an explicit null withdrawal "
+    "is refused on both sides; self-validation still runs"
 )
 
 print("SENTINEL " + json.dumps({"ok": not problems, "detail": "; ".join(problems) or detail}))

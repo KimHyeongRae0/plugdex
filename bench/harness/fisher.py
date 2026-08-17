@@ -17,11 +17,6 @@ from math import comb
 
 RUNS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "runs")
 
-# The run withdrawn as instrument failure 16: it carried an extra instruction the other
-# runs did not, and was graded against a different set of installed packages. It is
-# excluded by default and kept on disk rather than deleted.
-WITHDRAWN_RUN = "20260815-225842"
-
 
 def fisher_exact_two_tailed(table):
     """p for [[a, b], [c, d]] with both margins fixed.
@@ -60,24 +55,56 @@ for _table, _expected in _TEXTBOOK:
 def load_cells(include_withdrawn=False, runs_dir=RUNS_DIR):
     """Every graded cell from the acceptance records, newest schema.
 
-    Each cell gains `_run` and `_regime`. The regime is read off the filename because the
-    runner gained that stamp after these runs were written, so it is not a field on the
-    record — a run-level condition that moves the baseline build rate from 35% to 73%
-    living only in a human-readable filename is a DATA-01 problem in spirit, and this
-    function is where that is paid for.
+    Withdrawal is read off the record's own `withdrawn` field. It used to be read off the
+    filename, which put the fact that decides what every published figure is computed over
+    in the one place no type could reach, no gate could check, and the TypeScript half of
+    this project could not see at all — the two halves disagreed by 76 cells for as long
+    as that lasted. A record marked withdrawn without a reason is refused rather than
+    honoured: an exclusion nobody can argue with is a deletion.
+
+    Each cell gains `_run`, `_regime`, and `_withdrawn`. The regime is still read off the
+    filename because the runner gained that stamp after these runs were written, so it is
+    not a field on the record — a run-level condition that moves the baseline build rate
+    from 35% to 73% living only in a human-readable filename is the same DATA-01 problem
+    one field over, and it is left standing here deliberately, with its successor ticket
+    named in DESIGN.md, rather than fixed in the same diff that relocates withdrawal.
     """
     cells = []
 
     for path in sorted(glob.glob(os.path.join(runs_dir, "*.acceptance.json"))):
         name = os.path.basename(path)
+        record = json.load(open(path, encoding="utf-8"))
 
-        if not include_withdrawn and name.startswith(WITHDRAWN_RUN):
-            continue
+        # Presence, not truthiness. `.get()` reads an explicit `"withdrawn": null` as
+        # absent, while the TypeScript loader refuses it — and two loaders that disagree
+        # about a malformed withdrawal is the exact defect this field was moved to end.
+        withdrawn = "withdrawn" in record
+        withdrawal = record.get("withdrawn")
 
-        for cell in json.load(open(path, encoding="utf-8"))["cells"]:
+        if withdrawn:
+            if not isinstance(withdrawal, dict):
+                raise ValueError(
+                    f"{name}: withdrawn is present but not an object — "
+                    "a withdrawal with nothing to argue with is a deletion"
+                )
+
+            reason = str(withdrawal.get("reason", "")).strip()
+            recorded_at = str(withdrawal.get("recorded_at", "")).strip()
+
+            if not reason or not recorded_at:
+                raise ValueError(
+                    f"{name}: withdrawn carries no reason or no recorded_at — "
+                    "a withdrawal with nothing to argue with is a deletion"
+                )
+
+            if not include_withdrawn:
+                continue
+
+        for cell in record["cells"]:
             cell = dict(cell)
             cell["_run"] = name.split(".")[0]
             cell["_regime"] = "as-shipped" if "as-shipped" in name else "blocked"
+            cell["_withdrawn"] = withdrawn
             cells.append(cell)
 
     return cells

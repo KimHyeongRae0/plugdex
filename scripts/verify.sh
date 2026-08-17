@@ -34,15 +34,15 @@ skip() { echo -e "${YELLOW}⏭  $1${NC}"; }
 START_TS=$(date +%s)
 
 # ---- 1. Language (LANG-01) ----
-step "1/10 Language gate (LANG-01)"
+step "1/11 Language gate (LANG-01)"
 ./scripts/check-language.sh || fail "check-language"
 
 # ---- 2. Structure (ST-*) ----
-step "2/10 Structure gate"
+step "2/11 Structure gate"
 ./scripts/check-structure.sh || fail "check-structure"
 
 # ---- 3. Gate self-test (golden set, tests/meta) ----
-step "3/10 Gate self-test"
+step "3/11 Gate self-test"
 if [[ "${PLUGDEX_GATE_SANDBOX:-0}" == "1" ]]; then
   skip "inside a gate sandbox — self-test skipped (recursion guard)"
 else
@@ -50,12 +50,20 @@ else
 fi
 
 # ---- 4. No-LLM (NOLLM-01) ----
-step "4/10 No-LLM gate (NOLLM-01)"
+step "4/11 No-LLM gate (NOLLM-01)"
 ./scripts/check-no-llm.sh || fail "check-no-llm"
 
 # ---- 5. Templates (TMPL-01) ----
-step "5/10 Templates gate (TMPL-01)"
+step "5/11 Templates gate (TMPL-01)"
 ./scripts/check-templates.sh || fail "check-templates"
+
+# ---- 6. Record universe (DATA-02) ----
+# Before the workspace check on purpose: the gate reads `bench/` and the analysis loader
+# with stock python, so it has an answer whether or not a package has landed yet. The
+# facts it guards decide what every published figure is computed over, and those existed
+# before the first package did.
+step "6/11 Record-universe gate (DATA-02)"
+./scripts/check-data-universe.sh || fail "DATA-02"
 
 HAS_PKG=0
 for p in packages/*/package.json; do
@@ -71,31 +79,31 @@ fi
 command -v node >/dev/null || fail "node not found in PATH"
 command -v pnpm >/dev/null || fail "pnpm not found in PATH"
 
-# ---- 6. Typecheck ----
-step "6/10 pnpm typecheck"
+# ---- 7. Typecheck ----
+step "7/11 pnpm typecheck"
 pnpm typecheck || fail "pnpm typecheck"
 ok "typecheck"
 
-# ---- 7. Lint ----
-step "7/10 pnpm lint"
+# ---- 8. Lint ----
+step "8/11 pnpm lint"
 pnpm lint || fail "pnpm lint"
 ok "lint"
 
-# ---- 8. Tests ----
-step "8/10 pnpm test"
+# ---- 9. Tests ----
+step "9/11 pnpm test"
 pnpm test || fail "pnpm test"
 ok "test"
 
-# ---- 9. Build ----
-step "9/10 pnpm build"
+# ---- 10. Build ----
+step "10/11 pnpm build"
 pnpm build || fail "pnpm build"
 ok "build"
 
-# ---- 10. SRC-01 ----
+# ---- 11. SRC-01 ----
 # Runs after the build on purpose: the gate reads the built registry, because what a
 # consumer installs is generated output rather than source. Before the build there is
 # nothing to check, and the gate says so rather than passing.
-step "10/10 Attribution gate (SRC-01)"
+step "11/11 Attribution gate (SRC-01)"
 ./scripts/check-src.sh || fail "SRC-01"
 ok "SRC-01"
 

@@ -1,6 +1,6 @@
 # PDX-016 — Withdrawn runs are a record, not a filename
 
-- Status: TODO
+- Status: DONE
 - Created: 2026-08-17
 
 ## 1. Goal
@@ -53,19 +53,19 @@ only because a plan reviewer read the loader.
 
 ## 3. Acceptance Criteria
 
-- [ ] AC-1: **the withdrawal is a field.** An acceptance record's run header carries an
+- [x] AC-1: **the withdrawal is a field.** An acceptance record's run header carries an
       optional `withdrawn: { reason, recordedAt }`, typed and parsed. The affected run
       (`20260815-225842`) carries it, with instrument failure 16 named as the reason
-- [ ] AC-2: **the loader honours the field, never the filename.** `loadAcceptanceRecords`
+- [x] AC-2: **the loader honours the field, never the filename.** `loadAcceptanceRecords`
       excludes withdrawn runs by default and exposes them explicitly on request. Asserted
       by a unit test on a synthetic corpus, so the assertion does not depend on which runs
       happen to exist
-- [ ] AC-3: **no figure moves.** The cell count, valid-cell count, and per-arm build counts
+- [x] AC-3: **no figure moves.** The cell count, valid-cell count, and per-arm build counts
       computed by the TypeScript loader after this change equal the ones
       `bench/harness/fisher.py` computes today with `include_withdrawn=False`. Asserted by
       the scenario comparing both implementations on the live corpus — the disagreement
       this ticket exists to end is proven ended, not asserted
-- [ ] AC-4: **the Python side reads the field too.** `fisher.py` selects on the record's
+- [x] AC-4: **the Python side reads the field too.** `fisher.py` selects on the record's
       withdrawal field rather than a filename prefix, and its self-validation still passes.
       **No filename comparison may decide whether a live record enters an analysis pool.**
       Exempt: selections over a frozen historical corpus read through `git show <commit>:`,
@@ -76,17 +76,17 @@ only because a plan reviewer read the loader.
       verified would block the forensic selections at `derive_d001.py:100/:101/:138` and
       even a task-name prefix at `:50`. The AC now states the property it was protecting —
       inclusion in a live pool — rather than a syntax it happened to notice.)
-- [ ] AC-5: **a gate makes the disagreement impossible to reintroduce.**
+- [x] AC-5: **a gate makes the disagreement impossible to reintroduce.**
       `scripts/check-data-universe.sh` BLOCKs (a) a run whose filename says withdrawn
       while its record does not, or the reverse, and (b) a filename comparison in the
       harness that decides a live record's inclusion in an analysis pool — under AC-4's
       wording and its frozen-corpus exemption. Proven by golden cases on both sides,
       replayed by `check-gates.sh`
-- [ ] AC-6: **the change is derived, not asserted.** `bench/DERIVATIONS.md` gains an entry
+- [x] AC-6: **the change is derived, not asserted.** `bench/DERIVATIONS.md` gains an entry
       recording what the corpus contains before and after, with the command that
       reproduces both — including the fact that the published figures do not change,
       which is the claim this ticket most needs to be able to defend
-- [ ] AC-7: `verify.sh` runs the new gate and the golden set is unregressed
+- [x] AC-7: `verify.sh` runs the new gate and the golden set is unregressed
 
 ## 4. Edge Cases & Error Handling
 

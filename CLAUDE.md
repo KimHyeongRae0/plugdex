@@ -147,13 +147,20 @@ Key invariants:
 
 ## Rules this project adds to the lineage
 
-These three exist because plugdex publishes other people's work and our own numbers.
-They are the reason the harness was worth porting rather than reinventing.
+These exist because plugdex publishes other people's work and our own numbers. They are
+the reason the harness was worth porting rather than reinventing.
 
 - **DATA-01 — no hand-typed numbers.** Every figure rendered by the site must come
   from a record in `packages/data`, and every record must carry the environment
   fingerprint of the run that produced it. A number typed into a component is a
   number nobody can check.
+- **DATA-02 — no fact that governs the analysis lives outside the record.** DATA-01's
+  other half. Which records a figure is computed over is decided by fields on those
+  records — a withdrawal carries its reason and its date on the record itself — and no
+  filename comparison decides whether a live record enters an analysis pool. The rule
+  exists because the opposite shipped: one run was excluded by a filename prefix inside
+  a single analysis script, and the two halves of this codebase disagreed by 76 cells
+  about what the corpus was. Gate: `./scripts/check-data-universe.sh` (verify step 6).
 - **CLAIM-01 — withdrawn claims stay reachable.** A published verdict that turns out
   to be wrong is corrected in place and its previous value, the cause, and the
   replacement remain on the site. Deleting a wrong number is worse than never
@@ -215,7 +222,7 @@ rendered is a DEV-01 violation.
 
 ## Verification commands
 
-- `./scripts/verify.sh` — check-language + check-structure + check-gates + check-no-llm + check-templates + typecheck + lint + test + build
+- `./scripts/verify.sh` — check-language + check-structure + check-gates + check-no-llm + check-templates + check-data-universe + typecheck + lint + test + build + check-src
 - `./scripts/check-gates.sh` — gate self-test (golden set of planted violations)
 - `./scripts/workflow-state.sh show <ID>` — per-ticket stage stamps (order enforcement)
 - `./scripts/gate-stats.sh` — gate-run observability summary

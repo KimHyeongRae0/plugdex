@@ -6,7 +6,7 @@
 > artifact in this repository is written in English (LANG-01, see CLAUDE.md — and
 > unlike the lineage, there is **no allowlist**). plugdex adds three gates the lineage
 > never had, because plugdex publishes other people's work and its own numbers:
-> DATA-01, CLAIM-01, SRC-01 (see §3).
+> DATA-01, DATA-02, CLAIM-01, SRC-01 (see §3).
 
 ## Contents
 
@@ -88,7 +88,8 @@ Without an explicit RED stage, a test-case may already PASS before implementatio
 fake cycle. The RED gate requires both conditions simultaneously:
 
 - `verify` (check-language + check-structure + check-gates + check-no-llm +
-  check-templates + typecheck + lint + test + build) PASS
+  check-templates + check-data-universe + typecheck + lint + test + build +
+  check-src) PASS
 - the ticket's `e2e` scenario FAIL
 
 Only after RED passes does implementation flip it to GREEN, which proves the change is
@@ -122,6 +123,8 @@ Deterministic gates active in this repository:
 | GATE-01 | Gates must keep their teeth: every gate is regression-tested against a golden set of planted violations (catch + right rule + no false positive on clean trees) | `./scripts/check-gates.sh` (verify.sh step 3; corpus in `tests/meta/cases/`) |
 | NOLLM-01 | Never bundle an LLM-inference SDK: no `packages/` manifest or source may depend on / import a blocklisted SDK. A catalogue that measures agents must not ship one. The blocklist at the top of the script is the single source of truth | `./scripts/check-no-llm.sh` (verify.sh step 4) |
 | TMPL-01 | Issue / PR / ticket text must not drift: each drafted instance carries its template's required `## ` sections in order with non-empty bodies | `./scripts/check-templates.sh` (verify.sh step 5, pre-commit) |
+| DATA-02 | No fact that governs the analysis lives outside the record. A run's withdrawal is a field on the record — reason and date included — never a filename, and no filename comparison decides whether a live record enters an analysis pool. Round one enforces this for withdrawal only; `_regime` is still filename-derived and has a successor ticket in DESIGN.md's harness-debt table | `./scripts/check-data-universe.sh` (verify.sh step 6; golden cases 28-32) |
+| SRC-01 | Every listed pack links upstream, names its author, records how it can ask to be removed, and carries a retrieval receipt for any figure read off the network | `./scripts/check-src.sh` (verify.sh step 11; golden cases 18-27) |
 | REF-01 | A mapped ticket's plan must show its required references opened (Y + note) in the "References Consulted" section, mirrored by rubric row P7. PDX-001 is exempt. Map: `DESIGN.md`, Reference Map | `./scripts/check-references.sh <plan>` (invoked by `agent-review.sh plan`) |
 | STATE-01 | Stage order is enforced, not advised: later gates require earlier stage stamps (preflight → plan-reviewed → red → green → report-reviewed) | `./scripts/workflow-state.sh` (bypass only via loud `PLUGDEX_STATE_BYPASS=1`) |
 | REV-01 | Cross reviews are scored against a fixed rubric (plan P1–P7 / report R1–R6), every row with evidence; the gate rejects a missing/unjudged row, an empty evidence cell, and APPROVED combined with any FAIL row | `./scripts/agent-review.sh` |
@@ -140,21 +143,26 @@ create failure modes the lineage never had to gate:
 |---|---|---|
 | DATA-01 | Every figure the site renders comes from a record in `packages/data`, and every record carries the environment fingerprint of the run that produced it. No number is typed into a component | A hand-typed statistic is one nobody can check, and it silently survives every re-measurement. The predecessor project published "the rate reproduced across two runs" and had to withdraw it — the two runs had different environments and different prompts, and nothing in the output said so |
 | CLAIM-01 | A published verdict that turns out to be wrong is corrected in place; the previous value, the cause, and the replacement stay reachable on the site | Deleting a wrong number is worse than never publishing it. The withdrawal record is the only part of a benchmark a sceptical reader cannot get anywhere else |
+| DATA-02 | No fact that governs the analysis lives outside the record. Which records a figure is computed over is decided by fields on those records, never by their filenames | DATA-01's other half, and the one this project learned the hard way. A run withdrawn as instrument failure 16 was excluded by a filename prefix matched inside one analysis script, so the fact governing every published figure sat where no type reached it and no gate saw it. The Python harness answered 371 cells while the TypeScript loader answered 447, and nothing in the repository could say which was the corpus |
 | SRC-01 | Every listed pack links to its upstream repository, names its author, and records how they asked to be listed or removed. The registry points at that repository; it never vendors the code | We publish verdicts on other people's work. Attribution and an opt-out are the minimum, and pointing rather than copying keeps us a catalogue instead of a fork |
 
-Each of these lands with its own ticket, its own e2e scenario, and its own golden-set
-case — the same way every other gate in this repository earned its place.
+Each of these landed with its own ticket, its own e2e scenario, and its own golden-set
+case — the same way every other gate in this repository earned its place. DATA-01 and
+CLAIM-01 are judgment rules checked in review; SRC-01 and DATA-02 are scripts, and §3's
+table above is where their gate commands and golden-case ranges live.
 
 ## 4. Automation scripts
 
 | Script | Role |
 |---|---|
 | `preflight.sh` | pre-work environment check + stages CLAUDE.md / DESIGN.md / ticket into context |
-| `verify.sh` | check-language + check-structure + check-gates + check-no-llm + check-templates + `pnpm typecheck` + `pnpm lint` + `pnpm test` + `pnpm build` (Node steps WARN-skipped in empty-workspace mode until a `packages/*/package.json` exists) |
+| `verify.sh` | check-language + check-structure + check-gates + check-no-llm + check-templates + check-data-universe + `pnpm typecheck` + `pnpm lint` + `pnpm test` + `pnpm build` + check-src (Node steps WARN-skipped in empty-workspace mode until a `packages/*/package.json` exists; check-src runs last because it reads the built registry) |
 | `check-language.sh` | LANG-01 gate — greps tracked files for Hangul, BLOCK on any hit (no allowlist) |
 | `check-structure.sh` | layout gate — root whitelist, packages registry, ticket/analysis/e2e naming, script executability |
 | `check-no-llm.sh` | NOLLM-01 gate — BLOCK if a `packages/` manifest or source depends on / imports a blocklisted LLM SDK |
 | `check-templates.sh` | TMPL-01 gate — tickets and PR drafts must match their templates' `## ` sections (presence / order / non-empty) |
+| `check-data-universe.sh` | DATA-02 gate — BLOCK if a withdrawal lives in a filename rather than on the record, if a record and its filename disagree about withdrawal, if a withdrawal carries no reason or date, or if the analysis loader decides inclusion by filename (probed behaviourally against a planted corpus, not by grep) |
+| `check-src.sh` | SRC-01 gate — BLOCK a listing with no upstream link, no named author, no listing provenance, or a network-read figure with no retrieval receipt |
 | `check-references.sh` | REF-01 gate — a mapped ticket's plan must record its required references consulted (Y); PDX-001 exempt |
 | `install-hooks.sh` | installs the pre-commit hook (language + structure + templates) — run once per clone |
 | `check-test-case.sh` | per-ticket e2e scenario existence + mapping gate |

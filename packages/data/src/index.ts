@@ -12,6 +12,7 @@ export {
   MalformedRecordError,
   MissingFingerprintError,
   MixedEnvironmentError,
+  UnreasonedWithdrawalError,
 } from './load.js';
 
 export type {
@@ -21,4 +22,5 @@ export type {
   InvalidReason,
   RunEnv,
   TypecheckReason,
+  Withdrawal,
 } from './schema.js';
