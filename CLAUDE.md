@@ -108,6 +108,15 @@ Key invariants:
   where the fact lives and let the scenario derive it. Where a number must appear for the
   argument to make sense, it is written as a claim the e2e asserts — never as prose only
   a reviewer can check.
+- **ASSERT-01 — an assertion never passes on empty output.** Every subprocess whose
+  output an assertion reads must print a sentinel when it succeeds, and an empty capture
+  fails the assertion instead of satisfying it. The failure shape is always the same: a
+  command dies, its stderr is discarded, the variable holding its findings is empty, and
+  `[[ -z "$FINDINGS" ]]` prints a checkmark for a check that never ran. This project has
+  produced it six times — PDX-002's AC-7 grep and its timezone comparison, PDX-003's AC-2
+  and its Attribution assertion, the grader reporting zero mypy diagnostics when the
+  python gate was absent, and the loader reading a missing environment audit as a clean
+  environment. Six instances is a missing rule, not six mistakes.
 - **Scripts decide, not vibes**: a stage is done when its gate script exits 0.
 - **Stage order is enforced**: each passed stage is stamped via
   `scripts/workflow-state.sh` (`.docs/state/<ID>.state`); later gates refuse to run

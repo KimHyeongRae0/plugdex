@@ -126,28 +126,42 @@ python3 bench/harness/derive_d001.py           # the sweep, and the current-corp
 
 ---
 
-## D-002 — "superpowers writes no code in N of M cells" — **count unreconciled, claim holds**
+## D-002 — "superpowers writes no code in N of M cells" — **corrected to 49 of 50**
 
-**Claimed in:** `5d3ba47`'s commit message as "68 of 69 valid cells"; the 2026-08-17
-handoff as "61 of 62 valid haiku cells, plus 3 of 3 in the sonnet probe, plus 3 of 3 in
-round three", which totals 67 of 68.
+**Claimed in:** `bench/README.md` as a three-row table totalling **68 / 69**; `5d3ba47`'s
+commit message as "68 of 69 valid cells"; the 2026-08-17 handoff as "61 of 62 valid haiku
+cells, plus 3 of 3 in the sonnet probe, plus 3 of 3 in round three", which totals 67 of 68.
 
-Counted directly off the published corpus — valid cells, withdrawn run excluded, which is
-the same pool the headline build-rate table uses — the figure is **49 of 50**:
+Counted off the published corpus — valid cells, withdrawn run excluded, the same pool the
+headline build-rate table uses — the figure is **49 of 50**, and it breaks down like this:
 
-```
-haiku   as-shipped   9/9
-haiku   blocked     34/35
-sonnet  blocked      6/6
-```
+| Run | Regime | Model | No code / valid |
+|---|---|---|--:|
+| `20260816-010513` | blocked | haiku | 16 / 17 |
+| `20260816-020247` | blocked | haiku | 15 / 15 |
+| `20260816-094325` | blocked | haiku | 3 / 3 |
+| `20260816-094958` | as-shipped | haiku | 3 / 3 |
+| `20260816-113302` | as-shipped | haiku | 6 / 6 |
+| `20260816-222615` | blocked | sonnet | 3 / 3 |
+| `20260817-162601` | blocked | sonnet | 3 / 3 |
+| **Total** | | | **49 / 50** |
 
-The single exception is `tmpl-be-uniquetitle__superpowers__haiku__0`. Including the
-withdrawn run gives 64 of 65, which is not either published figure either.
+Adding the withdrawn run contributes 15 more cells and gives 64 of 65. The single exception
+throughout is `tmpl-be-uniquetitle__superpowers__haiku__0`. `ponytail+superpowers` is
+counted separately at 9 of 9 and is not part of either total, because it is a different arm.
 
-**The finding is not in doubt** — it is the strongest result in the project and it holds at
-98% under every pool tried. What is unreconciled is the denominator: three counts of the
-same thing disagree, and none of them says which pool it counted. Until that is settled,
-`49 of 50` is the figure to publish, because it is the one that reproduces:
+**No pooling of the committed records produces 68 of 69, 67 of 68, or the table's 47 of 48
+for blocked haiku.** The most likely explanation is the one behind D-001: the number was
+computed on the corpus as it stood earlier and carried forward across changes to it. In
+this case the change is identifiable — instrument failures 12 and 13 moved cells out of
+`valid`, and `20260816-010513` alone holds 33 superpowers cells of which 16 are dead. A
+count taken before that exclusion would be larger than one taken after, in roughly this
+proportion. That is a hypothesis and it is not established.
+
+**The finding is not in doubt.** It is the strongest result in the project and it holds at
+98% under every pool tried, on two models, two regimes, two domains, and twelve tasks. What
+was wrong is the denominator, and the table in `bench/README.md` is corrected in place under
+CLAIM-01 rather than quietly replaced.
 
 ```bash
 python3 - <<'EOF'
@@ -157,6 +171,3 @@ sp = [c for c in load_cells() if c["arm"] == "superpowers" and c.get("valid")]
 print(sum(1 for c in sp if not c.get("wrote_code")), "of", len(sp))
 EOF
 ```
-
-**Next move:** find what the other two counts pooled. The likely cause is the same one
-behind D-001 — a number computed on one corpus and carried forward across a change to it.

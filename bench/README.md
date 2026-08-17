@@ -82,10 +82,16 @@ Every valid superpowers cell was checked, not a sample:
 
 | Condition | Cells ending in a clarifying question |
 |---|--:|
-| Bash blocked, 12 tasks, both domains, haiku | 47 / 48 |
-| Installed as shipped, Bash allowed, haiku | 18 / 18 |
-| Installed as shipped, **sonnet** | 3 / 3 |
-| **Total** | **68 / 69** |
+| Bash blocked, 12 tasks, both domains, haiku | 34 / 35 |
+| Installed as shipped, Bash allowed, haiku | 9 / 9 |
+| Bash blocked, **sonnet** | 6 / 6 |
+| **Total** | **49 / 50** |
+
+This table previously read 47/48, 18/18, 3/3 and **68 / 69**. Those denominators do not
+reconcile with the committed records under any pooling, and the corrected counts are
+derived from them per run in [`DERIVATIONS.md`](DERIVATIONS.md) as D-002. The result is
+unchanged — 98% either way, and the single exception is the same cell — but a count nobody
+can reproduce is not evidence, whichever direction it points.
 
 Installing ponytail alongside it does not change this: 9 of 9 `ponytail+superpowers` cells also
 stop to ask. Median delivered lines on the shared tasks: baseline 378, ponytail 198,
@@ -151,22 +157,25 @@ These are the reasons to trust a number here rather than elsewhere.
    an injected type error, catch an injected undefined name, catch an injected unused import, and
    return to clean when the probe is removed. A gate that has not been shown to fail on broken
    code is not evidence that code works.
-3. **Instrument failures are published, not hidden.** Sixteen have been found in this project so
-   far. Nine of them produced a plausible "no difference between packs" or "total collapse"
+3. **Instrument failures are published, not hidden.** Nineteen have been found in this project
+   so far. Nine of them produced a plausible "no difference between packs" or "total collapse"
    conclusion. One was introduced by the author while trying to make an arm fairer, and two
-   invalidated a headline that had already been written here. They are documented because in
-   this field the hard part is not measuring — it is telling a real null from a broken instrument.
-6. **Results that turn out not to mean what was claimed are withdrawn in place**, with the
-   number, the cause, and what replaced it. The "reproduced across two runs" claim above is the
-   first one to go.
-4. **Invalid cells are counted in the denominator**, with their reasons.
-5. **Raw cell data and workspaces are published**, so a number can be checked without rerunning it.
+   invalidated a headline that had already been written here. The three most recent share a
+   different shape: a check that never ran reporting the same thing as a check that passed —
+   a timeout recorded as corrupt output, a missing gate recorded as zero diagnostics, and a
+   missing environment audit read as a clean environment. They are documented because in this
+   field the hard part is not measuring — it is telling a real null from a broken instrument.
+4. **Results that turn out not to mean what was claimed are withdrawn in place**, with the
+   number, the cause, and what replaced it. The "reproduced across two runs" claim above was
+   the first to go; the derivations behind the rest are in [`DERIVATIONS.md`](DERIVATIONS.md).
+5. **Invalid cells are counted in the denominator**, with their reasons.
+6. **Raw cell data and workspaces are published**, so a number can be checked without rerunning it.
 
 ## Scope and limits
 
 Everything measured so far is conditional on one fixture repository, two models
-(`claude-haiku-4-5` throughout; `claude-sonnet-4-6` for the superpowers model-sensitivity check
-only), and one agent (Claude Code CLI 2.1.233). Most packs under test ship as Claude Code
+(`claude-haiku-4-5` throughout, and `claude-sonnet-4-6` across all six arms on three frontend
+tasks in round three), and one agent (Claude Code CLI 2.1.233). Most packs under test ship as Claude Code
 plugins, so the agent is a boundary condition rather than a variable.
 
 Six frontend and six backend tickets is a small task set, and the per-task spread is larger than
