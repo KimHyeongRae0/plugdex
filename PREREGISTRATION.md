@@ -200,3 +200,11 @@ output. Both halves are now closed: the fingerprint covers the environment, and 
 prompt, and the regime — plus the regime, the `NO_RUN` text, and a hash of the runner itself into
 each run's `results.json`. Any two runs can now be checked for comparability before their numbers
 are put in the same table.
+
+Both fixes postdate the runs published here, and the data shows it. Every
+`*.acceptance.json` in `data/runs/` carries a fingerprint because grading was redone
+afterwards in one environment; no `*.results.json` does, because those were written by the
+runner as it stood at the time. `_invocation.json` likewise exists only for cells run after
+the change. The published corpus is therefore fingerprinted at the grading layer and not at
+the execution layer — a reader checking a `results.json` for `npm_fingerprint` will not find
+one, and that is a fact about when the instrument was fixed rather than a gap in it.
