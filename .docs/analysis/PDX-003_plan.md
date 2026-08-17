@@ -119,6 +119,9 @@ Two things found while reading real manifests make this concrete:
 - SRC-01 — the rule this ticket makes enforceable
 - DATA-01 — respected by producing no verdict here
 - GATE-01 — every new gate condition gets a planted violation
+- ASSERT-01 — every assertion in this scenario reads a value a subprocess produced, so
+  each one emits a sentinel and an empty capture fails; this is the rule the review's
+  first blocker made necessary
 - CR-01 — generation is local; publication is a separate instruction
 - LANG-01 — English-only, no allowlist
 - PLAN-01 — this plan names where facts live rather than copying counts and SHAs into
@@ -131,14 +134,29 @@ Two things found while reading real manifests make this concrete:
 ## 7. Test Plan (mandatory — TDD)
 
 - **E2E scenario file**: `tests/e2e/PDX-003-the-hub-installs.sh`
-- **RED condition** (before step 1): `verify.sh` PASSes and the scenario FAILs. Every
-  assertion must be capable of failing now. The two that need care:
-  - AC-3's determinism check must not pass vacuously when no generator exists. It
-    generates twice and compares; with no generator both runs produce nothing, so the
-    assertion first requires the file to exist and be non-empty.
+- **RED condition** (before step 1): `verify.sh` PASSes and the scenario FAILs, and every
+  assertion FAILs for the reason it names rather than by accident. Under ASSERT-01 this is
+  a property of the whole file, not of two special cases: before step 1 nothing under
+  `packages/registry/dist/` exists, so every `node --input-type=module` block exits
+  non-zero with its diagnostics on a stderr the scenario discards, and every variable those
+  blocks fill is the empty string. Any assertion phrased as "empty means nothing was wrong"
+  therefore reports a pass in exactly the state it is supposed to reject.
+  - Each subprocess prints a sentinel on the success path — a report object for the
+    field checks, an explicit `OK` for the boolean ones — and the assertion first requires
+    the capture to be non-empty, naming "the package is not built" as the failure.
+  - AC-3's determinism check must not pass vacuously: with no generator both runs produce
+    nothing and "byte-identical" is trivially true, so non-emptiness is asserted first.
   - AC-6's join must fail for the right reason. Before implementation there are no
     entries, so every measured arm is unlisted — the assertion must report that as the
     failure, not crash on a missing module.
+  - **Attribution** must fail rather than pass. Its check collects mismatches and treats an
+    empty collection as agreement; with no built package the collection is empty because
+    the import failed, and the review found it printing a passing checkmark on today's
+    tree. It is the assertion the plan calls the one that makes SRC-01 more than paperwork,
+    so it is the one least able to afford a vacuous pass.
+  - The RED run is evidence, not assertion: `./scripts/test-loop.sh PDX-003 --red` must
+    show every assertion in the FAIL column, and a row that passes before any code exists
+    is a defect in the assertion rather than a head start.
 - **GREEN condition**: `verify.sh` PASSes with the new SRC-01 step, the scenario PASSes
   all assertions including the real `claude plugin install`, `check-gates.sh` catches
   every planted violation including the new ones, and the full regression PASSes so
@@ -149,8 +167,13 @@ Two things found while reading real manifests make this concrete:
     rejects the `git`/`url` form. Asserted as a pair: the supported fixture must compile
     and the unsupported one must fail. A lone negative compile check is green before the
     code exists — the fixture fails to compile because the module is missing, not because
-    the type rejected it, which is the review's second blocker and the same fake-RED class
-    PDX-002 hit
+    the type rejected it, which is the same fake-RED class PDX-002 hit. The review's second
+    blocker was that this paragraph existed and the scenario did not implement it: it
+    checked the emitted JSON only, so "must fail the type" had no artifact that could fail.
+    The pair is two fixtures under `packages/registry/test/fixtures/`, both compiled with
+    `tsc --noEmit`, and the assertion requires the first to exit 0 and the second non-zero.
+    Checking the emitted JSON as well is kept, because a type stops enforcing anything once
+    the JSON is written
   - AC-3 — generate twice, byte-identical, and the output is non-empty
   - AC-4 — `check-src.sh` BLOCKs each planted violation
   - AC-5 — `claude plugin marketplace add` against a local path, then
@@ -216,15 +239,75 @@ demands", since stars, listing provenance, and opt-out contact can never come fr
 upstream; and the review confirmed the misattribution finding and the exclusion set
 against the corpus itself.
 
-_(round 2 pending — final under REV-02)_
+Round 2 (Fable 5, 2026-08-17) returned **NEEDS_REVISION** with two blockers, both found
+by *executing* the staged scenario rather than reading it — which is why they were not
+visible in round 1.
+
+**The Attribution assertion was GREEN on today's tree.** Its node block imports
+`./packages/registry/dist/index.js`, which does not exist before step 1. The import throws,
+the diagnostics go to a stderr the scenario discards, the mismatch list is the empty
+string, and `[[ -n "$MISMATCH" ]]` takes the else branch and prints a passing checkmark for
+a check that never ran. The assertion the plan calls "the one that makes SRC-01 more than
+paperwork" was the one asserting nothing.
+
+**AC-2's paired compile check did not exist.** The ticket's AC-2 and §7 of this plan both
+specify a pair — the supported fixture compiles, the unsupported one does not — and the
+staged scenario checked only the emitted JSON. A requirement written in two places and
+implemented in none is not a stricter test than one that was never written down.
+
+Both are fixed in §7 above, and the first is now a project rule rather than a patch.
+ASSERT-01 was added to `CLAUDE.md` and `docs/WORKFLOW.md` in this cycle: an assertion never
+passes on empty output; a subprocess whose output an assertion reads emits a sentinel, and
+an empty capture fails. This is the sixth instance of that exact shape in this project —
+PDX-002's AC-7 grep and its timezone comparison, both blockers here, the grader reporting
+zero mypy diagnostics when the python gate was absent, and the loader reading a missing
+environment audit as a clean one. Fixing the sixth instance individually would have left
+the seventh to be found by whoever trusted it.
+
+**Round 3 is taken under REV-02's exception**, which permits a third round when round 2
+raises a new blocker, with the reason stated. Round 2 raised two, neither of them a
+restatement of a round-1 finding, and both were the class of defect that reads as a pass.
+The scope of round 3 is those two fixes and the rule that generalises them; anything else
+still outstanding rides to the report stage.
+
+Round 3 (Fable 5, 2026-08-17) returned **APPROVED_WITH_NOTES** with no blockers. Both
+round-2 blockers are resolved in spec, and the reviewer verified the claim §7 makes rather
+than accepting it: an assertion-by-assertion RED walk against the staged draft plus this
+plan's §7, pre-implementation, put every one of AC-1..AC-7 and Attribution in the FAIL
+column, each for the reason it names — including AC-4, which exits 127 because
+`check-src.sh` does not exist yet, and AC-7, which passes only on a positive grep match and
+so is ASSERT-01-safe by construction.
+
+Four findings ride to the report stage under REV-02 rather than spending a fourth round.
+None is a pre-implementation defect; all four are about behaviour once the code exists:
+
+1. **Attribution has a GREEN-time vacuity the sentinel does not close.** A report of
+   `{checked: 0, bad: []}` passes having verified nothing — reachable if every author is
+   tagged `curated`, since the check skips non-`upstream` entries. The sentinel must carry
+   a checked-count of at least 1, or the known-misattribution pack must be asserted
+   independently of its tag. §7 pins the pack but not the tag.
+2. **AC-5's skip semantics are ambiguous.** The ticket says the assertion "skips loudly"
+   when `claude` is absent; the staged draft's skip also sets `FAILED=1`, which makes skip
+   and fail identical. Conservative, but the report must state which is intended.
+3. **AC-4's failure message names the wrong cause pre-implementation.** It reports "SRC-01
+   BLOCKs the registry" when the actual cause is a missing script. It fails safely, but
+   not "for the reason it names", which is the standard §7 sets.
+4. **AC-3's determinism check mutates a tracked file.** It regenerates `marketplace.json`
+   in place and restores the original only on the diff-fail branch, so a build that dies
+   mid-write leaves the tracked file corrupted.
+
+Finding 1 is the one to carry forward deliberately: it is ASSERT-01's own blind spot. The
+rule stops an assertion passing on *empty* output; it does not stop one passing on output
+that is well-formed and describes zero work. A sentinel proves the subprocess ran, not that
+it checked anything.
 
 ### Reviewer
-- Model:
-- Reviewed at:
+- Model: Fable 5 (claude-fable-5)
+- Reviewed at: 2026-08-17 18:05
 
 ### Verdict
 - [ ] APPROVED
-- [ ] APPROVED_WITH_NOTES
+- [x] APPROVED_WITH_NOTES
 - [ ] NEEDS_REVISION
 
 ### Rubric
@@ -234,21 +317,40 @@ Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
 
 | ID | Item | Verdict | Evidence |
 |---|---|---|---|
-| P1 | Scope fidelity: the plan stays inside the ticket's Scope.Allowed / NotAllowed and addresses every AC | | |
-| P2 | Step granularity: steps touch 1-3 files each and are independently verifiable | | |
-| P3 | Decision consistency: no conflict with DESIGN.md decisions or the decision log | | |
-| P4 | Test plan: concrete e2e file(s) with explicit RED and GREEN conditions covering each AC | | |
-| P5 | Risk coverage: risks, mitigations, and Out of Scope are explicit | | |
-| P6 | Language policy: the plan and referenced artifacts are English-only (LANG-01) | | |
-| P7 | References consulted: the plan's References Consulted section shows the ticket's required references actually opened (Y + note), or the ticket is on the REF-01 exemption list | | |
+| P1 | Scope fidelity: the plan stays inside the ticket's Scope.Allowed / NotAllowed and addresses every AC | PASS | §3 steps touch only ticket-Allowed paths; §7 carries one assertion per AC-1..AC-7 plus Attribution; every NotAllowed item is answered in §2 |
+| P2 | Step granularity: steps touch 1-3 files each and are independently verifiable | PASS | 8 steps, at most 2 files each, every step naming its own verifiable artifact (package manifest, schema, gate script, golden case, scenario) |
+| P3 | Decision consistency: no conflict with DESIGN.md decisions or the decision log | PASS | The round-1 DEC-004 tension is ruled by DEC-011 and mirrored in the ticket's NotAllowed and §2; DEC-003/005/006 respected — no verdicts, no rendering, unmeasured set deferred to PDX-012 |
+| P4 | Test plan: concrete e2e file(s) with explicit RED and GREEN conditions covering each AC | PASS | Both round-2 blockers resolved in spec — Attribution sentinel with non-empty-capture-first, and the AC-2 fixture pair under `packages/registry/test/fixtures/` compiled with `tsc --noEmit`; an assertion-by-assertion RED walk put all eight in the FAIL column pre-implementation |
+| P5 | Risk coverage: risks, mitigations, and Out of Scope are explicit | PASS | Eight risks each with a mitigation, including the network-required inversion from round 1; Out of Scope names the owning ticket for each exclusion |
+| P6 | Language policy: the plan and referenced artifacts are English-only (LANG-01) | PASS | Hangul-range grep over the plan and the ticket returned 0 matches in both; full read of plan, ticket, and the staged scenario found no non-English text |
+| P7 | References consulted: the plan's References Consulted section shows the ticket's required references actually opened (Y + note), or the ticket is on the REF-01 exemption list | PASS | §8.5 rows match `check-references.sh` exactly (`marketplace.schema.json`, `plugin.json`, `plugin marketplace add`), all Y with dated notes that visibly drove design changes |
 
 ### Comments
-1.
+1. Round-2 blocker 1 (Attribution vacuous pass) is resolved in spec: every subprocess prints
+   a sentinel on the success path and every assertion requires a non-empty capture before
+   any content check, naming "the package is not built" as the failure.
+2. Round-2 blocker 2 (AC-2 pair specified but unimplemented) is resolved in spec: the plan
+   now names the artifact that was missing — two fixtures compiled with `tsc --noEmit`, the
+   first required to exit 0 and the second non-zero — with the emitted-JSON check retained
+   because a type stops enforcing anything once the JSON is written.
+3. ASSERT-01 is correctly stated and correctly applied: `CLAUDE.md` and `docs/WORKFLOW.md`
+   carry the same rule, and the plan applies it as a whole-file property of the scenario
+   rather than as two patches, which is the generalisation the rule exists for.
+4. The RED claim was verified rather than accepted. Pre-implementation: AC-1 empty capture,
+   AC-2 positive fixture cannot compile, AC-3 non-emptiness checked first, AC-4 exits 127 on
+   the missing `check-src.sh`, AC-5 empty pack name, AC-6 empty capture, AC-7 no positive
+   grep match, Attribution empty capture — eight FAILs, no vacuous pass available.
+5. PLAN-01 holds: the plan states where facts live rather than restating counts, SHAs, or
+   file inventories, and the six ASSERT-01 instances are fixed history rather than volatile
+   facts.
+6. Four non-blocking findings ride to the report stage; they are listed above with finding 1
+   flagged as ASSERT-01's own blind spot. Per REV-02 the report must repeat the round-3
+   justification.
 
 ### Blockers (only if NEEDS_REVISION)
--
+- None.
 
 ## 10. Final Plan Status
 
-- Agent: _(pending)_
+- Agent: APPROVED_WITH_NOTES (Fable 5, 2026-08-17, round 3 — 0 blockers; 4 findings ride to the report stage per REV-02)
 - Human: _(pending)_
