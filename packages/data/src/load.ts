@@ -18,6 +18,27 @@ export class MissingFingerprintError extends Error {
 }
 
 /**
+ * Thrown when a record does not report how many installed packages nothing declared.
+ *
+ * Instrument failure 15 was caught by that count: four packages appeared in the shared
+ * `node_modules` mid-experiment and moved a task from 4/12 passing to 12/12. Instrument
+ * failure 19 then dropped the detector from the ported grader, and this loader defaulted
+ * the missing field to `0` — so a record with no detector read as an environment with
+ * nothing undeclared, which is the strongest possible claim rather than the absence of
+ * one. Absent and clean are not the same reading, so the loader refuses.
+ */
+export class MissingEnvironmentAuditError extends Error {
+  override readonly name = 'MissingEnvironmentAuditError';
+
+  constructor({ file }: { file: string }) {
+    super(
+      `${file}: no env.npm_undeclared_toplevel — the record cannot say whether its ` +
+        `environment was audited, and a missing audit must not read as a clean one`,
+    );
+  }
+}
+
+/**
  * Thrown when the loaded set spans more than one environment.
  *
  * Records from different environments are not comparable, and the failure mode is
@@ -51,8 +72,8 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 /**
  * Reads `env`, requiring the fingerprint.
  *
- * Everything else is carried through as the harness wrote it; only the field that
- * decides comparability is enforced.
+ * Everything else is carried through as the harness wrote it; the two enforced fields
+ * are the ones whose absence would otherwise be read as good news.
  */
 const parseEnv = ({ raw, file }: { raw: unknown; file: string }): RunEnv => {
   if (!isObject(raw)) {
@@ -65,12 +86,17 @@ const parseEnv = ({ raw, file }: { raw: unknown; file: string }): RunEnv => {
     throw new MissingFingerprintError({ file });
   }
 
+  const undeclared = raw['npm_undeclared_toplevel'];
+
+  if (typeof undeclared !== 'number') {
+    throw new MissingEnvironmentAuditError({ file });
+  }
+
   return {
     npmPackages: typeof raw['npm_packages'] === 'number' ? raw['npm_packages'] : 0,
     npmFingerprint: fingerprint,
     npmExtraneous: Array.isArray(raw['npm_extraneous']) ? (raw['npm_extraneous'] as string[]) : [],
-    npmUndeclaredToplevel:
-      typeof raw['npm_undeclared_toplevel'] === 'number' ? raw['npm_undeclared_toplevel'] : 0,
+    npmUndeclaredToplevel: undeclared,
     npmInstalled: Array.isArray(raw['npm_installed']) ? (raw['npm_installed'] as string[]) : [],
     node: typeof raw['node'] === 'string' ? raw['node'] : '',
     pythonGate: typeof raw['python_gate'] === 'string' ? raw['python_gate'] : '',

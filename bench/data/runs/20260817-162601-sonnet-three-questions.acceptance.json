@@ -264,7 +264,10 @@
       "zod@4.4.3"
     ],
     "node": "v22.14.0",
-    "python_gate": "/Users/hyeongraekim/Desktop/project/pack-pilot/.gate-venv/bin/python"
+    "python_gate": "/Users/hyeongraekim/Desktop/project/pack-pilot/.gate-venv/bin/python",
+    "python_gate_present": true,
+    "mypy": "mypy 2.3.1 (compiled: yes)",
+    "ruff": "ruff 0.16.3"
   },
   "cells": [
     {
@@ -274,7 +277,7 @@
       "model": "sonnet",
       "rep": 0,
       "valid": false,
-      "invalid_reason": "unparseable-result-json"
+      "invalid_reason": "killed-on-cell-timeout"
     },
     {
       "cell": "tmpl-fe-command__caveman__sonnet__0",
@@ -308,7 +311,7 @@
       "model": "sonnet",
       "rep": 0,
       "valid": false,
-      "invalid_reason": "unparseable-result-json"
+      "invalid_reason": "killed-on-cell-timeout"
     },
     {
       "cell": "tmpl-fe-command__mattpocock__sonnet__0",
@@ -529,7 +532,7 @@
       "model": "sonnet",
       "rep": 0,
       "valid": false,
-      "invalid_reason": "unparseable-result-json"
+      "invalid_reason": "killed-on-cell-timeout"
     },
     {
       "cell": "tmpl-fe-wizard__caveman__sonnet__0",
@@ -585,7 +588,7 @@
       "model": "sonnet",
       "rep": 0,
       "valid": false,
-      "invalid_reason": "unparseable-result-json"
+      "invalid_reason": "killed-on-cell-timeout"
     },
     {
       "cell": "tmpl-fe-wizard__ponytail__sonnet__0",

@@ -264,7 +264,10 @@
       "zod@4.4.3"
     ],
     "node": "v22.14.0",
-    "python_gate": "/Users/hyeongraekim/Desktop/project/pack-pilot/.gate-venv/bin/python"
+    "python_gate": "/Users/hyeongraekim/Desktop/project/pack-pilot/.gate-venv/bin/python",
+    "python_gate_present": true,
+    "mypy": "mypy 2.3.1 (compiled: yes)",
+    "ruff": "ruff 0.16.3"
   },
   "cells": [
     {
@@ -700,7 +703,7 @@
       "model": "haiku",
       "rep": 2,
       "valid": false,
-      "invalid_reason": "unparseable-result-json"
+      "invalid_reason": "killed-on-cell-timeout"
     },
     {
       "cell": "tmpl-fe-command__karpathy__haiku__0",
@@ -793,7 +796,7 @@
       "model": "haiku",
       "rep": 0,
       "valid": false,
-      "invalid_reason": "unparseable-result-json"
+      "invalid_reason": "killed-on-cell-timeout"
     },
     {
       "cell": "tmpl-fe-command__mattpocock__haiku__1",

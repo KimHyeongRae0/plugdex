@@ -149,18 +149,73 @@ def npm_inventory():
     return sorted(names)
 
 
+def declared_deps():
+    """Every dependency the fixture's package.json files declare.
+
+    The difference between this and what is installed is the set of packages that exist
+    without anyone asking for them. That difference is how instrument failure 15 was
+    caught — four packages installed into the shared node_modules mid-experiment, which
+    moved a task from 4/12 passing to 12/12 and nearly shipped as a reproduction.
+
+    Instrument failure 19: this function and the `npm_undeclared_toplevel` count it feeds
+    were dropped when the harness was ported into this repository. Every one of the ten
+    committed records carries that field and the ported grader could not produce it, so
+    the grader had silently stopped being able to reproduce its own published data — and
+    had lost the detector for the failure that forced a run to be withdrawn.
+    """
+    out = set()
+
+    for rel in ("package.json", "frontend/package.json"):
+        f = FIXTURE_ROOT / rel
+
+        if not f.is_file():
+            continue
+
+        try:
+            blob = json.loads(f.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+
+        for key in ("dependencies", "devDependencies"):
+            out |= set(blob.get(key) or {})
+
+    return out
+
+
+def python_gate_versions():
+    """What the backend gate actually is, or why it is not there.
+
+    Instrument failure 18: `environment()` recorded the venv as a path string and nothing
+    else. A run graded with the venv missing produced byte-identical `npm_fingerprint`,
+    every mypy and ruff diagnostic silently empty, and `import_ok` False on every backend
+    cell — indistinguishable, in the stored record, from a clean run. A fingerprint that
+    cannot tell "the gate passed" from "the gate was not installed" is not a fingerprint.
+    """
+    if not VENV_PY.exists():
+        return {"python_gate_present": False, "mypy": None, "ruff": None}
+
+    return {"python_gate_present": True,
+            "mypy": run_cmd(BACKEND, [str(VENV_PY), "-m", "mypy", "--version"], 60)[1].strip(),
+            "ruff": run_cmd(BACKEND, [str(VENV_PY), "-m", "ruff", "--version"], 60)[1].strip()}
+
+
 def environment():
     """Fingerprint of the grading environment, stored with every result file."""
     inv = npm_inventory()
     _, ls_out = run_cmd(FIXTURE_ROOT, ["npm", "ls", "--depth=99"], 120)
     extraneous = sorted({m.group(1) for m in re.finditer(r"([@\w./-]+@[\d][^\s]*) extraneous", ls_out)})
 
+    declared = declared_deps()
+    undeclared = sorted(n for n in inv if n.rsplit("@", 1)[0] not in declared)
+
     return {"npm_packages": len(inv),
             "npm_fingerprint": hashlib.sha256("\n".join(inv).encode()).hexdigest()[:16],
             "npm_extraneous": extraneous,
+            "npm_undeclared_toplevel": len(undeclared),
             "npm_installed": inv,
             "node": run_cmd(FIXTURE_ROOT, ["node", "--version"], 30)[1].strip(),
-            "python_gate": str(VENV_PY)}
+            "python_gate": str(VENV_PY),
+            **python_gate_versions()}
 
 
 SKIP_DIRS = {".git", "node_modules", "dist", ".venv", ".venv-gate",
@@ -221,11 +276,31 @@ def cell_died(cell_dir):
     plausible and false conclusion that every pack wrote no code — in one run this hit
     72 of 165 cells. The CLI reports the failure as `is_error` / `terminal_reason`
     rather than the `error` key the harness checks, so this reads it directly.
+
+    Instrument failure 17: a cell killed on the runner's 300s cap leaves a zero-byte
+    result json, which parsed as a JSONDecodeError and was recorded as
+    `unparseable-result-json` — a corrupt-data story for what is really a censored
+    observation. All 9 dead cells in the corpus carried that wrong label. The
+    distinction matters because the two have opposite consequences: malformed output is
+    noise, while a timeout is a right-tail cut that lands preferentially on the arms and
+    tasks that take longest, so it biases the comparison rather than merely shrinking it.
+    The runner already writes the marker; the grader simply never read it.
     """
     j = cell_dir / "_claude.json"
+    stderr = cell_dir / "_claude.stderr.txt"
+
+    # Read the kill marker before anything else. A killed cell is diagnosed by why it
+    # died, not by the state of the file it did not get to finish writing.
+    if stderr.exists() and b"[KILLED after" in stderr.read_bytes():
+        return "killed-on-cell-timeout"
 
     if not j.exists():
         return "no-result-json"
+
+    # An empty file is a cell that produced nothing, not a cell that produced garbage.
+    # Letting json.loads report it hides which of the two happened.
+    if j.stat().st_size == 0:
+        return "empty-result-json"
 
     try:
         d = json.loads(j.read_text(encoding="utf-8"))
@@ -377,6 +452,14 @@ def main():
     if not SHARED_NM.is_dir():
         sys.exit(f"shared node_modules not found at {SHARED_NM}\n"
                  f"run `npm install` in the fixture first (see REPRODUCE.md)")
+
+    # Backend grading without the venv does not fail loudly — mypy and ruff simply produce
+    # nothing, which reads as a clean cell. Stop instead: a missing gate is an ungraded
+    # run, not a passing one (instrument failure 18).
+    if any(d.name.startswith("tmpl-be-") for d in cells) and not VENV_PY.exists():
+        sys.exit(f"python gate not found at {VENV_PY}\n"
+                 f"this run has backend cells and grading them without mypy/ruff would "
+                 f"record zero diagnostics as a pass — set DIC_VENV (see REPRODUCE.md)")
 
     print(f"{len(cells)} cells, {a.workers} workers", flush=True)
     out = []

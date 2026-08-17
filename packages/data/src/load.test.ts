@@ -7,6 +7,7 @@ import { test } from 'node:test';
 import {
   loadAcceptanceRecords,
   MalformedRecordError,
+  MissingEnvironmentAuditError,
   MissingFingerprintError,
   MixedEnvironmentError,
 } from './load.js';
@@ -16,13 +17,21 @@ import {
  * corpus. Today's eight files all agree; a test that only reads them would pass because
  * the data happens to be well-formed, not because the loader enforces anything.
  */
-const buildRecord = ({ run, fingerprint }: { run: string; fingerprint: string | null }) => ({
+const buildRecord = ({
+  run,
+  fingerprint,
+  audited = true,
+}: {
+  run: string;
+  fingerprint: string | null;
+  audited?: boolean;
+}) => ({
   run,
   env: {
     npm_packages: 2,
     ...(fingerprint === null ? {} : { npm_fingerprint: fingerprint }),
     npm_extraneous: [],
-    npm_undeclared_toplevel: 0,
+    ...(audited ? { npm_undeclared_toplevel: 0 } : {}),
     npm_installed: ['a@1.0.0', 'b@2.0.0'],
     node: 'v22.14.0',
     python_gate: '/tmp/python',
@@ -47,7 +56,7 @@ const buildRecord = ({ run, fingerprint }: { run: string; fingerprint: string | 
 const plantCorpus = ({
   records,
 }: {
-  records: readonly { run: string; fingerprint: string | null }[];
+  records: readonly { run: string; fingerprint: string | null; audited?: boolean }[];
 }): string => {
   const dir = mkdtempSync(join(tmpdir(), 'plugdex-data-'));
 
@@ -117,4 +126,29 @@ test('an empty directory is an error, not an empty corpus', () => {
   const dir = plantCorpus({ records: [] });
 
   assert.throws(() => loadAcceptanceRecords({ dir }), MalformedRecordError);
+});
+
+test('a record with no environment audit is refused, not read as clean', () => {
+  const dir = plantCorpus({
+    records: [{ run: '20260816-092732', fingerprint: 'abc123', audited: false }],
+  });
+
+  assert.throws(() => loadAcceptanceRecords({ dir }), MissingEnvironmentAuditError);
+});
+
+test('every committed record reports its environment audit', () => {
+  // The synthetic tests above prove the loader refuses. This one proves the corpus is
+  // still loadable under that rule, which is what would have caught instrument failure
+  // 19: the grader stopped emitting the field while ten records already carried it.
+  const corpus = loadAcceptanceRecords({ dir: '../../bench/data/runs' });
+
+  assert.ok(corpus.records.length > 0, 'the committed corpus is empty');
+
+  for (const record of corpus.records) {
+    assert.equal(
+      typeof record.env.npmUndeclaredToplevel,
+      'number',
+      `${record.run} carries no environment audit`,
+    );
+  }
 });

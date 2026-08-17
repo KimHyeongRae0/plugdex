@@ -208,3 +208,40 @@ runner as it stood at the time. `_invocation.json` likewise exists only for cell
 the change. The published corpus is therefore fingerprinted at the grading layer and not at
 the execution layer — a reader checking a `results.json` for `npm_fingerprint` will not find
 one, and that is a fact about when the instrument was fixed rather than a gap in it.
+
+### Three more, found while diagnosing the round-three losses
+
+| # | Failure | The false conclusion it would have produced |
+|---|---|---|
+| 17 | Cells killed on the runner's 300s cap leave a zero-byte result json, which the grader read as a JSONDecodeError and recorded as `unparseable-result-json` | "22% of round three was lost to corrupt output" — a data-hygiene story for what is a censored right tail, and one that lands preferentially on the slowest arms |
+| 18 | `environment()` recorded the python gate as a path string, so a run graded with the venv missing produced an identical `npm_fingerprint`, zero mypy and ruff diagnostics, and `import_ok` False on every backend cell | "The backend cells are clean" — an ungraded run is indistinguishable in the record from a passing one |
+| 19 | `declared_deps()` and the `npm_undeclared_toplevel` count were dropped when the harness was ported into this repository | Silence. All ten committed records carry the field; the grader that is supposed to reproduce them could not produce it, and the detector that caught failure 15 was gone |
+
+Failure 17 is the one that matters for what gets run next. All nine dead cells in the
+corpus carry the wrong label, and every one of them is a timeout kill:
+
+```
+20260815-225842  command/baseline  command/mattpocock                    (withdrawn run)
+20260816-113302  command/caveman   wizard/caveman     wizard/caveman
+20260817-162601  command/baseline  command/karpathy   wizard/baseline  wizard/mattpocock
+```
+
+Eight of the nine are on `tmpl-fe-command` and `tmpl-fe-wizard`, the two hardest tasks in
+the set (2/12 build rate on haiku). And the cap censors by arm: on haiku the median cell
+takes 40s, but by arm the medians run baseline and karpathy at 57s down to superpowers at
+24s. **The timeout removes the arms that work longest, and superpowers — which stops to
+ask a question and writes nothing — is the arm it can never remove.** That is a selection
+effect correlated with the treatment, not a random loss.
+
+The cap was set for haiku, where it was already grazing the tail: the slowest surviving
+haiku cell took 283s against a 300s cap. Sonnet's median is 132s, more than three times
+haiku's, and its slowest survivor took 241s. The same 300s cap therefore cuts sonnet's
+distribution where haiku's merely touched it, which is the whole of instrument failure 17.
+
+**Consequence for the opus run.** The recommendation to hold is unchanged, and the reason
+is now specific rather than budgetary. Opus is slower than sonnet, so at a fixed 300s cap
+the censored fraction grows; it grows fastest on baseline, which is the control; and
+round three already lost 2 of 3 baseline cells that way, which is exactly why prediction 4
+came back unjudgeable rather than supported. The cap must be raised and preregistered
+before any opus cells are bought, and the new value has to come from a timing probe rather
+than a guess, because the four killed cells tell us only that they exceeded 300s.
