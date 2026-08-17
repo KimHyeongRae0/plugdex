@@ -1,0 +1,15 @@
+{
+  "name": "plugdex-root",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "eslint . && prettier --check .",
+    "test": "pnpm -r run test",
+    "build": "pnpm -r run build"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
