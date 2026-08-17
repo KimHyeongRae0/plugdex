@@ -95,6 +95,19 @@ Key invariants:
   APPROVED_WITH_NOTES (0 blockers) AND a fully scored rubric (plan P1–P7 / report
   R1–R6, each row PASS/FAIL/N-A with one line of evidence). The gate rejects missing
   rows, empty evidence, and APPROVED with any FAIL row.
+- **REV-02 — the plan review is capped at two rounds.** Round 1 finds design and scope
+  defects, which is what a plan review is for. Round 2 confirms the fixes. After round 2,
+  anything still outstanding that is not a *blocker* rides to the report stage, where the
+  code exists and the finding can be checked against something real. Measured on PDX-002:
+  rounds 3 and 4 each cost a full review cycle to correct one stale number in prose and
+  found no defect in the work. A third round is permitted only when round 2 raises a new
+  blocker, and the report must say why.
+- **PLAN-01 — plans reference volatile facts, they do not restate them.** Commit counts,
+  SHAs, line numbers, and file inventories go stale between writing a plan and running
+  it, and every PDX-002 plan review after round 1 was spent chasing exactly that. State
+  where the fact lives and let the scenario derive it. Where a number must appear for the
+  argument to make sense, it is written as a claim the e2e asserts — never as prose only
+  a reviewer can check.
 - **Scripts decide, not vibes**: a stage is done when its gate script exits 0.
 - **Stage order is enforced**: each passed stage is stamped via
   `scripts/workflow-state.sh` (`.docs/state/<ID>.state`); later gates refuse to run
