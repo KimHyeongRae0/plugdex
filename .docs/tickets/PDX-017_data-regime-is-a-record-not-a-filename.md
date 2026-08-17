@@ -40,6 +40,16 @@ neither condition, merging two the preregistrations kept apart on purpose.
 - `packages/data/src/load.test.ts` — unit coverage on synthetic corpora
 - `bench/data/runs/*.acceptance.json` — one added key per record, no cell touched
 - `bench/harness/fisher.py` — read the field instead of the filename
+- `bench/harness/acceptance.py` — **added at plan review round 1.** It is what writes
+  acceptance records, and a required field the writer does not stamp is a field the next
+  graded run cannot produce. Making it required without touching the writer would ship a
+  loader that refuses the very records this project's own grader emits
+- `tests/e2e/PDX-002-*.sh`, `tests/e2e/PDX-016-*.sh` — **added at plan review round 1.**
+  Both plant synthetic acceptance records, and a required field breaks them. Round 1 found
+  that GREEN was unreachable without this: PDX-016's scenario plants regime-less records
+  and requires them to load
+- `tests/meta/cases/28..33-data-*.sh` — same reason; the six existing DATA-02 cases share a
+  `plant_record` helper that writes no regime
 - `scripts/check-data-universe.sh` — the DATA-02 sub-rules for regime
 - `tests/meta/cases/` — golden cases, both sides of every new rule
 - `tests/e2e/PDX-017-*.sh`

@@ -24,8 +24,16 @@ there is still time to close it before they do.
 **And something is blocked on it now.** `@plugdex/data` has no regime at all, so PDX-004's
 `verdictFor` pools both conditions: the card currently renders a baseline of 42%, which is
 25% and 73% averaged into a rate that describes neither. Measured, not estimated —
-`blocked` baseline is 5/20, `as-shipped` is 8/11. The preregistrations kept the two apart
-deliberately; a card that merges them publishes a condition that never ran.
+`blocked` baseline is 5/20, `as-shipped` is 8/11, pooled 13/31. The preregistrations kept
+the two apart deliberately; a card that merges them publishes a condition that never ran.
+
+*Basis, stated because two different baseline rates circulate in this repository and a
+reader meeting both would reasonably think one of them wrong.* The figures above are the
+**build** outcome over **code-producing valid cells**, which is what `verdictFor` computes
+and what the card renders. The 35% → 73% pair quoted in `fisher.py`'s docstring, the gate
+header, and DESIGN.md's debt row is D-001's: the **passes** outcome over code-producing
+cells in the blocked-haiku pool. Both are real, they answer different questions, and the
+derivation entry states its basis so neither reads as a correction of the other.
 
 **The adjudication, settled from documents rather than names.** Every record's regime is
 fixed by a source that is not its filename. This table is the plan's central claim and the
@@ -42,16 +50,27 @@ scenario re-derives its consequences:
 | `20260816-113302` | `as-shipped` | same table, and the other `deps: cell-local` run |
 | `20260816-121801` | `as-shipped` | same table — "as-shipped, combination arm" |
 | `20260816-222615` | `blocked` | D-002's corrected table row "Bash blocked, **sonnet** — 6 / 6"; the corpus holds exactly six valid sonnet superpowers cells, three here and three in `20260817-162601`, so the row decomposes only one way |
-| `20260817-162601` | `blocked` | `bench/PREREGISTRATION-3.md` §Design — "**Regime**: blocked (Bash disallowed, NO_RUN prompt appended)" |
+| `20260817-162601` | `blocked` | **the only machine-written evidence in the corpus**: its `results.json` carries `"regime": "blocked"` alongside the verbatim `no_run_prompt` and a `run_py_sha256` — the runner gained the stamp that `bench/PREREGISTRATION.md` promised, just before round three, and it never crossed into the acceptance record. Corroborated by `bench/PREREGISTRATION-3.md` §Design, written before the run |
 
 Every adjudication agrees with what the filenames currently imply. That is the expected
 result and it is what makes this diff reviewable: it relocates a fact and moves no number,
 which AC-4 proves by re-deriving D-002's table from the recorded field.
 
-Two of the ten are settled by inference rather than by a sentence naming them — `225842`
-by a preregistration written to match it, and `222615` by arithmetic on a published table.
-Both are recorded as such in the derivation entry, because an adjudication whose strength
-varies by record and does not say so is a table that reads stronger than it is.
+**The evidence is not equally strong across the ten, and the derivation entry says so
+per record rather than presenting one table of equals.** Three tiers:
+
+- *Machine-written*: `20260817-162601` alone. Its `results.json` carries the regime the
+  runner stamped, next to the prompt text and a hash of the runner itself.
+- *A document naming the run*: the seven settled by the handoff per-run table, plus
+  `20260816-092732` independently by PREREGISTRATION-2 §Experiment C.
+- *Inference*: `20260815-225842`, settled by a preregistration written to match it rather
+  than to describe it; and `20260816-222615`, settled by arithmetic on D-002's table.
+  **The second is weaker than it looks, and round 1 of this review is why that is written
+  down**: D-002's per-run regime column was counted off the published corpus, which means
+  plausibly through `load_cells`'s own filename-derived `_regime`. Pinning `222615` by that
+  arithmetic anchors it to consistency with a published claim, not to a source independent
+  of the heuristic under suspicion. It remains the best available evidence for that run and
+  it is labelled as what it is.
 
 ## 2. Scope Check
 
@@ -80,16 +99,19 @@ varies by record and does not say so is a table that reads stronger than it is.
 
 | # | Step | Files | Notes |
 |---|---|---|---|
-| 1 | The type, the parse, the filter | `packages/data/src/schema.ts`, `load.ts`, `index.ts` | `Regime = 'blocked' \| 'as-shipped'`; `regime: Regime` **required** on `AcceptanceRecord` — not optional, because an optional field with a default is the current misclassification with somewhere to hide. `MissingRegimeError` on absent, `UnknownRegimeError` on a value outside the union (the two are separate so a golden case can prove which fired). `loadAcceptanceRecords({ dir, regime })` filters when asked and returns everything when not. Exported through `index.ts`. The mixed-environment and withdrawal behaviour is untouched |
+| 1 | The type, the parse, the filter | `packages/data/src/schema.ts`, `load.ts`, `index.ts` | `Regime = 'blocked' \| 'as-shipped'`; `regime: Regime` **required** on `AcceptanceRecord` — not optional, because an optional field with a default is the current misclassification with somewhere to hide. `MissingRegimeError` on absent, `UnknownRegimeError` on a value outside the union (the two are separate so a golden case can prove which fired). **Check order is fixed here, not left to the implementer**: fingerprint, then the environment audit, then regime — the order the record's own refusals already run in, and the order `tests/e2e/PDX-002-records-are-traceable.sh` AC-3 depends on, since it plants a record missing both fingerprint and regime and requires `MissingFingerprintError`. Round 1 caught that this was a coin flip. `loadAcceptanceRecords({ dir, regime })` filters when asked and returns everything when not. Exported through `index.ts`. The mixed-environment and withdrawal behaviour is untouched |
 | 2 | Unit coverage on synthetic corpora | `packages/data/src/load.test.ts` | Cases in §7. Synthetic throughout, so nothing depends on which runs exist; plus one committed-corpus consistency test asserting the two regimes partition the corpus exactly |
 | 3 | The adjudication, written onto the records | `bench/data/runs/*.acceptance.json` (10 files) | One key per record, from §1's table, by a scripted single-key insert that touches no other byte. The insert is done per file with the value taken from a table in the script, so a reader can diff the script against §1 rather than trusting ten edits |
 | 4 | fisher.py reads the record | `bench/harness/fisher.py` | Delete the `"as-shipped" in name` derivation; read `record["regime"]`; `ValueError` on absent or unknown, matching the loader's refusals. `_regime` keeps its name and meaning so every existing caller — `derive_d001.py`, the analysis scripts — is unaffected. The docstring's DATA-01 confession is replaced by a statement that the debt is paid, with DEC-015 named |
 | 5 | DATA-02 gains its regime clauses | `scripts/check-data-universe.sh` | Three new lettered rules (§below). The header's disclosure that DATA-02 covers withdrawal only is removed, because after this it does not — and leaving a stale disclosure would be its own defect |
-| 6 | Documentation | `docs/WORKFLOW.md`, `CLAUDE.md` | DATA-02's rows in both documents gain the regime clause and drop the "round one enforces withdrawal only" sentence; the golden-case range is updated |
+| 6 | Documentation | `docs/WORKFLOW.md`, `CLAUDE.md` | DATA-02's rows in both documents gain the regime clause; the golden-case range is updated. **Only `docs/WORKFLOW.md` carries the "round one enforces this for withdrawal only" sentence** — CLAUDE.md's row never did, so an implementer should not go hunting for it there (round-1 review note). The same stale disclosure in `scripts/check-data-universe.sh`'s header is removed by step 5 |
 | 7 | Golden cases — the record-side rules | `tests/meta/cases/` (3 files, numbers derived at implementation) | DATA-02e (no regime), DATA-02f (unknown regime value), and a clean-pass guarding the two legal values. Construction table below |
 | 8 | Golden case — the harness rule | `tests/meta/cases/` (1 file) | DATA-02g: a planted `fisher.py` deriving regime from the filename is caught behaviourally against a corpus whose names contradict its records |
 | 9 | The derivation entry | `bench/DERIVATIONS.md` | Next free number, derived at write time. Contents in §below — including the per-record evidence table and the explicit note on which two adjudications rest on inference |
-| 10 | The decision, and the debt closed | `DESIGN.md` | DEC-015's scope note updated to say its second half landed; the PDX-017 harness-debt row struck with a pointer to this ticket; the decision log gains **DEC-016** for the adjudication standard — *a run-level condition is settled from a document, and the document is named per record* |
+| 10 | The decision, and the debt closed | `DESIGN.md` | DEC-015's scope note updated to say its second half landed; the PDX-017 harness-debt row struck with a pointer to this ticket; the decision log gains **DEC-019** for the adjudication standard — *a run-level condition is settled from a document, and the document is named per record*. Not DEC-016: PDX-004's approved plan already holds 016 through 018 on this branch and its stacked implementation cites DEC-016 in shipped comments, so taking it here would make two different decisions share an id. This ticket lands first, which leaves 016-018 briefly unallocated in the log — an ordering oddity rather than a gap, and PDX-004 fills them immediately after |
+
+| 11 | Every synthetic record constructor | `packages/data/src/load.test.ts`, `scripts/check-data-universe.sh`, `tests/e2e/PDX-002-records-are-traceable.sh`, `tests/e2e/PDX-016-the-corpus-agrees-with-itself.sh`, `tests/meta/cases/28..33-data-*.sh` | **Added at review round 1, which found GREEN unreachable without it.** A required field breaks every planted corpus in the repository, and the enumeration is derived rather than remembered: `grep -rln npm_fingerprint` over tracked non-corpus files is the complete list. Each planter gains a regime, defaulting to `blocked` **inside the fixture** — a test fixture may have a default; the parser may not. PDX-016's scenario and PDX-002's are updated in place with a comment saying why, since neither is about regime |
+| 12 | The writer stamps what the reader requires | `bench/harness/acceptance.py` | **Added at review round 1.** `acceptance.py` writes `{run, env, cells}` and no regime, so a required field would make the next graded run emit a record this project's own loader refuses. It gains a `--regime` argument validated against the two values, preferring the run's `results.json` when that carries one — `20260817-162601`'s already does, machine-written alongside the `no_run_prompt` text and a `run_py_sha256`. Refuses when neither is available, rather than defaulting: the writer is where a wrong regime would enter the corpus with nothing to contradict it |
 
 **The gate — three new lettered rules under DATA-02.**
 
@@ -137,10 +159,23 @@ cause instead, and the ticket stops for a CLAIM-01 correction.
 - **A required field breaks a consumer that constructs records** → `pnpm typecheck` covers
   both packages; the risk is real and the compiler is the mitigation, which is the reason
   the field is on the type rather than only in the parser.
-- **Making the field required breaks the golden-set fixtures and any test corpus** →
-  intended, and cheap to fix; a fixture that loads without a regime is a fixture that
-  proves nothing about a corpus that needs one. Every planted corpus in the meta cases and
-  the unit tests is updated in the same change.
+- **Making the field required breaks every planted corpus in the repository** → round 1 of
+  this review found the enumeration was understated and that GREEN was unreachable as
+  planned. The list is now derived rather than remembered — `grep -rln npm_fingerprint`
+  over tracked non-corpus files — and step 11 covers all of it: `load.test.ts`, the DATA-02
+  gate's own probe corpus, the six existing DATA-02 golden cases' shared `plant_record`,
+  **`tests/e2e/PDX-016-the-corpus-agrees-with-itself.sh`** (which plants regime-less records
+  and requires them to load, so it fails unconditionally otherwise), and
+  **`tests/e2e/PDX-002-records-are-traceable.sh`** (whose AC-3 plants a record missing both
+  fingerprint and regime and requires `MissingFingerprintError`, which is why step 1 fixes
+  the check order rather than leaving it to an implementer's coin flip). Two of those files
+  needed a ticket scope amendment, which is recorded in the ticket.
+- **The grader stops being able to produce a loadable record** → `acceptance.py` writes
+  `{run, env, cells}`. A required field the writer does not stamp means the next graded run
+  emits a record this project's own loader refuses — a self-inflicted outage with a clean
+  error message. Step 12 makes the writer stamp it, refusing rather than defaulting,
+  because the writer is the one place a wrong regime could enter the corpus with nothing to
+  contradict it.
 - **`derive_d001.py` reads a frozen corpus through `git show 63735e6:`**, whose records
   predate the field → it must keep working. It calls `load_cells` only for the live half;
   the frozen half is read directly. Verified before implementation and asserted by AC-6
@@ -180,10 +215,12 @@ cause instead, and the ticket stops for a CLAIM-01 correction.
 - DEC-005 (the effect confined to a regime the records do not carry as a field — this is
   the ticket that makes that sentence obsolete), DEC-015 (a fact that governs the analysis
   is a record field, never a filename).
-- **Produced by this ticket**: **DEC-016** — a run-level condition is settled from a
+- **Produced by this ticket**: **DEC-019** — a run-level condition is settled from a
   document, and the document is named per record. PDX-016 established that such a fact
   belongs on the record; it did not say how the value is decided. Ten records adjudicated
-  from prose is where that question becomes real.
+  from prose is where that question becomes real. The number skips ahead because PDX-004's
+  approved plan holds 016-018 on this branch (round 1 of this review caught the collision);
+  see step 10.
 
 ## 7. Test Plan (mandatory — TDD)
 
@@ -228,6 +265,7 @@ over the live corpus:
 | AC-4 | `grep -n 'as-shipped" in name' bench/harness/fisher.py` matches, and the decoy probe shows the loader is name-sensitive | no filename comparison decides a regime under `bench/harness/`, proven by the decoy corpus; **and** D-002's four published rows (34/35, 9/9, 6/6, 49/50) re-derive from the recorded field, executed by the scenario. A moved row names the derivation to correct under CLAIM-01 rather than the assertion to edit |
 | AC-5 | `check-data-universe.sh` has no e/f/g rules; a planted no-regime record passes it today | the gate BLOCKs each of the three shapes, `check-gates.sh` replays all four new cases green (numbers globbed at run time), and each violation case trips exactly one lettered rule |
 | AC-6 | the anchors would run but prove nothing about a field that does not exist — so this AC is asserted together with AC-4's re-derivation, and separately runs `derive_d001.py`, whose excluded-pool block must still show baseline 12/34 and ponytail `p = 0.0352` | both anchors reproduce; `python3 bench/harness/fisher.py` still prints its textbook self-validation line |
+| AC-2 (writer) | `acceptance.py` accepts no regime and stamps none, so `--regime` is an unknown argument | the grader refuses to write a record without a regime — invoked with no `--regime` and no `results.json` regime, it exits non-zero and names the reason; invoked with an unknown value it refuses; and its output record carries the value. Asserted against a scratch run directory, never against `bench/data/runs/` |
 | AC-7 | verify output contains no regime clause and `check-gates.sh` knows no such cases | captured verify output (captured then searched — never piped into `grep -q` under pipefail) contains the DATA-02 pass line, and both documents carry the regime clause with the stale withdrawal-only sentence gone |
 
 - **Unit tests** (step 2, `packages/data/src/load.test.ts`), synthetic throughout:
@@ -241,7 +279,10 @@ over the live corpus:
   - regime and withdrawal are independent: a withdrawn `as-shipped` record is excluded from
     the default view and still listed in `withdrawnRecords` with its regime intact;
   - committed-corpus consistency: the live corpus loads, the two regimes' cell counts sum
-    to the unfiltered count, and both are ≥ 1.
+    to the unfiltered count, and both are ≥ 1;
+  - check order: a record missing both the fingerprint and the regime throws
+    `MissingFingerprintError`, not `MissingRegimeError` — the order PDX-002's scenario
+    depends on, pinned here so it cannot drift.
 
 ## 8. Feature Tags
 
@@ -255,6 +296,28 @@ over the live corpus:
 | `bench/PREREGISTRATION-2.md` §Experiment A / C | Y (2026-08-18) | Defines both regimes and the `PONYTAIL_REGIME` switch; §Experiment C states caveman ran blocked. Its coverage table is explicitly **not** used as evidence — D-002 withdrew it |
 | `bench/PREREGISTRATION-3.md` §Design | Y (2026-08-18) | States round three's regime before the run, which is what makes it evidence rather than reconstruction |
 | `bench/README.md` D-002 corrected table | Y (2026-08-18) | The classification that reproduces; the source that pins the sonnet probe by arithmetic and the anchor AC-4 re-derives |
+
+### 9.0 What round 1 of this review found
+
+Two blockers, both about consequences the plan had not followed through, and three notes
+that made the evidence honest rather than merely correct.
+
+- **A decision-log id collision I created.** PDX-004's approved plan holds DEC-016 through
+  018 on this same branch, and its stacked implementation already cites DEC-016 in shipped
+  comments. This ticket's decision moves to DEC-019.
+- **The required field's blast radius was understated, and GREEN was unreachable.**
+  PDX-016's own scenario plants regime-less records and requires them to load; PDX-002's
+  AC-3 requires a specific error from a record missing two fields at once. Neither file was
+  in a step or in the ticket's scope. Both are now, along with the four other planters the
+  grep finds, and the parser's check order is fixed in step 1 rather than left to chance.
+  The grader that *writes* records was missing entirely — a required field it does not
+  stamp would make the next run emit a record this project's own loader refuses.
+- **The adjudication table survived a full independent re-derivation** — every cited
+  sentence, the sonnet arithmetic, the `deps: cell-local` corroboration, and all four D-002
+  rows. No adjudication is wrong. What changed is honesty about strength: `222615`'s pin
+  rests on a table whose own regime column was plausibly computed by the heuristic under
+  suspicion, and `162601` was under-cited — its `results.json` carries a machine-written
+  regime, the strongest evidence in the corpus and the only one of its kind.
 
 ## 9. Agent Review
 
