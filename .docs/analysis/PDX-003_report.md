@@ -104,7 +104,7 @@ recurring shape:
 | Item | Result | Notes |
 |---|---|---|
 | Studio visual quality (agent-browser screenshot review) | N/A | No UI in this ticket; the catalogue lands with PDX-004 |
-| CI workflow executes on the runner (declared, not run locally) | **DECLARED, NOT VERIFIED** | The e2e job now installs `@anthropic-ai/claude-code` so AC-5 can run. That the CLI installs on the runner, and that `plugin install` needs no credentials, are both untested outside this machine. If either is false the PR's e2e check fails and the finding is real information rather than a surprise — this is where PDX-002 learned two things local runs could not show |
+| CI workflow executes on the runner (declared, then verified) | PASS | Run 32013908666 on PR #4: `verify` pass 31s, `e2e` pass 55s. The CLI installed in 4s (`added 2 packages`) and AC-5 ran for real on the runner — `✓ AC-5: caveman@plugdex installed over https and appears in the installed list` — so `plugin install` needs no credentials, and the HTTPS retry path is exercised on a machine with no SSH key at all. This row was written as DECLARED, NOT VERIFIED before the push and is updated with the run that settled it |
 | A real pack installs from its author's repository | PASS | `caveman@plugdex` cloned from `JuliusBrussee/caveman` over HTTPS and appears in `claude plugin list`, under a scratch `CLAUDE_CONFIG_DIR` |
 
 ## 6. Regression Check
@@ -113,10 +113,15 @@ recurring shape:
 `verify.sh` renumbering touched all nine existing step labels; the gate self-test and the
 full regression both pass after it.
 
+On CI, run 32013908666: `verify` pass, `changed` pass, `e2e` pass 3/3 with AC-5 executing
+a real install on the runner.
+
 One caveat that is not flakiness but will look like it: AC-5 requires network and the
 `claude` CLI, and fails rather than skips when either is missing. That is the ticket's
 intent — a skip would leave the product's premise unproven while the run stayed green —
-and it means the scenario is not runnable offline.
+and it means the scenario is not runnable offline. It also means the suite now depends on
+two public repositories staying reachable, which is deliberate: a listed pack that stops
+installing is a broken listing, and this is what catches it.
 
 ## 7. Rules Verification
 
