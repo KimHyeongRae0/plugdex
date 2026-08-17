@@ -547,41 +547,77 @@ gains the live-corpus anchor risk with its labelled failure message, the DATA-02
 comment records which probe arm catches what, and step 10 fixes the decision at DEC-015
 under the log-allocates-at-landing rule. Round 2 confirms these against the artifacts.
 
+Round 2 (Fable 5, 2026-08-17 21:08) returned **APPROVED_WITH_NOTES** with no blockers.
+It closed all three round-1 blockers against the ticket file itself rather than against
+this plan's account of it, re-verified the `derive_d001.py` exemption line by line, and
+confirmed the disclosed PDX-003 drift sweep is warranted: `check-src.sh` runs as verify
+step 10/10 (`scripts/verify.sh:98-99`) while appearing in no row of WORKFLOW.md's script
+table, and neither composition line names it.
+
+One prose slip survives into implementation: §3 step 6 says the verify pipeline is
+"documented as eight steps while running ten", where the composition line actually lists
+nine components. No assertion depends on the count — AC-7 greps for the DATA-02 and
+SRC-01 entries, not a number — so it is corrected at the implementation stage per REV-02
+rather than costing a round.
+
 ### Reviewer
 - Model: Fable 5 (claude-fable-5)
-- Reviewed at: 2026-08-17 20:58
+- Reviewed at: 2026-08-17 21:08
 
 ### Verdict
 - [ ] APPROVED
-- [ ] APPROVED_WITH_NOTES
-- [x] NEEDS_REVISION
+- [x] APPROVED_WITH_NOTES
+- [ ] NEEDS_REVISION
 
 ### Rubric
 
+Every row must be scored PASS / FAIL / N/A with one line of concrete evidence.
+Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
+
 | ID | Item | Verdict | Evidence |
 |---|---|---|---|
-| P1 | Scope fidelity: the plan stays inside the ticket's Scope.Allowed / NotAllowed and addresses every AC | FAIL | Plan §2/§3 step 1 touch `packages/data/src/index.ts`, which the ticket's Scope.Allowed did not list, while §2 claimed "Scope.Allowed respected"; and AC-4 was addressed by narrowing its BLOCK sentence rather than as written — both fixed by ticket amendment, not by the plan alone |
-| P2 | Step granularity: steps touch 1-3 files each and are independently verifiable | PASS | Counted per §3: steps 1/6 touch 3 files, 5/7 touch 2, steps 2/3/4/8/9 touch 1; each carries its own gate, golden case, or scenario assertion |
-| P3 | Decision consistency: no conflict with the DESIGN.md decision log | PASS | The log ends at DEC-014 (`DESIGN.md:168`); PDX-004's DEC-015..017 exist only inside its round-1 NEEDS_REVISION plan; the new decision restates DEC-005's second ground (`DESIGN.md:159`) without altering it |
-| P4 | Test plan: concrete e2e file(s) with explicit RED and GREEN conditions covering each AC | PASS | §7 names `tests/e2e/PDX-016-the-corpus-agrees-with-itself.sh` verbatim from ticket §5 with per-AC RED/GREEN rows for AC-1..7, sentinels and floors throughout; all four AC-3 numbers re-derived (371/447 all cells, 283/357 valid under both flags) and they match |
-| P5 | Risk coverage: risks, mitigations, and Out of Scope are explicit | PASS | §4 covers symmetric-failure, fabricated timestamp, double-tripping cases, spelling-vs-mechanism, DEC collision and verify renumbering, each with a mechanism; §5 is explicit — one un-listed risk (live-corpus anchor fragility) rides as a note |
-| P6 | Language policy: the plan and referenced artifacts are English-only (LANG-01) | PASS | Hangul scan over the ticket and plan returned zero hits; the review is in English |
-| P7 | References consulted: the plan's References Consulted section shows the ticket's required references actually opened (Y + note), or the ticket is on the REF-01 exemption list | PASS | `./scripts/check-references.sh .docs/analysis/PDX-016_plan.md` → "no mapped references — nothing required / REF-01 PASS"; §8.5 notes spot-verified, including all ten records sharing fingerprint `4b140e75d7dc1828` |
+| P1 | Scope fidelity: the plan stays inside the ticket's Scope.Allowed / NotAllowed and addresses every AC | PASS | Every file in §3's steps appears in the amended ticket's Scope.Allowed (`index.ts` at ticket :29, `docs/WORKFLOW.md` and `CLAUDE.md` at :30-34); §7's table covers AC-1..AC-7 each with RED and GREEN |
+| P2 | Step granularity: steps touch 1-3 files each and are independently verifiable | PASS | Counted per §3: steps 1 and 6 touch 3 and 2 files, 5 and 7 touch 2, the rest 1-2; each maps to a unit test, a golden case, or a §7 assertion |
+| P3 | Decision consistency: no conflict with the DESIGN.md decision log | PASS | The log ends at DEC-014 (`DESIGN.md:168`, verified by grep); DEC-005's text (`DESIGN.md:159`) is untouched and its second ground is what §1's deferral ruling preserves |
+| P4 | Test plan: concrete e2e file(s) with explicit RED and GREEN conditions covering each AC | PASS | §7 names `tests/e2e/PDX-016-the-corpus-agrees-with-itself.sh` with per-AC RED/GREEN rows; AC-3's four numbers recomputed first-hand (371/283 excluded, 447/357 pooled — exact match), and the RED claim is live: `fisher.py:74` still skips by filename while `grep -rn withdrawn packages/data/src/` returns nothing |
+| P5 | Risk coverage: risks, mitigations, and Out of Scope are explicit | PASS | §4 carries seven risks including the round-1-requested live-corpus anchor fragility with its failure message naming D-001/D-002; §5 lists five explicit exclusions |
+| P6 | Language policy: the plan and referenced artifacts are English-only (LANG-01) | PASS | Hangul grep over the amended ticket and the revised plan returned zero hits; this review is in English |
+| P7 | References consulted: the plan's References Consulted section shows the ticket's required references actually opened (Y + note), or the ticket is on the REF-01 exemption list | PASS | `./scripts/check-references.sh .docs/analysis/PDX-016_plan.md` → "PDX-016 has no mapped references — nothing required / REF-01 PASS" (exit 0); §8.5's notes spot-verified, including the re-read of the amended ticket |
 
 ### Comments
-1. CR-01 acknowledged and complied with: the review was read-only — no file created or edited, no git mutation, no commit or push recommended. LANG-01 acknowledged.
-2. **Ruling 1 — regime deferral is RIGHT, and the stated cost and successor are adequate.** Folding regime in would write a field onto all ten records, each needing its own adjudication, and would destroy the property that makes AC-3 checkable: that this diff is a single-field relocation whose only possible count effect is the one measured. The withdrawal defect is live and blocking PDX-004. One improvement: the gate script's header should disclose the regime hole with the successor pointer at the enforcement point, not only in DESIGN.md.
-3. **Ruling 2 — the `derive_d001.py` exemption is substantively real, but it was an AC being narrowed.** The `startswith` comparisons at `:100`, `:101`, `:138` select on `_run` tags of the corpus read via `git show 63735e6:` — an immutable historical tree whose records can never carry the field — and the live-pool half goes through `load_cells` with no filename logic. The ticket is the contract, so it was amended rather than reinterpreted.
-4. **Ruling 3 — DEC numbering produces no collision and no gap.** The log is the allocator and allocates at landing; a plan proposes. PDX-004's round-1 text is a superseded draft whose B1 kills DEC-015's content anyway.
-5. **Ruling 4 — the rules-table row must ride with the ticket.** A rule ID enforced inside `verify.sh` but absent from every normative table exists only for readers the gate has already blocked, and the merged state would make WORKFLOW.md's own `verify.sh` composition line false. Related pre-existing drift found: `check-src.sh` appears in no script table, and neither that line nor CLAUDE.md's Verification commands line mentions the SRC-01 verify step.
-6. **AC-3 vacuous-pass audit: clean.** Both-sides-pool is caught by the `pooled − default == withdrawn-cell-count ≥ 1` floor; empty output by sentinel-prefix and the `cells ≥ 1, valid ≥ 1, |arms| ≥ 2` floors; `sort_keys` canonicalisation reorders keys only and cannot hide a value difference; the like-with-like trap is explicitly labelled per view. Anchors re-run: `baseline 12/34 = 35%`, ponytail `p = 0.0352`, and the D-002 snippet's `49 of 50`. `5d3ba47` verified as the adjudicating commit, author date `2026-08-17T14:56:03+09:00`, its diff renaming the run's files to `-withdrawn-different-prompt`.
-7. Two notes for the revision: (a) state the TS probe's skip condition as "absent **or** null" to match `rate_table`; (b) add the live-corpus anchor fragility to §4 with a failure message pointing at the derivation entry.
-8. **Golden-case construction verified: each case trips exactly one rule.** The DATA-02c precedence rule is load-bearing — without it a malformed field also satisfies 02a's "no well-formed `withdrawn` field" and double-trips, the exact defect shipped twice before. In the DATA-02d case the planted old-style stub is caught by the marked-record arm and the decoy by the `"withdrawn" in name` arm; both arms are needed and both carry floors. Next free case numbers confirmed: the set ends at 27.
+1. CR-01 acknowledged and complied with: the review was read-only — no file created or
+   edited, no git mutation, no commit or push recommended. LANG-01 acknowledged; no Korean
+   in either artifact.
+2. **All three round-1 blockers are closed, verified against the ticket file itself.** AC-4
+   now states the property with the frozen-corpus exemption naming `derive_d001.py`'s read
+   at `63735e6`, and carries the CLAIM-01 correction inline; AC-5(b) enforces the same
+   wording; Scope.Allowed lists `index.ts`, `docs/WORKFLOW.md` and `CLAUDE.md` with the
+   drift-sweep rationale.
+3. **The AC-4 exemption remains correct on re-verification.** Every `startswith` in
+   `derive_d001.py` (`:50`, `:100`, `:101`, `:138`) operates on corpora read through
+   `_show()` = `git show 63735e6:<path>`; the live half, `current_corpus()`, goes through
+   `load_cells` and touches no filename.
+4. **The disclosed drift sweep is justified — the drift is real.** `check-src.sh` runs as
+   verify step 10/10 yet appears in no script-table row, and neither `docs/WORKFLOW.md`'s
+   composition line nor CLAUDE.md's Verification commands line mentions it. The `:153`
+   reference is line-accurate today and the plan correctly locates it by content at edit
+   time rather than by line number.
+5. **Both round-1 notes landed.** §7 pins the TS probe's skip to
+   `cell.build === undefined || cell.build === null`, matching `rate_table`'s
+   `cell.get(outcome) is None` (`fisher.py:91`) with the reason stated; §4's anchor
+   fragility risk carries the failure message pointing at the derivation entry and CLAIM-01.
+6. **Nothing regressed from round 1's passes.** AC-3's floors are intact; the
+   one-rule-each construction table and the DATA-02c precedence rule survive, now with the
+   arm-attribution case comment; the case set still ends at 27, derivations at D-002, all
+   ten records share fingerprint `4b140e75d7dc1828`, `5d3ba47`'s author date is
+   `2026-08-17T14:56:03+09:00` as §1 derives it, and the record top level is flat
+   `{cells, env, run}` (76 cells, 74 valid) as claimed.
+7. One new prose slip, not load-bearing: §3 step 6's "documented as eight steps while
+   running ten" — the composition line lists nine components. No assertion depends on the
+   count, so it is a one-word fix at implementation, per REV-02.
 
 ### Blockers (only if NEEDS_REVISION)
-- **Ticket revision needed — AC-4's letter contradicted the plan's correct treatment of `derive_d001.py`** (P1 FAIL, part 1). Amended.
-- **Ticket revision needed — Scope.Allowed omitted `packages/data/src/index.ts`** (P1 FAIL, part 2). Amended.
-- **Ticket revision needed — `docs/WORKFLOW.md` must be in Scope.Allowed so DATA-02's rules-table row and the `verify.sh` composition line land with the gate.** Amended.
+- None.
 
 ## 10. Final Plan Status
 
