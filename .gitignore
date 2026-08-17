@@ -1,6 +1,10 @@
-# Working notes, tickets, drafts and handoffs are local-only by convention.
-# This is what enforces it: a stray `git add -A` must never publish them.
-.docs/
+# Workflow artifacts are PUBLISHED, not hidden. A project whose pitch is "a claim is
+# worth what its receipt is worth" cannot keep its own tickets, plans, and reports
+# local — CLAUDE.md requires them in the ticket's commit (DEC-007).
+# What stays ignored is only what is generated or staged for submission:
+.docs/scratch/
+.docs/state/
+.docs/drafts/
 # Agent worktrees and local agent settings.
 .claude/
 node_modules/
