@@ -1,0 +1,139 @@
+/**
+ * Types for the acceptance records under `bench/data/runs/`.
+ *
+ * These describe what the measurement harness actually wrote, not what would be
+ * convenient to consume. Where the harness emits a field only for one domain, the
+ * field is optional here rather than filled with a default — an invented zero is a
+ * number nobody can check (DATA-01).
+ */
+
+/**
+ * The environment a run was graded in.
+ *
+ * `npmFingerprint` is required and non-optional on purpose. It is the sha256 prefix of
+ * every installed package at grading time, and it is the only thing that distinguishes
+ * a comparable run from an incomparable one. Two of this project's instrument failures
+ * were undeclared packages silently changing a pass rate, so a record that cannot say
+ * which environment produced it is not a record we will render.
+ */
+export type RunEnv = {
+  /** Total installed npm packages at grading time. */
+  readonly npmPackages: number;
+
+  /** sha256 prefix over the sorted `name@version` list. The comparability key. */
+  readonly npmFingerprint: string;
+
+  /** Packages present on disk that no `package.json` declares. Non-empty means the run is suspect. */
+  readonly npmExtraneous: readonly string[];
+
+  /** Installed top-level packages that no manifest declares directly. */
+  readonly npmUndeclaredToplevel: number;
+
+  /** Every installed package as `name@version`. */
+  readonly npmInstalled: readonly string[];
+
+  /** The Node version the gates ran under. */
+  readonly node: string;
+
+  /** Absolute path to the Python interpreter that ran the gate. */
+  readonly pythonGate: string;
+};
+
+/** Why a cell was excluded from analysis. `null` when the cell is valid. */
+export type InvalidReason = string | null;
+
+/** Why the typecheck gate failed, when it did. */
+export type TypecheckReason = 'missing-dep' | 'type-error' | null;
+
+/**
+ * One cell: one pack, on one task, at one model, for one repetition.
+ *
+ * Frontend and backend cells carry different gate fields — `typecheck` / `build` for
+ * frontend, `import_ok` for backend — so those are optional. `valid` is not: an
+ * invalid cell still occupies a slot in the design and dropping it silently would
+ * change every denominator.
+ */
+export type Cell = {
+  /** Unique id: `<task>__<arm>__<model>__<rep>`. */
+  readonly cell: string;
+
+  /** The ticket the agent was given. */
+  readonly task: string;
+
+  /** The pack under test. `baseline` is the no-pack control. */
+  readonly arm: string;
+
+  /** The model the cell ran on. */
+  readonly model: string;
+
+  /** Repetition index within the cell's condition. */
+  readonly rep: number;
+
+  /** False when the cell is excluded from analysis; `invalidReason` says why. */
+  readonly valid: boolean;
+
+  /** Present only on invalid cells. */
+  readonly invalidReason?: InvalidReason;
+
+  /** `null` on cells that never got far enough to have one. */
+  readonly domain?: 'frontend' | 'backend' | null;
+
+  /** How node_modules was provided: a shared fixture or a cell-local install. */
+  readonly deps?: string;
+
+  /** Whether the agent produced any code at all. The finding that matters most is a false here. */
+  readonly wroteCode?: boolean;
+
+  /** Paths the agent created. */
+  readonly newFiles?: readonly string[];
+
+  readonly nFrontendFiles?: number;
+  readonly nBackendFiles?: number;
+
+  /** Frontend gate: did the repository's own typecheck pass? */
+  readonly typecheck?: boolean;
+  readonly typecheckReason?: TypecheckReason;
+  readonly typecheckOut?: string;
+
+  /** Frontend gate: did the repository's own build pass? */
+  readonly build?: boolean;
+  readonly buildReason?: string | null;
+  readonly buildOut?: string;
+
+  /** Backend gate: did the delivered module import cleanly? */
+  readonly importOk?: boolean;
+  readonly importOut?: string;
+
+  /** Backend gate: did the delivered tests pass? */
+  readonly passes?: boolean;
+
+  /** Diagnostics the agent's change introduced, beyond those already present. */
+  readonly nNewDiags?: number;
+  readonly newDiags?: readonly string[];
+};
+
+/** One graded run: its id, the environment it was graded in, and its cells. */
+export type AcceptanceRecord = {
+  /** The run id — the `YYYYMMDD-HHMMSS` timestamp the harness stamped. */
+  readonly run: string;
+
+  readonly env: RunEnv;
+
+  readonly cells: readonly Cell[];
+};
+
+/**
+ * A loaded corpus: every record, plus the single fingerprint they all share.
+ *
+ * There is one fingerprint by construction — {@link MixedEnvironmentError} is thrown
+ * otherwise — so consumers can compare across records without re-deriving it.
+ */
+export type AcceptanceCorpus = {
+  readonly records: readonly AcceptanceRecord[];
+
+  /** The environment fingerprint common to every loaded record. */
+  readonly fingerprint: string;
+
+  /** Every cell across every record, in load order. */
+  readonly cells: readonly Cell[];
+};

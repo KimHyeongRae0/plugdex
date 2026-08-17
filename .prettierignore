@@ -2,5 +2,14 @@ node_modules/
 dist/
 .astro/
 pnpm-lock.yaml
-# Working notes are local-only and never formatted.
+# Tickets, plans, and reports are tracked (DEC-007) but hand-wrapped; prettier
+# would reflow the tables that make them readable.
 .docs/
+# The measurement project is imported, not authored here (PDX-002). Formatting it
+# would rewrite records whose bytes are the evidence.
+bench/
+# Markdown is hand-authored here. Prettier pads every table cell to a common width,
+# which turns the decision log and the reference tables into 300-character lines that
+# nobody reviews. Prose wrapping is deliberate; the tables are read in source as often
+# as rendered.
+*.md
