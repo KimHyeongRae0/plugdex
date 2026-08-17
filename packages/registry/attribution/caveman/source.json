@@ -3,5 +3,13 @@
   "commit": "27d5a3981a347890211bb1bf2439e5c821a63bc9",
   "path": ".claude-plugin/plugin.json",
   "readAt": "2026-08-17",
-  "stars": 98622
+  "stars": 98629,
+  "receipt": {
+    "starsCommand": "gh api repos/JuliusBrussee/caveman --jq .stargazers_count",
+    "commitCommand": "git -C <clone> rev-parse HEAD",
+    "readAt": "2026-08-17T09:32:22Z",
+    "fullName": "JuliusBrussee/caveman",
+    "forks": 5709,
+    "note": "stars move; this is the value at readAt, not a live figure"
+  }
 }

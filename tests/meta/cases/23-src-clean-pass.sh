@@ -17,6 +17,6 @@ export const entries = [{
 }];
 export const declaredAuthor = () => 'Jesse Vincent';
 export const readManifest = () => ({ author: { name: 'Jesse Vincent' } });
-export const readSource = () => ({ repo: 'obra/superpowers', commit: 'b36e082', path: '.claude-plugin/plugin.json', readAt: '2026-08-17', stars: 272966 });
+export const readSource = () => ({ repo: 'obra/superpowers', commit: 'b36e082', path: '.claude-plugin/plugin.json', readAt: '2026-08-17', stars: 272966, receipt: { starsCommand: 'gh api repos/obra/superpowers --jq .stargazers_count', readAt: '2026-08-17T09:32:24Z', fullName: 'obra/superpowers', forks: 24409 } });
 JS
 }

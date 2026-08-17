@@ -3,5 +3,13 @@
   "commit": "b36e0829c6d0140e93cfef2ca599b1b07d4a7797",
   "path": ".claude-plugin/plugin.json",
   "readAt": "2026-08-17",
-  "stars": 272966
+  "stars": 272970,
+  "receipt": {
+    "starsCommand": "gh api repos/obra/superpowers --jq .stargazers_count",
+    "commitCommand": "git -C <clone> rev-parse HEAD",
+    "readAt": "2026-08-17T09:32:24Z",
+    "fullName": "obra/superpowers",
+    "forks": 24409,
+    "note": "stars move; this is the value at readAt, not a live figure"
+  }
 }

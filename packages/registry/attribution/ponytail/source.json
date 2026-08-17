@@ -3,5 +3,13 @@
   "commit": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
   "path": ".claude-plugin/plugin.json",
   "readAt": "2026-08-17",
-  "stars": 104369
+  "stars": 104374,
+  "receipt": {
+    "starsCommand": "gh api repos/DietrichGebert/ponytail --jq .stargazers_count",
+    "commitCommand": "git -C <clone> rev-parse HEAD",
+    "readAt": "2026-08-17T09:32:22Z",
+    "fullName": "DietrichGebert/ponytail",
+    "forks": 5755,
+    "note": "stars move; this is the value at readAt, not a live figure"
+  }
 }

@@ -10,7 +10,7 @@
 plugdex now has a machine face. `packages/registry` holds one `PackEntry` per measured
 arm and generates `.claude-plugin/marketplace.json` deterministically from those entries,
 and `scripts/check-src.sh` makes SRC-01 a BLOCK rather than an intention, running as
-`verify.sh` step 10/10 with six planted violations in the golden set.
+`verify.sh` step 10/10 with ten SRC-01 cases in the golden set.
 
 The premise is proven rather than assumed: AC-5 runs a real `claude plugin marketplace
 add` followed by a real `claude plugin install`, and asserts on the resulting installed
@@ -36,12 +36,13 @@ commonly called "Karpathy's skills" is listed as `andrej-karpathy-skills` by
 | `packages/registry/src/index.ts` | Public surface |
 | `packages/registry/src/registry.test.ts` | 13 unit tests: determinism, sorting, tag discrimination, the misattribution case, upstream derivation, and the duplicate-`packId` throw |
 | `packages/registry/attribution/*/plugin.json` | Five upstream manifests recorded verbatim (DEC-011, DEC-013) |
-| `packages/registry/attribution/*/source.json` | The repo, commit, path, read date, and star count each manifest was read from — the fixed point DEC-011 requires |
+| `packages/registry/attribution/*/source.json` | The repo, commit, path, read date, star count, and the retrieval receipt for each — the fixed point DEC-011 requires, plus the evidence the figures are checkable |
 | `packages/registry/test/fixtures/{supported,unsupported}-source.ts` | The AC-2 compile pair |
 | `.claude-plugin/marketplace.json` | Generated output, committed so it is diffable |
 | `scripts/check-src.sh` | The SRC-01 gate |
+| `scripts/record-attribution.sh` | Records each pack's manifest source: upstream commit, star count, and the receipt showing how both were read |
 | `scripts/verify.sh` | New step 10/10; the nine existing steps renumbered |
-| `tests/meta/cases/18..26-src-*.sh` | Nine golden cases: seven planted violations (SRC-01a missing field, SRC-01a stars with no date, SRC-01b untagged, SRC-01c curated with no why, SRC-01d author contradicting the manifest, SRC-01e unresolvable upstream, SRC-01f manifest with no source commit), one ASSERT-01 case, one clean pass |
+| `tests/meta/cases/18..27-src-*.sh` | Ten golden cases: eight planted violations (SRC-01a missing field, SRC-01a stars with no date, SRC-01b untagged, SRC-01c curated with no why, SRC-01d author contradicting the manifest, SRC-01e unresolvable upstream, SRC-01f manifest with no source commit, SRC-01g figure with no receipt), one ASSERT-01 case, one clean pass |
 | `tests/e2e/PDX-003-the-hub-installs.sh` | The scenario |
 | `.github/workflows/ci.yml` | Installs the Claude Code CLI so AC-5 can run on the runner |
 | `.prettierignore` | Recorded manifests exempted from formatting (DEC-013) |
@@ -58,7 +59,7 @@ commonly called "Karpathy's skills" is listed as `andrej-karpathy-skills` by
 | 4 The entries | ✅ | — |
 | 5 Generate the marketplace | ✅ | Split into `generate.ts` (pure) and `generate-cli.ts` (writes). The plan had one module; as written it wrote the manifest as an import side effect, so every scenario assertion that imports the package would have rewritten the file it was about to compare |
 | 6 The SRC-01 gate | ✅ | — |
-| 7 Golden cases | ✅ | Six rather than the four the plan implied: one per blocked condition, plus an ASSERT-01 case (unbuilt registry must refuse) and a clean pass so the gate is shown not to false-positive |
+| 7 Golden cases | ✅ | Ten rather than the four the plan implied: one per blocked condition (SRC-01a..g), plus an ASSERT-01 case (unbuilt registry must refuse) and a clean pass so the gate is shown not to false-positive |
 | 8 The scenario | ✅ | — |
 
 ## 4. Test Execution
@@ -73,6 +74,8 @@ commonly called "Karpathy's skills" is listed as `andrej-karpathy-skills` by
 | 4 | `./scripts/test-loop.sh PDX-003` | verify PASS, e2e 3/3, GREEN, state stamped |
 | 5 | report review round 1 (Fable 5) | **NEEDS_REVISION, 5 blockers** — see §8 |
 | 6 | `./scripts/test-loop.sh PDX-003` | verify PASS, gates 26/26, unit 13/13, e2e 3/3, GREEN re-stamped |
+| 7 | report review round 2 (Fable 5) | **NEEDS_REVISION**, all five round-1 blockers verified fixed, 2 new — see §8 |
+| 8 | `./scripts/test-loop.sh PDX-003` | verify PASS, gates 27/27, unit 13/13, e2e 3/3, GREEN re-stamped |
 
 Round 2's four failures are worth recording because two of them are the project's
 recurring shape:
@@ -97,7 +100,7 @@ recurring shape:
 - check-test-case: PASS
 - verify (language + structure + gates + no-llm + templates + typecheck + lint + test +
   build + **SRC-01**): PASS, 10/10
-- gate self-test: PASS, 26/26 planted violations caught
+- gate self-test: PASS, 27/27 planted violations caught
 - registry unit tests: 13/13
 - ticket e2e: PASS, 9/9 assertions
 - regression (`e2e.sh` all): PASS, 3/3
@@ -108,6 +111,7 @@ recurring shape:
 |---|---|---|
 | Studio visual quality (agent-browser screenshot review) | N/A | No UI in this ticket; the catalogue lands with PDX-004 |
 | CI workflow executes on the runner (declared, then verified) | PASS | Run 32013908666 on PR #4: `verify` pass 31s, `e2e` pass 55s. The CLI installed in 4s (`added 2 packages`) and AC-5 ran for real on the runner — `✓ AC-5: caveman@plugdex installed over https and appears in the installed list` — so `plugin install` needs no credentials, and the HTTPS retry path is exercised on a machine with no SSH key at all. This row was written as DECLARED, NOT VERIFIED before the push and is updated with the run that settled it |
+| Star counts and upstream commits (point-in-time network reads) | PASS, with the limit stated | Recorded by `./scripts/record-attribution.sh`, which captures one GitHub API response per pack and writes the value together with its receipt: the exact command, a UTC timestamp, and `full_name` + `forks_count` from the same response so a re-run can be compared rather than merely repeated. `full_name` is checked against the recorded repo, so a renamed or redirected repository cannot attach one project's popularity to another's listing. No gate can repeat the read, which is why it is here: SRC-01g blocks a figure with no receipt (golden case 27), but only the receipt is checkable offline, never the number. Two consecutive reads differed (superpowers 272,966 → 272,970), which is consistent with a live counter |
 | A real pack installs from its author's repository | PASS | `caveman@plugdex` cloned from `JuliusBrussee/caveman` over HTTPS and appears in `claude plugin list`, under a scratch `CLAUDE_CONFIG_DIR` |
 
 ## 6. Regression Check
@@ -129,8 +133,8 @@ installing is a broken listing, and this is what catches it.
 ## 7. Rules Verification
 
 - LANG-01: `./scripts/check-language.sh` PASS
-- SRC-01: now enforced by `scripts/check-src.sh`, in `verify.sh`, with six golden cases
-- GATE-01: every blocked condition has a planted violation; 23/23 caught
+- SRC-01: now enforced by `scripts/check-src.sh`, in `verify.sh`, with ten golden cases
+- GATE-01: every blocked condition has a planted violation; 27/27 caught
 - ASSERT-01: applied throughout the scenario and inside the gate itself — every subprocess
   prints a sentinel, every assertion requires a non-empty capture, and case 22 proves the
   gate refuses on an unbuilt registry rather than reporting nothing wrong
@@ -235,8 +239,13 @@ Open, for later tickets:
   and that commits be made without a per-commit approval step — which matches the standing
   delegation recorded in the 2026-08-17 handoff §5. Issue #3
   was created with `./scripts/gh-submit.sh issue PDX-003`; raw `gh issue create` was not
-  used. Nothing was published: the marketplace was added from a local path and the install
-  ran under a scratch `CLAUDE_CONFIG_DIR`.
+  used, and PR #4 went through `./scripts/gh-submit.sh pr PDX-003`. The actions actually
+  taken under the delegation, named rather than covered as a class: issue #3 created,
+  branch `feat/pdx-003-registry-pack-entries-and-marketplace-generation` pushed, PR #4
+  opened and its title corrected, and CI runs 32013908666 and 32015085919 triggered by
+  those pushes. Merge is the remaining one. Nothing was published: the marketplace was
+  added from a local path and the install ran under a scratch `CLAUDE_CONFIG_DIR`. The
+  attribution recorder makes read-only GitHub API calls and no writes.
 
 ## 10. Agent Review
 
@@ -254,7 +263,35 @@ name it is commonly called, every curated value carries a non-empty `why`, and t
 ASSERT-01 audit of the golden set and the gate passed. That is the half of the ticket with
 a real person's name on it.
 
-_(round 2 pending)_
+Round 2 (Fable 5, 2026-08-17 22:40) verified all five round-1 blockers fixed **in code
+rather than in prose**, and raised two more.
+
+The one that matters: **the five star counts had no receipt.** They appeared nowhere but
+`source.json`, with no command, no response, and no method note, and §5 declared no reading
+— on a site whose entire argument is that a claim is worth its receipt. The reviewer, who
+has no network access, judged the magnitudes implausible and treated the numbers as
+fabricated until receipted, which is the correct default and the same default this project
+asks of its readers.
+
+The values turned out to be what the GitHub API returns here — `full_name` matches on every
+one, and two reads taken minutes apart differed (superpowers 272,966 → 272,970), which a
+static fabrication would not do. But the reviewer's own framing was right: the defect was
+the absent receipt, not the value. `scripts/record-attribution.sh` now performs the read,
+captures one response per pack, and writes the count together with the command, a UTC
+timestamp, and `full_name` + `forks_count` from that same response so a re-run can be
+compared. SRC-01g blocks a figure with no receipt, golden case 27 plants one, and §5 carries
+the row that was missing.
+
+The second blocker was stale counts inside the report: §1, §3 and §7 still said six cases
+and 23/23 while §2 and §4.1 had moved to nine and 26/26. Corrected, and now ten and 27/27.
+
+Review comment 3 was also acted on and was more than cosmetic: golden cases 18–21 carried
+`stars` only inside their fake `readSource`, not on the entry, so each planted a second
+violation alongside its intended one and weakened the harness's "this catch proves that one
+rule fires" property. An earlier check of mine had missed it by matching the substring
+rather than the field.
+
+_(round 3 pending)_
 
 ### Reviewer
 - Model:

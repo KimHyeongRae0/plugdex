@@ -3,5 +3,13 @@
   "commit": "8b78b531ab965735c5dc74f6f7a219e1e37326df",
   "path": ".claude-plugin/plugin.json",
   "readAt": "2026-08-17",
-  "stars": 219733
+  "stars": 219750,
+  "receipt": {
+    "starsCommand": "gh api repos/mattpocock/skills --jq .stargazers_count",
+    "commitCommand": "git -C <clone> rev-parse HEAD",
+    "readAt": "2026-08-17T09:32:23Z",
+    "fullName": "mattpocock/skills",
+    "forks": 18919,
+    "note": "stars move; this is the value at readAt, not a live figure"
+  }
 }
