@@ -43,8 +43,16 @@ Two domains, two different gate stacks, 141 cells that produced code: **55% of i
 build.** Lenient ignores unused-variable diagnostics.
 
 That is a level, not a ranking, so it needs no significance test. Rankings between packs
-are a different claim and this repository does not make one — the best pairwise Fisher
-exact result was p = 0.060.
+are a different claim and this repository does not make one.
+
+This paragraph used to give a reason: "the best pairwise Fisher exact result was
+p = 0.060." **That claim is withdrawn.** It does not reproduce anywhere in the corpus it
+was computed on — 424 arm pairs were swept and none of them lands on it — and the best
+pairwise result there was in fact p = 0.0009, which is significant rather than not. The
+search, the likely origin of the number, and what the corpus says instead are written up
+as D-001 in [`DERIVATIONS.md`](DERIVATIONS.md) and reproducible with
+`python3 bench/harness/derive_d001.py`. We still do not rank packs, for the reasons
+recorded there.
 
 The level is a property of this task set, not a constant. It ranges from 12/12 passing on
 "add a file upload dropzone" to 2/12 on "add a date picker" and 2/12 on "add a form wizard."

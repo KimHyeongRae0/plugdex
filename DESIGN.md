@@ -60,7 +60,7 @@ shrinks at every step down:
 |---|---|---|--:|
 | model | GPT-5.6 vs Opus 5 | — | 10–40 pp on public benchmarks |
 | harness | Cursor vs Claude Code vs OpenCode | model fixed | 10–20 pp (AA's Harness Comparison) |
-| **pack** | the rule text injected into the system prompt | **model and harness fixed** | **not significant — best pairwise Fisher p = 0.060** |
+| **pack** | the rule text injected into the system prompt | **model and harness fixed** | **inconclusive — one pack at +26 pp on build rate (p = 0.0352) does not survive correction for four tests; the other four sit on baseline at p > 0.6** |
 
 AA's Harness Comparison is structurally the same experiment as ours, one level up. We
 hold the harness fixed too and change only the text. That is a smaller intervention, and
@@ -77,7 +77,7 @@ Every finding the source data produced was one of these, and none of them was a 
 
 | Question | Example finding | Form |
 |---|---|---|
-| Does the pack do anything at all? | best pairwise difference p = 0.060 | detection |
+| Does the pack do anything at all? | superpowers writes no code in 49 of 50 valid unattended cells | detection |
 | Does it do what it says? | a published −65% token headline whose measured CI excludes it | claim verification |
 | Does the delivered code build? | ~55% of code-producing cells fail the repository's own gates | delivery integrity |
 
@@ -96,10 +96,13 @@ they do not get entered into a race.
 - **No composite index.** Artificial Analysis averages three benchmarks into one score.
   We measured six frontend and six backend tickets and the spread by ticket is larger
   than the spread by pack; a single number would hide the only honest finding.
-- **No default ranking.** The best pairwise result in the source data was p = 0.060.
-  A sorted leaderboard would assert a confidence the data does not support, so the
-  landing view is a grid and shape summaries are small multiples with confidence bands,
-  never six polygons stacked on one axis set.
+- **No default ranking.** One pack of five shows an effect on build rate that is
+  nominal only (ponytail, +26 pp, p = 0.0352, against a Bonferroni threshold of 0.0125
+  for four comparisons); the other four sit on baseline at p > 0.6; and the one effect
+  that appears is confined to a regime the dataset does not record as a field. A sorted
+  leaderboard would assert a confidence the data does not support, so the landing view is
+  a grid and shape summaries are small multiples with confidence bands, never six
+  polygons stacked on one axis set. Derivation: D-001 in `bench/DERIVATIONS.md`.
 - **Area is not a metric.** Radar area is an artefact of axis order. Where a shape
   summary appears it is captioned as such and the axis order is adjustable.
 
@@ -153,7 +156,7 @@ copy; this table is the source it was transcribed from.
 | DEC-002 | LANG-01 carries no allowlist | The lineage exempted a Korean spec. plugdex publishes to a global audience; an English-only rule with an exception is an English-mostly rule |
 | DEC-003 | Three packages: `data`, `registry`, `site` | The dataset is the product; the site and the marketplace are two renderings of it. Keeping them separate is what makes DATA-01 checkable |
 | DEC-004 | The registry points at upstream repositories, never vendors them | `{"source": "github", "repo": "owner/repo"}` was verified to resolve against a curated marketplace. Pointing keeps us a catalogue and keeps licensing trivial |
-| DEC-005 | The landing view is a cell grid, not a leaderboard | Pairwise pack differences were not significant in the source data (best Fisher p = 0.060). A ranking would assert what the numbers do not support |
+| DEC-005 | The landing view is a cell grid, not a leaderboard | Four of five packs are indistinguishable from baseline (p > 0.6); the fifth is nominal only and does not survive correction for four comparisons; and that one effect is confined to a regime the records do not carry as a field. A ranking would order noise, on a condition the dataset cannot state. The reason first recorded here — "best Fisher p = 0.060" — was withdrawn as unreproducible; see D-001 in `bench/DERIVATIONS.md` |
 | DEC-006 | Unmeasured packs are listed and labelled | A six-entry catalogue is not a catalogue, and the visible queue is the growth loop |
 | DEC-007 | Workflow artifacts are tracked, not local-only | The port ignored all of `.docs/`, which made CLAUDE.md's "the ticket, plan, and report live in the same commit" unsatisfiable — PDX-001 landed with its own ticket untracked. A project whose pitch is that a claim is worth its receipt cannot hide its receipts. Only generated or staging directories stay ignored: `.docs/scratch/`, `.docs/state/`, `.docs/drafts/` |
 | DEC-008 | Ticket slugs lead with their area | `gh-submit.sh` derives the area label from the slug prefix and yields no label when nothing matches — a quiet mislabelling rather than an error. `PDX-###_<area>-<rest>` makes the derivation total over `site` / `data` / `registry` / `harness` / `docs` |
