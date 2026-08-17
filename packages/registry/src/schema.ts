@@ -58,6 +58,25 @@ export interface ManifestSource {
   readonly path: string;
   readonly readAt: string;
   readonly stars: number;
+  readonly receipt: RetrievalReceipt;
+}
+
+/**
+ * How a recorded figure was obtained.
+ *
+ * The star count comes off a network read that no gate can repeat, so the value alone is a
+ * number a reader can neither reproduce nor refute. SRC-01g requires the receipt, and the
+ * requirement belongs in the type rather than only in the gate's inline check: `fullName`
+ * is recorded from the same response so a redirected repository cannot attach one
+ * project's popularity to another project's listing.
+ */
+export interface RetrievalReceipt {
+  readonly starsCommand: string;
+  readonly commitCommand?: string;
+  readonly readAt: string;
+  readonly fullName: string;
+  readonly forks?: number;
+  readonly note?: string;
 }
 
 /** How a pack came to be listed, and how its author can have that undone. */

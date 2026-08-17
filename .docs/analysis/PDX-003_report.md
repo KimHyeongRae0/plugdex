@@ -48,6 +48,7 @@ commonly called "Karpathy's skills" is listed as `andrej-karpathy-skills` by
 | `.prettierignore` | Recorded manifests exempted from formatting (DEC-013) |
 | `scripts/check-structure.sh`, `CLAUDE.md` | `.claude-plugin/` registered in the layout — the path is fixed by the CLI, so it is registered rather than relocated |
 | `DESIGN.md` | DEC-012, DEC-013, DEC-014 |
+| `pnpm-lock.yaml` | Mechanical consequence of the new workspace package; listed because "Files Changed is accurate" means all of them |
 
 ## 3. Plan Compliance
 
@@ -249,7 +250,8 @@ Open, for later tickets:
 
 ## 10. Agent Review
 
-Round 1 (Fable 5, 2026-08-17 21:15) returned **NEEDS_REVISION** with five blockers. It
+Round 1 (Fable 5, 2026-08-17, between the 18:06 GREEN and the 18:22 re-run — see the
+correction note at the end of this section) returned **NEEDS_REVISION** with five blockers. It
 read the implementation rather than the prose, and every blocker was verified against the
 files before being acted on: AC-1's `stars` field dropped without disclosure, two ticket
 edge cases with no test, DEC-011's source commit never recorded, and — the one that
@@ -263,7 +265,8 @@ name it is commonly called, every curated value carries a non-empty `why`, and t
 ASSERT-01 audit of the golden set and the gate passed. That is the half of the ticket with
 a real person's name on it.
 
-Round 2 (Fable 5, 2026-08-17 22:40) verified all five round-1 blockers fixed **in code
+Round 2 (Fable 5, 2026-08-17, between commit `1419961` at 18:24 and the 18:33 re-run)
+verified all five round-1 blockers fixed **in code
 rather than in prose**, and raised two more.
 
 The one that matters: **the five star counts had no receipt.** They appeared nowhere but
@@ -291,15 +294,55 @@ violation alongside its intended one and weakened the harness's "this catch prov
 rule fires" property. An earlier check of mine had missed it by matching the substring
 rather than the field.
 
-_(round 3 pending)_
+Round 3 (Fable 5, 2026-08-17 18:53) returned **APPROVED_WITH_NOTES** with no blockers.
+It re-ran the gates first-hand rather than reading the claims, and it corroborated the
+star-count story from git itself: `git show 1419961:packages/registry/attribution/superpowers/source.json`
+records 272,966 where the current file records 272,970, which is the movement the prose
+asserted.
+
+Six of its notes were acted on here rather than deferred, and two of them found real
+defects the round-2 work introduced or left:
+
+**Golden case 25 had acquired the exact defect round 2 flagged in cases 18–21.** Its
+fixture planted a `readSource` with no receipt, so the SRC-01g rule added in that same
+commit fired alongside the SRC-01f the case exists to prove — and `check-gates.sh` only
+greps for the expected pattern's presence, so nothing catches a second violation. The case
+was never a false pass, but it passed for a reason wider than the one it claims, which is
+the property the harness exists to hold. Case 25's fixture now carries a receipt, and an
+audit of all ten cases found no other instance.
+
+**The receipt's contract lived only in the gate's untyped inline JavaScript.** Every
+`source.json` carries a receipt and `check-src.sh` enforces it, but `ManifestSource` did
+not declare the field — on a ticket whose stated philosophy is that a requirement belongs
+in the type. `RetrievalReceipt` is now a declared interface and `ManifestSource.receipt` is
+required.
+
+Three notes were corrections in place (CLAIM-01):
+
+- `pnpm-lock.yaml` was changed by the branch and missing from §2. Added. "Files Changed is
+  accurate" has to mean all of them, including the mechanical ones.
+- The round-1 and round-2 review times recorded above (21:15 and 22:40) were **provably
+  wrong**: both postdated the commits that fixed their own findings, and the later one
+  postdated the wall clock at the time of round 3. They were written from nothing —
+  no clock was read. The section now brackets each round between two facts that were
+  recorded — the `.docs/state/PDX-003.state` stamps and the commit times — rather than
+  restating a number nobody measured. This is the same defect as the unreceipted star
+  count, in the artifact whose job is to complain about it.
+- The ticket's AC-5 still read "skips loudly ... only when `claude` is absent" while the
+  shipped scenario fails instead, and §8 had already adjudicated that the ticket's wording
+  was the thing that was wrong. Adjudicating it in the report and leaving it wrong in the
+  ticket means the next reader meets the wrong version first, so the AC now states what the
+  gate enforces, with the correction noted inline. The ticket's `Status:` line and AC boxes
+  were also stale — and so were PDX-001's and PDX-002's, both of which have shipped on
+  `main` while claiming `IN_PROGRESS` and `TODO`. All three corrected.
 
 ### Reviewer
-- Model:
-- Reviewed at:
+- Model: Fable 5 (claude-fable-5)
+- Reviewed at: 2026-08-17 18:53
 
 ### Verdict
 - [ ] APPROVED
-- [ ] APPROVED_WITH_NOTES
+- [x] APPROVED_WITH_NOTES
 - [ ] NEEDS_REVISION
 
 ### Rubric
@@ -309,20 +352,43 @@ Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
 
 | ID | Item | Verdict | Evidence |
 |---|---|---|---|
-| R1 | AC evidence: every ticket AC is verified with reproducible gate/command output, and non-scriptable behavior is declared in the Non-Scriptable Verification section (checked via the mandated tool or explicit N/A), never silently skipped | | |
-| R2 | TDD integrity: the round log records a real RED (e2e FAIL) before GREEN | | |
-| R3 | Plan compliance: deviations from the approved plan are disclosed and justified | | |
-| R4 | Code match: Files Changed is accurate and claimed rules/decisions are reflected in the code | | |
-| R5 | CR-01 compliance: no commit/push/issue/PR/merge/release without explicit user instruction | | |
-| R6 | Language policy: all changed artifacts are English-only (LANG-01) | | |
+| R1 | AC evidence: every ticket AC is verified with reproducible gate/command output, and non-scriptable behavior is declared in the Non-Scriptable Verification section (checked via the mandated tool or explicit N/A), never silently skipped | PASS | Re-ran first-hand: `verify.sh` PASS 10/10 (SRC-01 as step 10), `check-gates.sh` 27/27, registry unit tests 13/13, `tests/e2e/PDX-003-the-hub-installs.sh` 9/9 including the real install (`AC-5: caveman@plugdex installed over https and appears in the installed list`); §5 has four DEV-01 rows, each PASS with evidence or explicit N/A, and its CI row cites run 32013908666, verified via `gh run view` |
+| R2 | TDD integrity: the round log records a real RED (e2e FAIL) before GREEN | PASS | `.docs/state/PDX-003.state` stamps `red 2026-08-17T17:56:11` before the first `green 2026-08-17T18:06:00`, and `.docs/scratch/gate-runs.jsonl` records the e2e FAIL; matches §4.0 round 1 |
+| R3 | Plan compliance: deviations from the approved plan are disclosed and justified | PASS | §3 discloses and justifies both real deviations — the `generate.ts` / `generate-cli.ts` split (import confirmed side-effect-free, `--out` present in `generate-cli.ts`) and ten golden cases against the plan's four — and §8 adjudicates the AC-5 fail-vs-skip deviation explicitly |
+| R4 | Code match: Files Changed is accurate and claimed rules/decisions are reflected in the code | PASS | `git diff --name-only 42d7ee2^..3266bf8` (44 files) matches §2 except `pnpm-lock.yaml`, raised as a note and since added; DEC-012/013/014 verified at `DESIGN.md:166-168` and reflected in `schema.ts` (union-of-one `InstallSource`), `.prettierignore` (attribution exempted), `upstream.ts` (`fromUpstream` derives from the manifest and throws on absence) |
+| R5 | CR-01 compliance: no commit/push/issue/PR/merge/release without explicit user instruction | PASS | §9 names every delegated action individually rather than as a class — issue #3, PR #4 (both verified OPEN via `gh`), the branch push, the CI runs — and states merge as the one not yet taken; the delegation is recorded in the session handoff; nothing was published (the marketplace is added from a local path under a scratch `CLAUDE_CONFIG_DIR`, and `record-attribution.sh` performs read-only API calls) |
+| R6 | Language policy: all changed artifacts are English-only (LANG-01) | PASS | `./scripts/check-language.sh` run first-hand: "LANG-01 PASS — no Korean text in repository artifacts", exit 0; no Hangul in any reviewed artifact |
 
 ### Comments
-1.
+1. Rules acknowledged: **CR-01** — the review was read-only throughout; no git mutation, no
+   file edited, no branch/commit/PR created, and no commit/push recommended. **LANG-01** —
+   the review is in English and the gate run confirms no Korean in the artifacts.
+2. Round-2 blocker B1 (unreceipted star counts) verified fixed **in code, not prose**: all
+   five `source.json` files carry a `receipt` block, `record-attribution.sh` captures one
+   API response per pack with `full_name` checked against the recorded repo, `check-src.sh`
+   enforces SRC-01g in both its forms, and golden case 27 plants the violation.
+3. Round-2 blocker B2 (stale counts) verified fixed: §1, §3, §7 now read ten and 27/27, and
+   a full grep found no surviving "six" or "23/23".
+4. Round-2 comment (cases 18–21 double violation) verified fixed: all four now put
+   `stars` on the planted entry and a full receipt in the fake `readSource`.
+5. Case 25 had regressed into the same double-violation shape, introduced by the SRC-01g
+   commit itself. Comment-grade, not a false pass. **Fixed here.**
+6. `pnpm-lock.yaml` was absent from §2. **Fixed here.**
+7. `ManifestSource` did not declare `receipt` even though every record carries one and the
+   gate enforces it. **Fixed here.**
+8. The round-1 and round-2 review timestamps in this section were provably wrong.
+   **Corrected here**, to brackets derived from recorded facts.
+9. The ticket's AC-5 clause and `Status:` line were never corrected after §8 adjudicated
+   them. **Fixed here**, along with the same staleness in PDX-001 and PDX-002.
+10. Round 3 is clean on its mandate: both round-2 blockers and the round-2 comment are
+    fixed in the files, no "fixed" claim was found to be false this round, and the four
+    findings the plan review deferred are all genuinely implemented — `git status` was
+    clean after a full e2e run, confirming the tracked manifest is never written.
 
 ### Blockers (only if NEEDS_REVISION)
--
+- None.
 
 ## 11. Final Report Status
 
-- Agent: _(pending)_
+- Agent: APPROVED_WITH_NOTES (Fable 5, round 3, 2026-08-17 18:53) — 0 blockers; every note acted on in this commit
 - Human: _(pending)_

@@ -1,6 +1,6 @@
 # PDX-003 — Pack entries, marketplace generation, and SRC-01
 
-- Status: TODO
+- Status: DONE
 - Created: 2026-08-17
 
 ## 1. Goal
@@ -52,24 +52,24 @@ assuming it until launch.
 
 ## 3. Acceptance Criteria
 
-- [ ] AC-1: `PackEntry` carries, for every listed pack: a stable `packId`, display name,
+- [x] AC-1: `PackEntry` carries, for every listed pack: a stable `packId`, display name,
       author, upstream repository URL, license, stars recorded with the date they were
       read, an install source, listing provenance, and an opt-out contact. Nothing is
       optional — a field that may be blank is a field SRC-01 cannot enforce
-- [ ] AC-2: the install source is `{"source": "github", "repo": "owner/repo"}`. The
+- [x] AC-2: the install source is `{"source": "github", "repo": "owner/repo"}`. The
       `{"source": "git", "url": ...}` form is **not supported** by the installed Claude
       Code and must fail the type, not merely be discouraged.
       **Asserted as a pair, because a negative compile check alone is green before the
       code exists** — a fixture that fails to compile because the module is missing proves
       nothing. The supported fixture must compile AND the unsupported one must fail. Before
       implementation both fail, which is the correct RED
-- [ ] AC-3: `pnpm --filter @plugdex/registry build` writes
+- [x] AC-3: `pnpm --filter @plugdex/registry build` writes
       `.claude-plugin/marketplace.json` deterministically — running it twice produces a
       byte-identical file, and the scenario asserts that rather than eyeballing it
-- [ ] AC-4: **SRC-01 gate.** `scripts/check-src.sh` BLOCKs an entry missing an upstream
+- [x] AC-4: **SRC-01 gate.** `scripts/check-src.sh` BLOCKs an entry missing an upstream
       link, a named author, or a recorded listing provenance. Proven by golden cases in
       `tests/meta/cases/`, one per missing field, replayed by `check-gates.sh`
-- [ ] AC-5: **the hub actually works.** `claude plugin marketplace add <local path to
+- [x] AC-5: **the hub actually works.** `claude plugin marketplace add <local path to
       this repo>` accepts our generated manifest, and `claude plugin install <pack>@plugdex`
       produces a pack that appears in `claude plugin list`. Asserted on the listing, never
       on an exit code.
@@ -80,15 +80,19 @@ assuming it until launch.
       remotely; that needs this repository to be public and belongs to the deploy ticket.
       The report states this limit in these terms rather than the reverse.
       Runs under a scratch `CLAUDE_CONFIG_DIR` so it never mutates the developer's real
-      plugin configuration. Skips loudly, with the reason recorded, only when `claude` is
-      absent — never on a network error, because a listed pack that no longer installs is
-      a broken listing and this assertion is the thing that catches it
-- [ ] AC-6: `packId` joins to `packages/data`. Every arm name that appears in the
+      plugin configuration. Fails, with the reason recorded, when `claude` is absent, and
+      fails on a network error — because a listed pack that no longer installs is a broken
+      listing and this assertion is the thing that catches it. (Corrected in place per
+      CLAIM-01: this clause first read "skips loudly ... only when `claude` is absent". The
+      shipped scenario fails instead, which is strictly stronger, and the report's §8
+      adjudication concluded the ticket's wording was the thing that was wrong. The AC now
+      states what the gate actually enforces.)
+- [x] AC-6: `packId` joins to `packages/data`. Every arm name that appears in the
       acceptance corpus and is not `baseline` either has a `PackEntry` or is listed in an
       explicit, commented exclusion set. An arm that is measured but unlisted, with no
       stated reason, is a BLOCK — that is how a measured pack silently vanishes from the
       catalogue
-- [ ] AC-7: `verify.sh` runs the SRC-01 gate, and `check-gates.sh` still catches every
+- [x] AC-7: `verify.sh` runs the SRC-01 gate, and `check-gates.sh` still catches every
       previously planted violation (no regression in the golden set)
 
 ## 4. Edge Cases & Error Handling
