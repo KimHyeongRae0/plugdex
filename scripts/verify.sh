@@ -34,15 +34,15 @@ skip() { echo -e "${YELLOW}⏭  $1${NC}"; }
 START_TS=$(date +%s)
 
 # ---- 1. Language (LANG-01) ----
-step "1/9 Language gate (LANG-01)"
+step "1/10 Language gate (LANG-01)"
 ./scripts/check-language.sh || fail "check-language"
 
 # ---- 2. Structure (ST-*) ----
-step "2/9 Structure gate"
+step "2/10 Structure gate"
 ./scripts/check-structure.sh || fail "check-structure"
 
 # ---- 3. Gate self-test (golden set, tests/meta) ----
-step "3/9 Gate self-test"
+step "3/10 Gate self-test"
 if [[ "${PLUGDEX_GATE_SANDBOX:-0}" == "1" ]]; then
   skip "inside a gate sandbox — self-test skipped (recursion guard)"
 else
@@ -50,11 +50,11 @@ else
 fi
 
 # ---- 4. No-LLM (NOLLM-01) ----
-step "4/9 No-LLM gate (NOLLM-01)"
+step "4/10 No-LLM gate (NOLLM-01)"
 ./scripts/check-no-llm.sh || fail "check-no-llm"
 
 # ---- 5. Templates (TMPL-01) ----
-step "5/9 Templates gate (TMPL-01)"
+step "5/10 Templates gate (TMPL-01)"
 ./scripts/check-templates.sh || fail "check-templates"
 
 HAS_PKG=0
@@ -72,23 +72,31 @@ command -v node >/dev/null || fail "node not found in PATH"
 command -v pnpm >/dev/null || fail "pnpm not found in PATH"
 
 # ---- 6. Typecheck ----
-step "6/9 pnpm typecheck"
+step "6/10 pnpm typecheck"
 pnpm typecheck || fail "pnpm typecheck"
 ok "typecheck"
 
 # ---- 7. Lint ----
-step "7/9 pnpm lint"
+step "7/10 pnpm lint"
 pnpm lint || fail "pnpm lint"
 ok "lint"
 
 # ---- 8. Tests ----
-step "8/9 pnpm test"
+step "8/10 pnpm test"
 pnpm test || fail "pnpm test"
 ok "test"
 
 # ---- 9. Build ----
-step "9/9 pnpm build"
+step "9/10 pnpm build"
 pnpm build || fail "pnpm build"
 ok "build"
+
+# ---- 10. SRC-01 ----
+# Runs after the build on purpose: the gate reads the built registry, because what a
+# consumer installs is generated output rather than source. Before the build there is
+# nothing to check, and the gate says so rather than passing.
+step "10/10 Attribution gate (SRC-01)"
+./scripts/check-src.sh || fail "SRC-01"
+ok "SRC-01"
 
 echo -e "\n${BOLD}${GREEN}========== VERIFY PASS ($(( $(date +%s) - START_TS ))s) ==========${NC}"
