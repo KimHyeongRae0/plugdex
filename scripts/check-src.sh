@@ -14,6 +14,8 @@
 #   SRC-01d  an upstream-tagged author disagrees with the manifest that declares it
 #   SRC-01e  an upstream repository that cannot be resolved to a location
 #   SRC-01f  a recorded manifest with no source commit — an audit with no fixed point
+#   SRC-01g  a recorded figure with no receipt — a number a reader can neither
+#            reproduce nor refute is not evidence, whichever way it points
 #
 # ASSERT-01: the check prints a sentinel on its success path, and an empty capture is a
 # failure here rather than a clean bill of health. A gate whose "nothing wrong" and
@@ -69,6 +71,15 @@ REPORT=$(node --input-type=module -e "
       if (!src.readAt) bad.push(\`SRC-01f \${e.packId}: recorded manifest has no read date\`);
       if (typeof e.stars?.count !== 'number' || !e.stars?.readAt) {
         bad.push(\`SRC-01a \${e.packId}.stars: not recorded with the date it was read\`);
+      }
+      // The count came off a network read no gate can repeat, so the record has to carry
+      // how it was obtained. Without that it is a number nobody can check, which is the
+      // exact thing this project criticises other benchmarks for.
+      if (!src.receipt?.starsCommand || !src.receipt?.readAt) {
+        bad.push(\`SRC-01g \${e.packId}: star count has no retrieval receipt\`);
+      }
+      if (src.receipt?.fullName && src.receipt.fullName.toLowerCase() !== src.repo.toLowerCase()) {
+        bad.push(\`SRC-01g \${e.packId}: receipt is for '\${src.receipt.fullName}', not '\${src.repo}'\`);
       }
     } catch {
       bad.push(\`SRC-01f \${e.packId}: no source record for the recorded manifest\`);

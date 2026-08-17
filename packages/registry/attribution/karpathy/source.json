@@ -3,5 +3,13 @@
   "commit": "2c606141936f1eeef17fa3043a72095b4765b9c2",
   "path": ".claude-plugin/plugin.json",
   "readAt": "2026-08-17",
-  "stars": 203210
+  "stars": 203217,
+  "receipt": {
+    "starsCommand": "gh api repos/multica-ai/andrej-karpathy-skills --jq .stargazers_count",
+    "commitCommand": "git -C <clone> rev-parse HEAD",
+    "readAt": "2026-08-17T09:32:23Z",
+    "fullName": "multica-ai/andrej-karpathy-skills",
+    "forks": 20843,
+    "note": "stars move; this is the value at readAt, not a live figure"
+  }
 }

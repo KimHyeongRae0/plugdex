@@ -9,12 +9,13 @@ export const entries = [{
   author: { from: 'upstream', value: 'Andrej Karpathy' },
   upstreamRepo: { from: 'curated', value: 'o/r', why: 'stated' },
   license: { from: 'curated', value: 'MIT', why: 'stated' },
+  stars: { count: 1, readAt: '2026-08-17' },
   installSource: { source: 'github', repo: 'o/r' },
   listingProvenance: { how: 'measured', note: 'n' },
   optOutContact: 'https://example.com/opt-out',
 }];
 export const declaredAuthor = () => 'forrestchang';
-export const readSource = () => ({ repo: 'o/r', commit: 'abc', path: 'p', readAt: '2026-08-17', stars: 1 });
+export const readSource = () => ({ repo: 'o/r', commit: 'abc', path: 'p', readAt: '2026-08-17', stars: 1, receipt: { starsCommand: 'gh api repos/o/r --jq .stargazers_count', readAt: '2026-08-17T00:00:00Z', fullName: 'o/r', forks: 0 } });
 export const readManifest = () => ({ author: { name: 'forrestchang' } });
 JS
 }
