@@ -202,13 +202,16 @@ else:
     # marked: the record says withdrawn, the name does not. A loader that reads names
     # pools these cells and fails the second.
     #
-    # The same two records also carry the DATA-02g decoy, so one sandbox covers both
-    # fields: the first is named without `as-shipped` and recorded as `as-shipped`, and
-    # the third is named `as-shipped` and recorded as `blocked`. A loader deriving the
-    # regime from the name gets both backwards, whichever way it is spelled.
+    # The same three records also carry the DATA-02g decoy, so one sandbox covers both
+    # fields: every one of them is recorded with the regime its filename does NOT imply,
+    # in both directions. That includes the withdrawn record — it was recorded `blocked`
+    # under a name that also derives `blocked`, so a loader deriving the regime for
+    # withdrawn records only slipped through the probe unseen. The PDX-017 report review
+    # found that hole; a decoy that agrees with the mechanism it is decoying is not a
+    # decoy.
     probe_runs = {
         "20200101-000000-withdrawn-by-name-only": (False, "as-shipped"),
-        "20200102-000000-marked-in-its-record": (True, "blocked"),
+        "20200102-000000-marked-in-its-record": (True, "as-shipped"),
         "20200103-000000-as-shipped-in-name-only": (False, "blocked"),
     }
 
@@ -257,6 +260,21 @@ else:
 
             # DATA-02g, over the pooled view so the withdrawn record is checked too.
             expected = {run: regime for run, (_, regime) in probe_runs.items()}
+
+            # A decoy that happens to agree with the filename mechanism proves nothing,
+            # so the probe checks its own construction before checking the loader.
+            agreeing = sorted(
+                run for run, regime in expected.items()
+                if regime == ("as-shipped" if "as-shipped" in run else "blocked")
+            )
+
+            if agreeing:
+                violations.append(
+                    "DATA-02d: the regime decoy is not a decoy — " + ", ".join(agreeing)
+                    + " would derive the same value from the filename, so this probe "
+                    "cannot see a loader that reads names"
+                )
+
             mislabelled = sorted(
                 f"{cell['_run']} read as {cell.get('_regime')!r}, recorded as {expected[cell['_run']]!r}"
                 for cell in pooled

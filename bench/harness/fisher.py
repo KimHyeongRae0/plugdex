@@ -101,9 +101,13 @@ def load_cells(include_withdrawn=False, runs_dir=RUNS_DIR):
                     "a withdrawal with nothing to argue with is a deletion"
                 )
 
-            if not include_withdrawn:
-                continue
-
+        # Deliberately NOT `continue`-ing here. Validation of both governing facts runs
+        # on every record in the directory, whichever view was asked for: a withdrawn
+        # record with no regime used to load silently through the default view while
+        # `@plugdex/data` refused the same directory outright, which is a two-loader
+        # disagreement inside the function that exists to end them. Caught by the PDX-017
+        # report review, and the ticket's own edge case said it — withdrawal and regime
+        # are independent facts and neither exempts the other.
         regime = record.get("regime")
 
         if regime is None:
@@ -117,6 +121,9 @@ def load_cells(include_withdrawn=False, runs_dir=RUNS_DIR):
                 f"{name}: regime is {regime!r}, expected one of {', '.join(REGIMES)} — "
                 "a near-miss value is a typo that would move the run to the other condition"
             )
+
+        if withdrawn and not include_withdrawn:
+            continue
 
         for cell in record["cells"]:
             cell = dict(cell)

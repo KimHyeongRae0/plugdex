@@ -459,23 +459,24 @@ def resolve_regime(run_dir, flag):
 
         return flag
 
-    for candidate in sorted(run_dir.glob("*results.json")) + [run_dir / "results.json"]:
-        if not candidate.is_file():
-            continue
+    # Exactly `results.json`, not a glob. A `*results.json` pattern would let a stale
+    # sibling — a copy, a timestamped variant — outrank the run's own file and decide the
+    # condition, which is a filename choosing a governing fact by another route.
+    candidate = run_dir / "results.json"
 
+    if candidate.is_file():
         try:
             recorded = json.loads(candidate.read_text(encoding="utf-8")).get("regime")
-        except Exception:
-            continue
+        except Exception as error:
+            sys.exit(f"{candidate.name} is not readable JSON ({error}) — "
+                     f"pass --regime {'|'.join(REGIMES)} instead of guessing")
 
-        if recorded is None:
-            continue
+        if recorded is not None:
+            if recorded not in REGIMES:
+                sys.exit(f"{candidate.name} records regime {recorded!r}, "
+                         f"which is not one of {', '.join(REGIMES)}")
 
-        if recorded not in REGIMES:
-            sys.exit(f"{candidate.name} records regime {recorded!r}, "
-                     f"which is not one of {', '.join(REGIMES)}")
-
-        return recorded
+            return recorded
 
     sys.exit(f"no regime for {run_dir.name}\n"
              f"pass --regime {'|'.join(REGIMES)}, or write it into the run's results.json\n"

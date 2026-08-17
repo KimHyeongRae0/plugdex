@@ -515,7 +515,9 @@ judge "$(python3 "$SB/ac3-compare.py" 2>/dev/null)" "AC-3 (per regime, the two a
 # ---------------------------------------------------------------------------
 python3 "$SB/plant.py" "$SB/decoy" '[
   {"run": "20200101-000000", "filename": "20200101-000000-as-shipped-decoy.acceptance.json", "regime": "blocked", "cells": 2},
-  {"run": "20200102-000000", "filename": "20200102-000000-plain.acceptance.json", "regime": "as-shipped", "cells": 3}
+  {"run": "20200102-000000", "filename": "20200102-000000-plain.acceptance.json", "regime": "as-shipped", "cells": 3},
+  {"run": "20200103-000000", "filename": "20200103-000000-withdrawn-plain.acceptance.json", "regime": "as-shipped", "cells": 4,
+   "withdrawn": {"reason": "planted by the PDX-017 scenario", "recorded_at": "2026-08-18T00:00:00+09:00"}}
 ]' 2>/dev/null
 
 cat > "$SB/ac4-decoy.py" <<'PY'
@@ -524,11 +526,20 @@ import json, os, sys
 sys.path.insert(0, os.environ["HARNESS"])
 from fisher import load_cells
 
-expected = {"20200101-000000-as-shipped-decoy": "blocked", "20200102-000000-plain": "as-shipped"}
+# The third record is withdrawn, and it is here because the regime check used to sit
+# behind the withdrawal `continue`: a withdrawn record was exempt from it in the Python
+# half while the TypeScript half refused the same directory. Its name derives `blocked`
+# and it is recorded `as-shipped`, so a loader reading names for withdrawn records only —
+# the shape a whole-corpus decoy cannot see — is caught here.
+expected = {
+    "20200101-000000-as-shipped-decoy": "blocked",
+    "20200102-000000-plain": "as-shipped",
+    "20200103-000000-withdrawn-plain": "as-shipped",
+}
 problems = []
 
 try:
-    cells = load_cells(runs_dir=os.path.join(os.environ["SB"], "decoy"))
+    cells = load_cells(include_withdrawn=True, runs_dir=os.path.join(os.environ["SB"], "decoy"))
 except Exception as error:
     print("SENTINEL " + json.dumps({
         "ok": False,
@@ -536,8 +547,8 @@ except Exception as error:
     }))
     raise SystemExit(0)
 
-if len(cells) != 5:
-    problems.append(f"the decoy corpus produced {len(cells)} cells, expected 5")
+if len(cells) != 9:
+    problems.append(f"the decoy corpus produced {len(cells)} cells, expected 9")
 
 for cell in cells:
     run = cell["_run"]
@@ -552,12 +563,69 @@ for cell in cells:
         )
         break
 
-detail = "a corpus whose names contradict its records is read off the records, both ways"
+detail = "a corpus whose names contradict its records is read off the records — both directions, withdrawn records included"
 
 print("SENTINEL " + json.dumps({"ok": not problems, "detail": "; ".join(problems) or detail}))
 PY
 
 judge "$(python3 "$SB/ac4-decoy.py" 2>/dev/null)" "AC-4 (the decoy corpus)"
+
+# The ticket's edge case, in the one shape that was actually broken: a withdrawn record
+# with no regime. The Python half validated the regime after the withdrawal `continue`,
+# so the default view loaded it in silence while `@plugdex/data` refused the whole
+# directory — the two-loader disagreement this ticket exists to prevent, reintroduced by
+# the ticket itself. Found by the PDX-017 report review.
+python3 "$SB/plant.py" "$SB/exempt" '[
+  {"run": "20200101-000000", "regime": "blocked", "cells": 2},
+  {"run": "20200102-000000", "cells": 2,
+   "withdrawn": {"reason": "planted by the PDX-017 scenario", "recorded_at": "2026-08-18T00:00:00+09:00"}}
+]' 2>/dev/null
+
+cat > "$SB/ac4-exempt.py" <<'PY'
+import json, os, subprocess, sys
+
+sys.path.insert(0, os.environ["HARNESS"])
+from fisher import load_cells
+
+corpus = os.path.join(os.environ["SB"], "exempt")
+problems = []
+
+try:
+    cells = load_cells(runs_dir=corpus)
+    problems.append(
+        f"the harness loaded {len(cells)} cells from a corpus whose withdrawn record has "
+        "no regime — withdrawal exempted it from the check"
+    )
+except ValueError as error:
+    if "regime" not in str(error):
+        problems.append(f"the harness refused, but not for the regime ({error})")
+
+node = subprocess.run(
+    ["node", os.path.join(os.environ["SB"], "ac4-exempt.mjs"), corpus],
+    capture_output=True, text=True,
+)
+answer = node.stdout.strip()
+
+if answer != "MissingRegimeError":
+    problems.append(f"the TypeScript loader answered {answer!r}, expected MissingRegimeError")
+
+detail = "a withdrawn record with no regime is refused by both implementations, in the same directory"
+
+print("SENTINEL " + json.dumps({"ok": not problems, "detail": "; ".join(problems) or detail}))
+PY
+
+cat > "$SB/ac4-exempt.mjs" <<'JS'
+const { loadAcceptanceRecords } = await import(process.env.DATA_PKG);
+
+try {
+  loadAcceptanceRecords({ dir: process.argv[2] });
+  console.log('LOADED');
+} catch (error) {
+  console.log(error?.name ?? 'unnamed');
+}
+JS
+
+judge "$(python3 "$SB/ac4-exempt.py" 2>/dev/null)" "AC-4 (neither fact exempts the other)"
 
 cat > "$SB/ac4-anchors.py" <<'PY'
 import json, os, sys
