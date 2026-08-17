@@ -10,11 +10,13 @@ export const entries = [{
   author: { from: 'upstream', value: 'Jesse Vincent' },
   upstreamRepo: { from: 'upstream', value: 'obra/superpowers' },
   license: { from: 'upstream', value: 'MIT' },
+  stars: { count: 272966, readAt: '2026-08-17' },
   installSource: { source: 'github', repo: 'obra/superpowers' },
   listingProvenance: { how: 'measured', note: 'measured in this project' },
   optOutContact: 'https://example.com/opt-out',
 }];
 export const declaredAuthor = () => 'Jesse Vincent';
 export const readManifest = () => ({ author: { name: 'Jesse Vincent' } });
+export const readSource = () => ({ repo: 'obra/superpowers', commit: 'b36e082', path: '.claude-plugin/plugin.json', readAt: '2026-08-17', stars: 272966 });
 JS
 }

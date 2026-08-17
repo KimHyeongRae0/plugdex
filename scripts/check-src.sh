@@ -12,6 +12,8 @@
 #   SRC-01b  an attribution field is untagged (neither upstream nor curated)
 #   SRC-01c  a curated value carries no `why`
 #   SRC-01d  an upstream-tagged author disagrees with the manifest that declares it
+#   SRC-01e  an upstream repository that cannot be resolved to a location
+#   SRC-01f  a recorded manifest with no source commit — an audit with no fixed point
 #
 # ASSERT-01: the check prints a sentinel on its success path, and an empty capture is a
 # failure here rather than a clean bill of health. A gate whose "nothing wrong" and
@@ -34,8 +36,8 @@ fi
 
 REPORT=$(node --input-type=module -e "
   import { entries } from './$REGISTRY_DIST';
-  import { declaredAuthor, readManifest } from './$REGISTRY_DIST';
-  const REQUIRED = ['packId','displayName','author','upstreamRepo','license','installSource','listingProvenance','optOutContact'];
+  import { declaredAuthor, readManifest, readSource } from './$REGISTRY_DIST';
+  const REQUIRED = ['packId','displayName','author','upstreamRepo','license','stars','installSource','listingProvenance','optOutContact'];
   const TAGGED = ['author','upstreamRepo','license'];
   const bad = [];
   for (const e of entries) {
@@ -52,6 +54,24 @@ REPORT=$(node --input-type=module -e "
     if (e.author?.from === 'upstream') {
       const declared = declaredAuthor({ manifest: readManifest({ packId: e.packId }) });
       if (declared !== e.author.value) bad.push(\`SRC-01d \${e.packId}: listed '\${e.author.value}', manifest declares '\${declared}'\`);
+    }
+    // A repository nobody can open is not an upstream link. Either owner/repo or an
+    // absolute URL resolves; a bare name does not, and SRC-01's whole point is that a
+    // reader can go and look.
+    const repo = e.upstreamRepo?.value ?? '';
+    if (repo && !/^[\\w.-]+\\/[\\w.-]+$/.test(repo) && !/^https?:\\/\\//.test(repo)) {
+      bad.push(\`SRC-01e \${e.packId}: upstream '\${repo}' resolves to no location\`);
+    }
+    // The recorded manifest is the audit; the commit is what fixes it to a version.
+    try {
+      const src = readSource({ packId: e.packId });
+      if (!src.commit) bad.push(\`SRC-01f \${e.packId}: recorded manifest has no source commit\`);
+      if (!src.readAt) bad.push(\`SRC-01f \${e.packId}: recorded manifest has no read date\`);
+      if (typeof e.stars?.count !== 'number' || !e.stars?.readAt) {
+        bad.push(\`SRC-01a \${e.packId}.stars: not recorded with the date it was read\`);
+      }
+    } catch {
+      bad.push(\`SRC-01f \${e.packId}: no source record for the recorded manifest\`);
     }
   }
   console.log('SENTINEL ' + JSON.stringify({ n: entries.length, bad }));

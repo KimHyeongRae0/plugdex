@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { entries, excludedArms } from './entries.js';
-import { buildMarketplace } from './generate.js';
+import { buildMarketplace, DuplicatePackIdError } from './generate.js';
 import { declaredAuthor, fromUpstream, MissingManifestError, readManifest } from './upstream.js';
 
 /**
@@ -83,7 +83,33 @@ test("the pack commonly called Karpathy's is listed under the author its manifes
 });
 
 test('a field the author never declared cannot be tagged as their declaration', () => {
-  assert.throws(() => fromUpstream({ packId: 'x', value: '' }), MissingManifestError);
+  // ponytail's manifest declares no repository and no license, so neither can be tagged
+  // as its author's declaration however much we would like a value there.
+  assert.throws(
+    () => fromUpstream({ packId: 'ponytail', field: 'repository' }),
+    MissingManifestError,
+  );
+  assert.throws(() => fromUpstream({ packId: 'ponytail', field: 'license' }), MissingManifestError);
+});
+
+test('an upstream-tagged value is read from the manifest, not taken from the caller', () => {
+  // The manifest declares a full URL; the listing carries owner/repo. Deriving it is what
+  // makes the `upstream` tag mean "the author said this" rather than "somebody typed this".
+  assert.deepEqual(fromUpstream({ packId: 'superpowers', field: 'repository' }), {
+    from: 'upstream',
+    value: 'obra/superpowers',
+  });
+});
+
+test('generation throws rather than emitting a manifest whose last writer wins', () => {
+  const first = entries[0];
+
+  assert.ok(first);
+  // The real generator, given the duplicate. A manifest is keyed by name, so without this
+  // the second entry would silently replace the first: one author's listing installing
+  // another author's work.
+  assert.throws(() => buildMarketplace({ from: [first, first] }), DuplicatePackIdError);
+  assert.equal(buildMarketplace({ from: [first] }).plugins.length, 1);
 });
 
 test('an unrecorded manifest is an error, not an empty author', () => {

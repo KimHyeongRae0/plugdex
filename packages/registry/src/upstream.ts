@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { UpstreamManifest } from './schema.js';
+import type { Attributed, ManifestSource, StarsAtRecordTime, UpstreamManifest } from './schema.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -65,18 +65,62 @@ export const declaredAuthor = ({ manifest }: { manifest: UpstreamManifest }): st
   return author?.name ?? '';
 };
 
+/** Where a recorded manifest was read from, including the commit that fixes it. */
+export const readSource = ({ packId }: { packId: string }): ManifestSource => {
+  const path = join(ATTRIBUTION_DIR, packId, 'source.json');
+
+  try {
+    return JSON.parse(readFileSync(path, 'utf8')) as ManifestSource;
+  } catch {
+    throw new MissingManifestError({ packId });
+  }
+};
+
+/** The star count recorded alongside the manifest, with the date it was read. */
+export const recordedStars = ({ packId }: { packId: string }): StarsAtRecordTime => {
+  const source = readSource({ packId });
+
+  return { count: source.stars, readAt: source.readAt };
+};
+
+/** `https://github.com/owner/repo` and friends reduced to `owner/repo`. */
+const toOwnerRepo = (repository: string): string =>
+  repository
+    .replace(/^git\+/, '')
+    .replace(/\.git$/, '')
+    .replace(/^(https?:\/\/)?(www\.)?github\.com[/:]/, '');
+
 /**
- * An `upstream`-tagged field, refusing to produce one when the manifest is silent.
+ * An `upstream`-tagged field, **derived from the manifest** rather than asserted next to
+ * it.
  *
- * A field the author never declared cannot be tagged as their declaration. Where we still
- * want to publish a value, it is `curated` and it carries its reason.
+ * An earlier version took the value from the caller and only checked it was non-empty,
+ * which meant an `upstream` tag proved nothing except that somebody had typed something.
+ * The tag's whole meaning is "the author declared this", so the value is now read out of
+ * their declaration. Where they declared nothing, this throws and the caller must publish
+ * a `curated` value carrying its reason.
  *
  * @throws {MissingManifestError} the manifest declares nothing for this field
  */
-export const fromUpstream = ({ packId, value }: { packId: string; value: string }) => {
-  if (value.length === 0) {
+export const fromUpstream = ({
+  packId,
+  field,
+}: {
+  packId: string;
+  field: 'author' | 'repository' | 'license';
+}): Attributed => {
+  const manifest = readManifest({ packId });
+
+  const raw =
+    field === 'author'
+      ? declaredAuthor({ manifest })
+      : field === 'repository'
+        ? (manifest.repository ?? '')
+        : (manifest.license ?? '');
+
+  if (raw.length === 0) {
     throw new MissingManifestError({ packId });
   }
 
-  return { from: 'upstream', value } as const;
+  return { from: 'upstream', value: field === 'repository' ? toOwnerRepo(raw) : raw };
 };
