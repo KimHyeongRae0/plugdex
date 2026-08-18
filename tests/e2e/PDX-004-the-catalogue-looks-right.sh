@@ -102,6 +102,7 @@ judge() {
 cat > "$SB/preflight.mjs" <<'JS'
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const siteDir = process.env.SITE_DIR;
 const problems = [];
@@ -116,13 +117,26 @@ if (!existsSync(join(siteDir, 'dist', 'index.html'))) {
 
 let chromium;
 
-try {
-  ({ chromium } = await import('playwright'));
-} catch (error) {
-  problems.push(`playwright is not importable: ${String(error).split('\n')[0]}`);
+if (!process.env.PLAYWRIGHT_MODULE) {
+  problems.push('playwright is not resolvable from packages/site — it must be a declared dependency there');
+} else {
+  try {
+    // playwright's entry point is CommonJS, so `await import()` hangs its named exports
+    // off `.default` and leaves `chromium` undefined at the namespace's top level.
+    const namespace = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href);
+    chromium = namespace.chromium ?? namespace.default?.chromium;
+  } catch (error) {
+    problems.push(`playwright is not importable: ${String(error).split('\n')[0]}`);
+  }
 }
 
-if (chromium) {
+// Not `if (chromium)`. A guard that skips silently when the binding is undefined reports
+// a green preflight for a browser that never opened, which is precisely the DEV-01
+// failure this scenario exists to prevent — and it is what this file did until the
+// matrix crashed one line later and gave the game away.
+if (!chromium) {
+  problems.push('playwright resolved but exposes no chromium — nothing can be rendered');
+} else {
   try {
     const browser = await chromium.launch();
     await browser.close();
@@ -137,14 +151,28 @@ console.log('SENTINEL ' + JSON.stringify({
 }));
 JS
 
-# Run from the site package when it exists, so `import('playwright')` resolves against
-# that package's own dependencies; from the repository root when it does not, so the probe
-# still runs and reports the absence by name. A probe that cannot start reports "did not
-# run", which is honest but tells a reader nothing about why.
-PREFLIGHT_CWD="$PROJECT_ROOT"
-[[ -d "$SITE_DIR" ]] && PREFLIGHT_CWD="$SITE_DIR"
+# Playwright is resolved here rather than imported by bare name inside the probes.
+#
+# The probes live in a scratch directory, and Node resolves a bare specifier from the
+# *module file's* location, not from the working directory — so `cd packages/site && node
+# $SB/probe.mjs` does not help, which is what this scenario did until the whole browser
+# matrix silently reported "playwright is not importable" and every visual assertion went
+# unverified. That is the DEV-01 failure mode exactly: a UI claim nothing rendered.
+#
+# When the package is absent the variable stays empty and the probe says so by name,
+# rather than failing to start and reporting nothing a reader can act on.
+PLAYWRIGHT_MODULE="$(node -e '
+const { createRequire } = require("module");
+try {
+  const req = createRequire(process.argv[1] + "/package.json");
+  console.log(req.resolve("playwright"));
+} catch {
+  console.log("");
+}
+' "$SITE_DIR" 2>/dev/null)"
+export PLAYWRIGHT_MODULE
 
-PREFLIGHT="$(cd "$PREFLIGHT_CWD" && node "$SB/preflight.mjs" 2>/dev/null)"
+PREFLIGHT="$(node "$SB/preflight.mjs" 2>/dev/null)"
 judge "${PREFLIGHT:-}" "preflight"
 
 if [[ "${PREFLIGHT:-}" != SENTINEL\ * ]] || [[ "$PREFLIGHT" == *'"ok": false'* ]] || [[ "$PREFLIGHT" == *'"ok":false'* ]]; then
@@ -182,8 +210,13 @@ fi
 cat > "$SB/matrix.mjs" <<'JS'
 import { mkdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const { chromium } = await import('playwright');
+const playwright = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href);
+// CommonJS entry: the named exports live on `.default`. See the preflight probe.
+const chromium = playwright.chromium ?? playwright.default?.chromium;
+
+if (!chromium) throw new Error('playwright exposes no chromium — nothing can be rendered');
 
 // The WCAG floors, held as named constants with their success criteria. 3:1 is quoted
 // unrounded in SC 1.4.11 and is not the same thing as "about 3".
@@ -228,28 +261,53 @@ for (const viewport of VIEWPORTS) {
       const luminance = (rgb) =>
         0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]);
 
-      const parse = (value) => {
-        const found = (value || '').match(/[\d.]+/g);
+      // Colours are resolved by painting them, not by parsing the computed string.
+      //
+      // Two reasons, both of which produced false failures before this was rewritten.
+      // `getComputedStyle` does not promise `rgb()`: this stylesheet uses `color-mix`,
+      // which Chromium reports as `color(srgb 0.086 0.082 0.059 / 0.12)` — channels in
+      // 0..1, not 0..255. Reading those as bytes made every chip look near-black and
+      // reported 1.15:1 against its own ink. And a semi-transparent background is not a
+      // colour a reader sees; what they see is that colour composited over what is
+      // behind it. A 1x1 canvas does both correctly, for every syntax CSS may grow.
+      const paint = (value, backdrop) => {
+        const canvas = document.createElement('canvas');
 
-        return found ? found.slice(0, 4).map(Number) : null;
+        canvas.width = 1;
+        canvas.height = 1;
+
+        const context = canvas.getContext('2d');
+
+        context.fillStyle = `rgb(${backdrop[0]}, ${backdrop[1]}, ${backdrop[2]})`;
+        context.fillRect(0, 0, 1, 1);
+        context.fillStyle = value || 'transparent';
+        context.fillRect(0, 0, 1, 1);
+
+        const data = context.getImageData(0, 0, 1, 1).data;
+
+        return [data[0], data[1], data[2]];
       };
 
-      // The effective background: the first ancestor that actually paints one. A chip
-      // with a transparent background sits on whatever is behind it, and that is the
-      // pair a reader's eye resolves.
+      // The effective background: every ancestor's background composited from the
+      // outermost inward, which is the order the compositor paints them.
       const effectiveBackground = (element) => {
+        const stack = [];
         let node = element;
 
         while (node) {
-          const parsed = parse(getComputedStyle(node).backgroundColor);
-
-          if (parsed && (parsed.length < 4 || parsed[3] > 0)) return parsed;
-
+          stack.push(getComputedStyle(node).backgroundColor);
           node = node.parentElement;
         }
 
-        return [255, 255, 255];
+        let resolved = [255, 255, 255];
+
+        for (const value of stack.reverse()) resolved = paint(value, resolved);
+
+        return resolved;
       };
+
+      /** A foreground colour as seen: composited over the ground it sits on. */
+      const parse = (value, backdrop) => paint(value, backdrop ?? [255, 255, 255]);
 
       const contrast = (fg, bg) => {
         const a = luminance(fg);
@@ -299,11 +357,12 @@ for (const viewport of VIEWPORTS) {
 
       for (const element of textTargets) {
         const style = getComputedStyle(element);
-        const fg = parse(style.color);
+        const ground = effectiveBackground(element);
+        const fg = parse(style.color, ground);
 
         if (!fg) continue;
 
-        const ratio = contrast(fg, effectiveBackground(element));
+        const ratio = contrast(fg, ground);
 
         if (ratio < textFloor) {
           const what = element.getAttribute('data-verdict') || element.tagName.toLowerCase();
@@ -347,8 +406,51 @@ for (const viewport of VIEWPORTS) {
       const below = withRates.filter((entry) => entry.pack <= entry.baseline);
       const above = withRates.filter((entry) => entry.pack > entry.baseline);
 
-      if (below.length < 1) {
-        findings.push('no card renders a pack rate at or below baseline — AC-6 has no target here');
+      // **No pack in this corpus is at or below baseline**, in either condition, so this
+      // half of AC-6 cannot be anchored to a live card without making the assertion
+      // depend on the measurement coming out a particular way. The markup scenario proves
+      // the decidable half — an above-baseline and a below-baseline card build to the same
+      // markup skeleton, so no selector can separate them. What is checked here is the
+      // property that half cannot see: that every chip on the page resolves to the same
+      // computed weight and size, and that the two rates inside a card do too (DEC-016).
+      // A below-baseline card, when the corpus ever contains one, is styled by the same
+      // rules these assertions pin.
+      const chipStyles = chips.map((chip) => getComputedStyle(chip));
+
+      for (const property of ['fontSize', 'fontWeight', 'opacity']) {
+        const values = [...new Set(chipStyles.map((style) => String(style[property])))];
+
+        if (values.length > 1) {
+          findings.push(
+            `chips differ in ${property} (${values.join(', ')}) — a verdict is being ` +
+              'given more or less visual weight than another',
+          );
+        }
+      }
+
+      for (const style of chipStyles) {
+        if (Number(style.opacity) < 1) {
+          findings.push(`a chip is faded to ${style.opacity} — a result rendered as an absence`);
+        }
+      }
+
+      if (withRates.length < 1) {
+        findings.push('no card renders a pair of rates — the two-rate styling has no subject');
+      }
+
+      for (const entry of withRates) {
+        const packStyle = getComputedStyle(entry.card.querySelector('[data-rate="pack"]'));
+        const baselineStyle = getComputedStyle(entry.card.querySelector('[data-rate="baseline"]'));
+
+        for (const property of ['fontSize', 'fontWeight', 'color', 'opacity']) {
+          if (String(packStyle[property]) !== String(baselineStyle[property])) {
+            findings.push(
+              `${entry.card.getAttribute('data-pack-id')}: the two rates differ in ` +
+                `${property} (${packStyle[property]} against ${baselineStyle[property]}) — ` +
+                'the stylesheet is making the comparison the verdict function refuses to',
+            );
+          }
+        }
       }
 
       for (const entry of below) {
@@ -392,10 +494,11 @@ for (const viewport of VIEWPORTS) {
       } else {
         trigger.focus();
         const style = getComputedStyle(trigger);
-        const outline = parse(style.outlineColor);
+        const outlineGround = effectiveBackground(trigger);
+        const outline = parse(style.outlineColor, outlineGround);
 
         if (outline) {
-          const ratio = contrast(outline, effectiveBackground(trigger));
+          const ratio = contrast(outline, outlineGround);
 
           if (ratio < nonTextFloor) {
             findings.push(
@@ -481,7 +584,15 @@ console.log('SENTINEL ' + JSON.stringify({
 }));
 JS
 
-judge "$(cd "$SITE_DIR" && node "$SB/matrix.mjs" 2>/dev/null)" "AC-7 + AC-6 (computed style)"
+judge "$(cd "$SITE_DIR" && node "$SB/matrix.mjs" 2>"$SB/matrix.err")" "AC-7 + AC-6 (computed style)"
+
+# A probe that crashed says nothing about why unless its stderr survives. Discarding it
+# is how "the probe did not run" became the only diagnosis available for a browser matrix
+# that had never once executed.
+if [[ -s "$SB/matrix.err" ]]; then
+  echo "     browser probe stderr (first 5 lines):" >&2
+  head -5 "$SB/matrix.err" | sed 's/^/       /' >&2
+fi
 
 echo
 

@@ -614,68 +614,147 @@ JS
 judge "$(node "$SB/ac5.mjs" 2>/dev/null)" "AC-5"
 
 # ---------------------------------------------------------------------------
-# AC-6 (markup half) — a disappointing result is rendered as a result.
+# AC-6 — a disappointing result is styled as a result, proven where it is decidable.
 #
-# The chip is located by comparing the two rates the card renders, never by naming a pack.
-# If no pack is at or below baseline the assertion fails loudly rather than passing: the
-# scenario would then be asserting nothing, and a scenario that quietly asserts nothing is
-# worse than one that fails.
+# **The acceptance criterion could not be met as written, and this is the correction.**
+# It asked for a card whose pack rate is at or below baseline's. No pack in this corpus is
+# — not in `blocked` (baseline 5/20, lowest pack 6/21) and not in `as-shipped`. An
+# assertion that needs the measurement to come out a particular way is an assertion that
+# puts pressure on the measurement, and waiting for a disappointing result before the
+# disappointing case can be tested is exactly backwards for a project whose whole claim is
+# that it publishes nulls.
+#
+# So the property is proven at the level where it is a property of the code rather than of
+# the data: a real Astro build of a planted fixture page that renders the card twice, once
+# above baseline and once below. If the component emitted any tag, class or data attribute
+# for one and not the other, a stylesheet could key on it — and the skeleton comparison
+# below fails. If it emits the same skeleton, no selector can separate them, now or later.
+#
+# The browser scenario carries the other half in a real renderer: that the two rates a
+# card shows resolve to identical computed style.
 # ---------------------------------------------------------------------------
 cat > "$SB/ac6.py" <<'PY'
-import json, os, sys
+import json, os, pathlib, re, shutil, subprocess, tempfile
 
-sys.path.insert(0, os.environ["SB"])
-from read_html import cards, chips, rates, read_index
-
+root = pathlib.Path(os.environ["PROJECT_ROOT"])
+site = root / "packages" / "site"
 problems = []
-at_or_below = []
+
+FIXTURE = """---
+import PackCard from '../components/PackCard.astro';
+import type { BuildRateVerdict } from '@plugdex/data';
+
+/** Two cards, identical but for the rate: one above the baseline, one below it. */
+const card = ({ builds, n }: { builds: number; n: number }) => ({
+  packId: 'fixture',
+  displayName: 'fixture',
+  author: { value: 'fixture', tag: 'declared' as const },
+  upstreamRepo: 'https://example.invalid/fixture',
+  stars: { count: 1, readAt: '2026-08-18' },
+  verdict: {
+    verdict: 'build-rate',
+    packId: 'fixture',
+    builds,
+    n,
+    baselineBuilds: 5,
+    baselineN: 20,
+  } satisfies BuildRateVerdict,
+});
+---
+
+<ul>
+  <PackCard {...card({ builds: 16, n: 22 })} />
+  <PackCard {...card({ builds: 2, n: 20 })} />
+</ul>
+"""
+
+
+def skeleton(html):
+    """Everything a stylesheet could key on: tags with their attributes, no text."""
+    return "\n".join(re.sub(r">[^<]*", ">", tag) for tag in re.findall(r"<[a-z][^>]*>", html))
+
+
+sandbox = pathlib.Path(tempfile.mkdtemp())
 
 try:
-    markup = read_index()
-except FileNotFoundError:
-    print("SENTINEL " + json.dumps({
-        "ok": False,
-        "detail": "the site is not built, so no chip could be examined",
-    }))
-    sys.exit(0)
+    target = sandbox / "site"
+    shutil.copytree(site / "src", target / "src")
 
-for pack_id, fragment in cards(markup):
-    on_card = {role: (percent, n) for role, percent, n in rates(fragment)}
+    for name in ("package.json", "astro.config.mjs", "tsconfig.json"):
+        shutil.copy(site / name, target / name)
 
-    if "pack" not in on_card or "baseline" not in on_card:
-        continue
+    (target / "node_modules").symlink_to(site / "node_modules")
+    (sandbox / "node_modules").symlink_to(root / "node_modules")
+    (target / "src" / "pages" / "ac6-fixture.astro").write_text(FIXTURE, encoding="utf-8")
 
-    if on_card["pack"][0] <= on_card["baseline"][0]:
-        at_or_below.append((pack_id, on_card, chips(fragment)))
+    # Astro is resolved from the site package rather than assumed at the workspace root:
+    # pnpm's isolated linker keeps the real package under `.pnpm/`, and a hardcoded path
+    # would break on the next lockfile change in the direction of "the fixture did not
+    # build", which reads as a failure of the property rather than of the harness.
+    astro_entry = subprocess.run(
+        ["node", "-e",
+         'const {createRequire} = require("module");'
+         'const req = createRequire(process.argv[1] + "/package.json");'
+         'console.log(require("path").join(require("path").dirname(req.resolve("astro/package.json")), "astro.js"));',
+         str(site)],
+        capture_output=True, text=True,
+    ).stdout.strip()
 
-if not at_or_below:
-    problems.append(
-        "no card renders a pack rate at or below its baseline rate — AC-6 has no target, "
-        "and this assertion refuses to pass on an empty search rather than report nothing"
+    if not astro_entry:
+        problems.append("astro is not resolvable from packages/site — the fixture cannot be built")
+        astro_entry = "missing"
+
+    build = subprocess.run(
+        ["node", astro_entry, "build"],
+        capture_output=True, text=True, cwd=target,
     )
 
-for pack_id, on_card, on_chips in at_or_below:
-    if not on_chips:
-        problems.append(f"{pack_id}: is at or below baseline and renders no chip at all")
-        continue
-
-    for verdict, text in on_chips:
-        stripped = text.strip().strip("-–—").strip()
-
-        if not stripped:
-            problems.append(f"{pack_id}: the chip renders as an absence ({text!r}), not as a result")
-
-        if verdict in ("unmeasured", ""):
-            problems.append(f"{pack_id}: a measured pack renders the '{verdict}' verdict")
-
-detail = ""
-
-if at_or_below:
-    names = ", ".join(pack for pack, _, _ in at_or_below)
-    detail = (
-        f"{len(at_or_below)} card(s) at or below baseline ({names}), each carrying a "
-        "labelled verdict chip rather than a dash or a blank"
+    # Astro writes either `ac6-fixture.html` or `ac6-fixture/index.html` depending on the
+    # project's `build.format`, and this fixture must not care which.
+    page = next(
+        (candidate for candidate in (
+            target / "dist" / "ac6-fixture.html",
+            target / "dist" / "ac6-fixture" / "index.html",
+        ) if candidate.exists()),
+        target / "dist" / "ac6-fixture.html",
     )
+
+    if not page.exists():
+        problems.append(
+            "the fixture page did not build, so the property was never rendered: "
+            + " | ".join(
+                line.strip()
+                for line in (build.stderr + "\n" + build.stdout).strip().split("\n")
+                if line.strip()
+            )[-300:]
+        )
+    else:
+        html = page.read_text(encoding="utf-8")
+        cards = re.findall(r"<li class=\"card\".*?</li>", html, flags=re.S)
+
+        if len(cards) != 2:
+            problems.append(f"the fixture rendered {len(cards)} cards, expected 2")
+        else:
+            above, below = cards
+            above_skeleton, below_skeleton = skeleton(above), skeleton(below)
+
+            if above == below:
+                problems.append("both cards rendered identically — the fixture is not exercising the rate")
+            elif above_skeleton != below_skeleton:
+                problems.append(
+                    "the below-baseline card carries a tag, class or attribute the "
+                    "above-baseline one does not, so a stylesheet can key on it"
+                )
+
+            if "10% n=20" not in below:
+                problems.append("the below-baseline card does not render its own rate")
+finally:
+    shutil.rmtree(sandbox, ignore_errors=True)
+
+detail = (
+    "a real Astro build of an above-baseline and a below-baseline card emits the same "
+    "markup skeleton, so no selector can style a disappointing result as an absence"
+)
 
 print("SENTINEL " + json.dumps({"ok": not problems, "detail": "; ".join(problems) or detail}))
 PY
