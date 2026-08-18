@@ -246,11 +246,18 @@ the rule to disagree quietly.
   stated procedure for a false positive is to extend the allowlist *with* a new
   clean-pass case in the same change — never to skip the gate. `check-gates.sh` replays
   both sides on every verify.
-- **The identifier allowlist is spoofable** → accepted and stated. Scanner 2 blocks the
-  rendered position regardless of naming; what remains (laundering a claim through a
-  layout-named constant into an expression) is visible in any diff of a small site and
-  is a review matter. Pretending the gate stops a determined liar would be a claim the
-  gate cannot cash.
+- **The identifier allowlist is spoofable** → accepted and stated. **The mitigation this
+  bullet claimed is withdrawn under CLAIM-01 — the sentence below is what the plan argued
+  and it is false**, the second of two instances in this document; round 4 of the report
+  review marked the first and missed this one, and round 5 caught the miss. Scanner 2 does
+  not block the rendered position regardless of naming: `const gridColumns = 47` rendered
+  as `{gridColumns}` exits the gate 0, demonstrated. DEC-017 carries the account, PDX-021
+  the replacement. The bullet's last sentence was right and is the part that survives:
+
+  > Scanner 2 blocks the rendered position regardless of naming; what remains (laundering
+  > a claim through a layout-named constant into an expression) is visible in any diff of
+  > a small site and is a review matter. Pretending the gate stops a determined liar would
+  > be a claim the gate cannot cash.
 - **`@astrojs/compiler`'s parse API drifts under an Astro upgrade** → the golden cases
   break loudly on the same verify run that upgrades the dependency (GATE-01), so drift
   cannot be silent. A regex fallback over template source was considered and rejected:
