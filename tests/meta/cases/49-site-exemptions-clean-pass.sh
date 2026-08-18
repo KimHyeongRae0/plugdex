@@ -62,6 +62,13 @@ plant() {
 .card::after {
   content: "→";
 }
+
+/* A single-line pseudo-element rule whose digit belongs to `width`, not to `content`.
+   Round 4's fix introduced this false positive and removed it in the same commit, but
+   round 5 found the removal unpinned: reverting it still passed the whole golden run,
+   because a violation case only asserts that the gate refused. A clean-pass case is the
+   only shape that can hold a false-positive fix in place. */
+.tick::before { content: "▪"; width: 12px; }
 CSS
 
   cat > packages/site/src/components/Exempt.astro <<'ASTRO'
