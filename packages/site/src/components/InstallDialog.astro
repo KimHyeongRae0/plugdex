@@ -1,0 +1,49 @@
+---
+/**
+ * The install action: both commands, a copy control each, and the repository the install
+ * will actually clone from.
+ *
+ * SRC-01 rendered rather than merely stored — a reader deciding whether to install is
+ * deciding whose code to run, and the answer belongs on the screen next to the command.
+ *
+ * A native `<dialog>` rather than a framework island: it gives focus containment,
+ * Escape, and keyboard reachability without shipping a runtime, and a copy button does
+ * not earn one. The script below is the whole of this page's JavaScript.
+ */
+interface Props {
+  packId: string;
+  displayName: string;
+  upstreamRepo: string;
+}
+
+const { packId, displayName, upstreamRepo } = Astro.props;
+
+const marketplaceCommand = 'claude plugin marketplace add plugdex';
+const installCommand = `claude plugin install ${packId}@plugdex`;
+const dialogId = `install-${packId}`;
+---
+
+<button class="install" data-install-trigger data-dialog={dialogId}>
+  Install {displayName}
+</button>
+
+<dialog id={dialogId} data-install-dialog>
+  <h3>Install {displayName}</h3>
+
+  <p class="origin">
+    Pulled from <code>{upstreamRepo}</code> — the author's own repository. plugdex points
+    at it and never vendors it.
+  </p>
+
+  <p class="command">
+    <code>{marketplaceCommand}</code>
+    <button class="copy" data-copy-command={marketplaceCommand}>Copy</button>
+  </p>
+
+  <p class="command">
+    <code>{installCommand}</code>
+    <button class="copy" data-copy-command={installCommand}>Copy</button>
+  </p>
+
+  <button class="close" data-close-dialog>Close</button>
+</dialog>

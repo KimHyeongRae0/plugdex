@@ -47,8 +47,11 @@ hand-typed number cannot survive `verify.sh`.
       client JavaScript. A catalogue that needs a bundle to be read is a catalogue search
       cannot index
 - [ ] AC-2: **the verdict is derived, never authored.** `verdictFor({packId})` in
-      `@plugdex/data` returns one of the five verdicts, and the priority order resolves a
-      pack matching several. Unit-tested against synthetic cells, including a pack that
+      `@plugdex/data` returns one of the verdicts the chip table defines, and the priority
+      order resolves a pack matching several. (Corrected in place per CLAIM-01: this read
+      "one of the five verdicts". DEC-016 strikes verdict 4, so the union has four members.
+      The AC is phrased against the table rather than a count, so the next strike or
+      addition does not silently falsify it.) Unit-tested against synthetic cells, including a pack that
       matches two conditions at once
 - [ ] AC-3: **every chip carries its n.** A chip rendering a percentage with no
       denominator fails the scenario. `47% builds` without `n=` is the class of number
@@ -61,9 +64,20 @@ hand-typed number cannot survive `verify.sh`.
 - [ ] AC-5: the install action shows both commands, a copy control, and **the repository
       the pack will actually be pulled from** — SRC-01 rendered, not merely stored. The
       scenario asserts the upstream URL is in the DOM
-- [ ] AC-6: **the null result is styled as a result.** A pack whose measurement found no
-      detectable effect renders a chip with the same visual weight as any other, not a
-      greyed-out absence. Asserted on computed style, not on the class name
+- [ ] AC-6: **a disappointing result is styled as a result.** A pack whose measured build
+      rate is at or below baseline's renders a chip with the same visual weight as any
+      other, not a greyed-out absence. Asserted on computed style, not on the class name.
+      The chip is located by comparing the two rates the card renders, derived at run
+      time — never by naming a pack, which would go stale.
+      (Corrected in place per CLAIM-01: this AC first read "a pack whose measurement found
+      no detectable effect". That verdict no longer exists. The plan's round-1 review
+      killed the nominal-p boundary that produced it, and round 2 concluded there is no
+      descriptive boundary to replace it with, because "no detectable effect" is an
+      inference this corpus cannot support per pack — DESIGN.md's own Bonferroni threshold
+      for four tests is 0.0125 against ponytail's 0.0352. The chip is struck under DEC-016
+      and the card renders both rates with both denominators instead. **The AC's intent is
+      unchanged**: a result that disappoints must not be styled as an absence. Only the way
+      the scenario finds the chip changes.)
 - [ ] AC-7: real-browser verification at 360px and at desktop, in both colour schemes:
       no horizontal page scroll, every chip legible without colour alone (shape carries
       the signal), and the install control reachable by keyboard. Screenshots attached to
@@ -87,9 +101,19 @@ hand-typed number cannot survive `verify.sh`.
 
 ## 5. E2E Mapping
 
-- `tests/e2e/PDX-004-the-catalogue-reads.sh` — AC-1..AC-6, AC-8 over built output
-- `tests/e2e/PDX-004-the-catalogue-looks-right.sh` — AC-7, real browser, both viewports
-  and both schemes, screenshots written to the run directory
+- `tests/e2e/PDX-004-the-catalogue-reads.sh` — AC-1..AC-5, AC-8, and the markup half of
+  AC-6, over built output
+- `tests/e2e/PDX-004-the-catalogue-looks-right.sh` — AC-7 and the computed-style half of
+  AC-6: real browser, both viewports and both schemes, screenshots written to the run
+  directory
+
+**AC-6 spans both scenarios, and that is deliberate.** The AC demands an assertion on
+computed style, and computed style does not exist outside a rendering engine — so the
+markup half (the chip exists, with a non-empty label) belongs to the scenario that reads
+built output, and the weight half belongs to the scenario that drives a browser. Splitting
+it covers the AC more completely than the single-scenario grouping this mapping first
+carried; approved at plan review round 1 and corrected here in place, per the precedent
+PDX-003 round 3 set.
 
 ## 6. References
 

@@ -27,7 +27,7 @@ Two design moves carry the ticket:
   `packages/site/**` that did not flow in through an import. The hard problem, which the
   ticket names outright, is telling `const buildRate = 47` from `gridColumns = 3` — a
   gate that cannot make that distinction gets disabled within a week. §3 step 8 and
-  DEC-016 below commit to the discrimination mechanism concretely rather than promising
+  DEC-017 below commit to the discrimination mechanism concretely rather than promising
   one.
 
 Two facts found while planning shape the design and are recorded here so the review can
@@ -39,13 +39,17 @@ check them rather than discover them:
   code-producing cells") and 4 ("produces code, but no metric differs significantly from
   baseline") are both true of every code-producing pack as written, and their example
   columns contradict each other ("ponytail and the rest" vs "the honest default for most
-  packs"). As written, priority 4 is unreachable. This ticket must produce the missing
-  boundary; DEC-015 below proposes it.
+  packs"). As written, priority 4 is unreachable. This ticket must settle it — and DEC-016
+  below settles it by striking verdict 4 rather than by inventing the boundary, because
+  every boundary that makes 4 reachable is an inferential claim this corpus cannot support
+  per pack. The chip table sits under DESIGN.md's own "one design decision still open"
+  heading, so answering it is what this ticket was for; answering it with a strike is the
+  part round 1 forced.
 - **The palette's `no code` colour fails WCAG in both schemes.** Computed against the
   DESIGN.md §5 values: `#B3ADA0` on `#FAF8F3` is 2.10:1 and `#5A554C` on `#141311` is
   2.51:1 — below the 4.5:1 text floor (SC 1.4.3) and below the 3:1 non-text floor
   (SC 1.4.11, which is explicitly unrounded). So status hues cannot carry text or the
-  load-bearing glyph anywhere on this site. DEC-017 below rules the application: chip
+  load-bearing glyph anywhere on this site. DEC-018 below rules the application: chip
   text and shape glyphs render in ink; the status hue appears only as background tint
   and border. This is an application constraint, not a palette change — the §5 values
   stand.
@@ -75,7 +79,8 @@ check them rather than discover them:
   - No shape summaries, exhibit, withdrawal register, or method page (PDX-006 onward).
   - No unmeasured listings. Every entry the built registry exports is a measured arm, so
     the live page renders no `unmeasured` chip; the verdict and its styling exist and are
-    tested synthetically, because the function must be total over the five verdicts, but
+    tested synthetically, because the function must be total over every verdict it can
+    return, but
     PDX-012 owns putting a queue on the page.
   - Nothing deployed, purchased, or announced (CR-01). The site builds and is served
     locally by the e2e; that is all.
@@ -84,26 +89,29 @@ check them rather than discover them:
 
 | # | Step | Files | Notes |
 |---|---|---|---|
-| 1 | Verdict types and the pure function | `packages/data/src/verdict.ts`, `packages/data/src/verdict.test.ts`, `packages/data/src/index.ts` | `verdictFor = ({ packId, cells, claims })` folding the five conditions in priority order, first match wins. Every union member carries its numerator and denominator — there is no precomputed percentage field, so a chip cannot render a rate without also holding its n (AC-3 by construction). Thresholds (the 0.8 no-code fraction from the DESIGN.md chip table, the 0.05 nominal p for the DEC-015 boundary) live here with cited rationale comments. Unit tests run against synthetic cells: each verdict, the two-condition pack, n=3 preserved, the 3-vs-4 boundary either side of the threshold. The `index.ts` docstring is corrected as described in §1 |
-| 2 | Scaffold the site package | `packages/site/package.json`, `packages/site/tsconfig.json`, `packages/site/astro.config.mjs` | `@plugdex/site`: Astro, static output, no adapter, workspace deps on `@plugdex/data` and `@plugdex/registry`; the script set `verify.sh`'s recursive pnpm steps expect (`typecheck` via `astro check`, `lint` covered by root config, `test`, `build`). `playwright` and `@astrojs/check` as devDependencies — Playwright is not currently anywhere in the workspace (no hit in the root manifest or `pnpm-lock.yaml`), so AC-7 requires adding it here, scoped to the site package |
-| 3 | Theme | `packages/site/src/styles/global.css` | DESIGN.md §5 as custom properties: light palette on `:root`, dark under `prefers-color-scheme: dark`; `font-variant-numeric: tabular-nums` wherever a digit can appear; 66–72ch body measure; the paper/terminal split. Status hues defined as tint/border tokens only, per DEC-017 |
-| 4 | The verdict chip | `packages/site/src/components/VerdictChip.astro` | Renders a verdict object: shape glyph + label + `n=` from the object's own fields. Glyph and text in ink; hue as background tint and border (DEC-017), so the null-result chip has identical computed weight to every other (AC-6). Static caption strings are digit-free — any figure in a chip is a rendered field of the verdict object |
+| 1 | Verdict types and the pure function | `packages/data/src/verdict.ts`, `packages/data/src/verdict.test.ts`, `packages/data/src/index.ts` | `verdictFor = ({ packId, cells, claims })` folding the surviving conditions in priority order, first match wins. **No statistic is computed here** — DEC-016 retires the 3-vs-4 boundary, so there is no p, no threshold, and no second Fisher implementation in TypeScript. Verdict 3 carries the pack's numerator and denominator *and* baseline's, both read off the same corpus; there is no precomputed percentage field anywhere in the union, so a chip cannot render a rate without also holding its n (AC-3 by construction). The one threshold that remains is the 0.8 no-code fraction from the DESIGN.md chip table, with its cited rationale comment. Unit tests run against synthetic cells: each surviving verdict, the two-condition pack (verdict 1 wins), n=3 preserved, an arm at or below baseline and one above it both returning verdict 3 with the two pairs of counts intact, and the empty arm returning verdict 5. The `index.ts` docstring is corrected as described in §1 |
+| 2 | Scaffold the site package | `packages/site/package.json`, `packages/site/tsconfig.json`, `packages/site/astro.config.mjs` | `@plugdex/site`: Astro, static output, no adapter, workspace deps on `@plugdex/data` and `@plugdex/registry`; the script set `verify.sh`'s recursive pnpm steps expect (`typecheck` via `astro check`, `lint` covered by root config, `test`, `build`). `playwright`, `@astrojs/check`, and `@astrojs/compiler` as devDependencies — Playwright is not currently anywhere in the workspace (no hit in the root manifest or `pnpm-lock.yaml`), so AC-7 requires adding it here, scoped to the site package. `@astrojs/compiler` is pinned exactly (no range): the DATA-01 gate parses with it, and an AST shape that shifts under a caret is a gate that changes verdict without a diff |
+| 3 | Theme | `packages/site/src/styles/global.css` | DESIGN.md §5 as custom properties: light palette on `:root`, dark under `prefers-color-scheme: dark`; `font-variant-numeric: tabular-nums` wherever a digit can appear; 66–72ch body measure; the paper/terminal split. Status hues defined as tint/border tokens only, per DEC-018 |
+| 4 | The verdict chip | `packages/site/src/components/VerdictChip.astro` | Renders a verdict object: shape glyph + label + `n=` from the object's own fields. Glyph and text in ink; hue as background tint and border (DEC-018), so the null-result chip has identical computed weight to every other (AC-6). Static caption strings are digit-free — any figure in a chip is a rendered field of the verdict object |
 | 5 | The pack card | `packages/site/src/components/PackCard.astro` | Name, author (the tagged `Attributed` value — rendering what DEC-014 stores, with the `curated` tag surfaced, not flattened to a bare string), stars with their `readAt`, one line, chip, install button |
 | 6 | The install dialog | `packages/site/src/components/InstallDialog.astro` | Native `<dialog>` plus a few lines of inline vanilla script for open/copy — a copy button does not earn a React island, so this ticket ships zero framework runtime (static-first rule applied, not a new decision). Contents: the two commands (`claude plugin marketplace add …`, `claude plugin install <packId>@plugdex`), a copy control per command, and a line naming the upstream repository the install will actually clone from — SRC-01 rendered (AC-5). `<dialog>` gives keyboard reachability, focus containment, and Escape natively (AC-7) |
 | 7 | The page | `packages/site/src/pages/index.astro` | Frontmatter loads the corpus, iterates the built registry's entries, calls `verdictFor` per pack, renders the grid alphabetically. Every name and every chip is in the emitted HTML — no client JS on the read path (AC-1) |
-| 8 | The DATA-01 gate | `scripts/check-data.sh`, `scripts/verify.sh` | The mechanism of DEC-016 (below), on the `check-src.sh` model: bash wrapper, inline node scanner, `SENTINEL` line carrying `{files, literals, bad}`, and a scan of zero files is a FAIL — closing in advance the PDX-003 finding-1 class where a well-formed report of zero work reads as a pass. One new verify step; the e2e asserts the step by a positive grep of verify output, not by its number (PLAN-01) |
-| 9 | Golden cases — the blocked side | `tests/meta/cases/` (3 files) | `const buildRate = 47` in a planted component's frontmatter; `47% builds` as template text; `content: "47%"` in CSS (the one path by which a stylesheet can state a claim). Each asserts the DATA-01 pattern, numbered after the current highest case |
-| 10 | Golden cases — the clean-pass side and the empty scan | `tests/meta/cases/` (2 files) | Clean-pass (`EXPECT_PASS=1`): `gridColumns = 3`, `z-index: 10` in a style block, `viewBox="0 0 24 24"`, `tabindex="0"` — the gate must not flag any of them, because false positives are how this gate dies. And an empty-scan case: a tree with no site sources must FAIL the gate ("scanned nothing"), not pass it (ASSERT-01) |
+| 8 | The DATA-01 gate | `scripts/check-data.sh`, `scripts/verify.sh` | The mechanism of DEC-017 (below), on the `check-src.sh` model: bash wrapper, inline node scanner, `SENTINEL` line carrying `{files, literals, bad}`, and a scan of zero files is a FAIL — closing in advance the PDX-003 finding-1 class where a well-formed report of zero work reads as a pass. One new verify step; the e2e asserts the step by a positive grep of verify output, not by its number (PLAN-01) |
+| 9 | Golden cases — the blocked side | `tests/meta/cases/` (6 files) | One planted violation per stated rule, so §6 stops claiming GATE-01 coverage this plan does not deliver. Round 1 found four rules landing with neither a violation nor a clean pass; all four are here. (a) `const buildRate = 47` in a planted component's frontmatter — code position, numeric literal; (b) `47% builds` as template text — rendered position, text node; (c) `content: "47%"` in CSS — the one path by which a stylesheet can state a claim; (d) `alt="47% builds"` — **reader-facing attribute**, the case that separates scanner 2's attribute allowlist from its blocklist; (e) `const caption = 'builds 47% of the time'` in frontmatter — **digit-bearing string literal in a code position**, which scanner 1 blocks and which a numeric-literal-only scanner would miss; (f) `<p>{'47% builds'}</p>` — **an expression literal in the template body**, the shape that routes a digit through markup without a text node. Each asserts the DATA-01 pattern, numbered after the current highest case |
+| 10 | Golden cases — the clean-pass side and the empty scan | `tests/meta/cases/` (2 files) | Clean-pass (`EXPECT_PASS=1`), one planted legal use per allowance so the exemptions are proven rather than assumed: `gridColumns = 3` (layout-vocabulary name), `z-index: 10` in a style block, `viewBox="0 0 24 24"` and `tabindex="0"` (machine-facing attributes), `content: "→"` (a digit-free `content`, so the CSS rule is shown to block on the digit rather than on the property), and **`cells[3]` plus `slice(0, 2)` — the element-access allowance**, the fourth rule round 1 found uncovered. The gate must flag none of them, because false positives are how this gate dies. And an empty-scan case: a tree with no site sources must FAIL the gate ("scanned nothing"), not pass it (ASSERT-01) |
 | 11 | Scenario 1 | `tests/e2e/PDX-004-the-catalogue-reads.sh` | AC-1..AC-6 (markup half of AC-6), AC-8, over built output — assertions in §7 |
 | 12 | Scenario 2 | `tests/e2e/PDX-004-the-catalogue-looks-right.sh` | AC-7 and the computed-style half of AC-6: real Chromium via Playwright, both viewports, both schemes, keyboard walk, contrast computed from `getComputedStyle`, screenshots to `.docs/scratch/pdx-004-browser/` |
-| 13 | Decision log | `DESIGN.md` | DEC-015, DEC-016, DEC-017 rows; the "still open" chip section gains a pointer to DEC-015 so the document stops carrying an open question it has answered |
+| 13 | Decision log and the chip table | `DESIGN.md` | DEC-016, DEC-017, DEC-018 rows; the "still open" chip section gains a pointer to DEC-016 so the document stops carrying an open question it has answered; and **verdict 4's row is struck from the chip table** with DEC-016 named as the reason, so the table and the code agree about what the site can say |
 
 ### The verdict function (AC-2)
 
-The five verdicts and their priority order come from DESIGN.md's chip table, adopted
-verbatim: 1 `produces no code unattended`, 2 `published claim not reproduced`,
-3 `N% builds`, 4 `no detectable effect`, 5 `unmeasured`. Conditions are evaluated in
-that order and the first match wins.
+The verdicts and their priority order come from DESIGN.md's chip table: 1 `produces no
+code unattended`, 2 `published claim not reproduced`, 3 `N% builds`, 5 `unmeasured`.
+Conditions are evaluated in that order and the first match wins. **Verdict 4
+(`no detectable effect`) is struck** — the boundary bullet below is the argument, and
+DEC-016 is where the strike is recorded. The remaining numbers keep their original
+values rather than being closed up, so a reader comparing this plan against the design
+document sees a gap where a chip was removed instead of a silent renumbering.
 
 - **A pack matching 1 and 2 at once shows 1.** The unit test asserts it against a
   synthetic pack whose cells write no code and whose claim's CI excludes the published
@@ -115,34 +123,70 @@ that order and the first match wins.
   `wroteCode === false` at or above the 0.8 threshold from the chip table). The table's
   "as-shipped regime" qualifier is not a field the records carry — DEC-005 itself records
   that the dataset cannot state regimes — so the computable condition is over what the
-  records hold, and DEC-015 records that narrowing rather than letting the chip imply a
+  records hold, and DEC-016 records that narrowing rather than letting the chip imply a
   field that does not exist.
 - **Condition 2 takes its inputs as data, and no live pack can currently trigger it.**
   The claimed figure and the metric it is about (tokens, for the known case) live only in
   `results.json`, which carries no fingerprint and is outside `@plugdex/data` — the
   contradiction PDX-002 §5 named and deferred. `verdictFor` therefore accepts an optional
   `claims` input and implements the branch fully, unit-tested against synthetic claims;
-  on the live corpus the parameter is empty and the pack in question falls through to 3
-  or 4. Hand-typing the CI to make the chip appear would be the exact violation this
+  on the live corpus the parameter is empty and the pack in question falls through to 3. Hand-typing the CI to make the chip appear would be the exact violation this
   ticket exists to gate, so the branch waits for the ticket that brings the claims record
   under DATA-01 (phase C). Stated as a limit, inherited explicitly.
-- **The 3-vs-4 boundary (DEC-015, produced by this ticket):** chip 3 fires when the
-  pack's build outcome over code-producing cells differs from baseline's at the nominal
-  two-sided Fisher exact p < 0.05, computed inside `verdictFor`; otherwise chip 4. The
-  chip for 3 remains descriptive — a rate with its n, never a rank — and its digit-free
-  caption notes the nominal-only status, which keeps DEC-015 consistent with DEC-005: no
-  ordering is asserted, one measured rate is stated with its denominator. Under this
-  boundary the corpus is expected to yield at least one null-effect chip on the live page
-  (DESIGN.md records four of five packs at baseline), which is what gives AC-6 a real
-  target; the scenario locates the null chip by rendered verdict, derived at runtime, and
-  fails loudly if none exists rather than assuming a pack-to-verdict table that would go
-  stale (PLAN-01).
+  **The condition round 1 attached to approving this dead branch, carried here so the
+  phase-C ticket inherits it:** the `claims` input's confidence interval must arrive as a
+  fingerprinted record, never as a value a caller computed and passed in. Without that,
+  verdict 2 is a laundering path for exactly the statistic class this revision just
+  removed from verdict 3 — a caller could compute an interval by any method, hand it to
+  `verdictFor`, and have the site publish "published claim not reproduced" with no
+  derivation behind it. The phase-C ticket's AC must state it; this plan records it so the
+  requirement does not depend on someone remembering the review.
+- **The 3-vs-4 boundary is retired, not moved (DEC-016, produced by this ticket).**
+  Round 1 killed the nominal-p boundary and asked for a descriptive one. There is no
+  descriptive boundary between "N% builds" and "no detectable effect", because the second
+  chip is not a description — it is an inference, and it is the one inference this corpus
+  cannot support per pack. So the boundary goes away with the chip.
+
+  **What renders instead:** every arm with at least one valid code-producing cell gets
+  chip 3, and chip 3 carries **two** rates — the pack's build rate with its denominator
+  and baseline's rate with its denominator, side by side. No comparison is asserted, no
+  ordering is implied, and `verdictFor` computes no statistic.
+
+  **Why moving the threshold does not work either.** Keeping chip 4 and firing it at the
+  corrected threshold rather than the nominal one looks like the conservative fix and is
+  worse. DESIGN.md computes the Bonferroni threshold for four pack-vs-baseline tests at
+  0.0125 and records ponytail at p = 0.0352 on the published pool — so at the corrected
+  threshold *every* card reads "no detectable effect", which is a far stronger negative
+  claim than four tests at n ≈ 35 can carry. Absence of evidence rendered as a chip is
+  still a claim. And either threshold needs a second Fisher implementation in TypeScript
+  that can drift from the self-validating one in `bench/harness/fisher.py`, with no
+  `bench/DERIVATIONS.md` entry behind it and no preregistration covering it.
+
+  **What the reader loses and gains.** They lose a chip that told them whether a
+  difference was real; they were never entitled to it, and DESIGN.md says so in its own
+  Bonferroni line. They gain both denominators on the card, which is what lets a reader
+  see for themselves that 22/36 against 12/34 is worth a second look while 11/35 against
+  12/34 is not. The card publishes counts. Counts are what the records hold.
+
+  **Consequences this revision carries, rather than leaves for implementation:**
+  - DESIGN.md's chip table loses verdict 4. The row is struck in the decision log with its
+    reason, not silently deleted — the same treatment a withdrawn figure gets under
+    CLAIM-01, because a chip the design once specified is a claim about what the site
+    would say.
+  - **AC-6 loses its subject and is retargeted.** Its intent — a bad result is styled as a
+    result, not as a greyed-out absence — survives intact; only the way the scenario finds
+    the chip changes. AC-6 now targets the chip whose measured rate is **at or below
+    baseline's**, located at runtime by comparing the two rendered rates, with the
+    scenario failing loudly if no such chip exists rather than assuming a pack-to-verdict
+    table that would go stale (PLAN-01). On the corpus DESIGN.md records, caveman at
+    11/35 against baseline 12/34 is such a chip; the scenario derives it rather than
+    naming it. The ticket amendment is in §9.2.
 - **Condition 5** is the empty case: no cells for the packId. It renders a chip with a
   label and no rate — the edge case list's "must not render `0%`" falls out of the union
   shape, because the unmeasured member simply has no numerator/denominator fields to
   render.
 
-### The DATA-01 discrimination mechanism (AC-4, DEC-016)
+### The DATA-01 discrimination mechanism (AC-4, DEC-017)
 
 The gate distinguishes by **destination, not by value**: a number bound for the layout
 engine is legal; a number that can reach the reader's eyes is a BLOCK unless it flowed in
@@ -159,8 +203,13 @@ through an import. Three scanners, all driven from one inline node script:
    an element-access index or slice-class argument, or a type position. This is what
    admits `gridColumns = 3` while blocking `const buildRate = 47`.
 2. **Rendered positions** — the Astro template body parsed with `@astrojs/compiler`'s
-   `parse` (shipped as a dependency of Astro itself, imported from the workspace's
-   node_modules; deterministic and offline). A digit in a text node, in an expression's
+   `parse`. **Declared and pinned as a devDependency of `packages/site`, not inherited.**
+   Round 1 caught this: `@astrojs/compiler` reaches the tree only as a transitive
+   dependency of Astro, and this repository has no `.npmrc`, so pnpm's default isolated
+   linker leaves it unresolvable from `scripts/`. A gate that imports a package nobody
+   declared is a gate that stops working on the next `pnpm install`, silently, in the
+   direction of passing. The version is pinned exactly rather than ranged, because the
+   parser's AST shape is the gate's contract. A digit in a text node, in an expression's
    literal, or in a reader-facing attribute (`alt`, `title`, `aria-label`,
    `placeholder`) is a BLOCK regardless of any identifier name; digits in machine-facing
    attributes (`class`, `style`, `width`, `height`, `viewBox`, `tabindex`) are exempt.
@@ -177,14 +226,14 @@ is explicit that false positives, not adversarial completeness, are what kill a 
 this, which is why the allowlist is of contexts, is short, lives at the top of the
 script, and can only be extended together with a golden case.
 
-Two legal figure sources, recorded in DEC-016: values imported from `@plugdex/data`
+Two legal figure sources, recorded in DEC-017: values imported from `@plugdex/data`
 (measurement figures) and from `@plugdex/registry` (star counts and provenance fields,
 each carrying its SRC-01g retrieval receipt and `readAt`). The card renders stars, which
 are numbers, and they are legal for the same reason the measurement figures are: they
 arrive as imports from a package whose records carry receipts, and no literal for them
 exists in site source. The gate needs no special case for this — it blocks literals, and
 imports are not literals — but the rule text of DATA-01 says "a record in
-`packages/data`", so DEC-016 states the interpretation rather than leaving the gate and
+`packages/data`", so DEC-017 states the interpretation rather than leaving the gate and
 the rule to disagree quietly.
 
 ## 4. Risks
@@ -211,10 +260,15 @@ the rule to disagree quietly.
   mirrors PDX-003's stance on network-requiring assertions, and differs from its
   missing-`claude` skip because there the binary was outside the ticket's control and
   here the dependency is installed by this ticket.
-- **The DEC-015 boundary could be read as reintroducing a ranking** → the chip is a
-  rate with a denominator, the caption states nominal-only, no view sorts by verdict,
-  and the landing order is alphabetical. The p-threshold decides which *description* is
-  shown, not an order. DEC-005 is cited in the DEC-015 rationale so the tension is ruled,
+- **Rendering two rates side by side could be read as reintroducing a ranking** → no
+  view sorts by verdict, the landing order is alphabetical, and no cross-pack ordering is
+  computed anywhere: each card compares one arm against baseline, which is the comparison
+  the experiment was designed to support. What the card states is two counts with two
+  denominators. **The live risk is stylistic, not structural, and it rides to the report
+  under DEV-01**: the two rates must carry identical, non-comparative styling. A hue, a
+  weight, or an arrow keyed to which rate is larger would put the significance claim back
+  on the card through the stylesheet, having just removed it from the code. Scenario 2
+  asserts the two rates' computed `font-weight` and `color` are equal, not an order. DEC-005 is cited in the DEC-016 rationale so the tension is ruled,
   not latent.
 - **Verdict 2 is dead code on live data** → deliberate, stated in §3, and inherited from
   PDX-002 §5's record-universe contradiction rather than created here. The branch is
@@ -222,7 +276,7 @@ the rule to disagree quietly.
   CI — is the violation the ticket gates.
 - **The palette's `no code` value fails both WCAG floors** → measured during planning
   (2.10:1 light, 2.51:1 dark), so the design never puts text or the load-bearing glyph
-  in a status hue (DEC-017), and scenario 2 asserts computed contrast in the real
+  in a status hue (DEC-018), and scenario 2 asserts computed contrast in the real
   browser so a future style change that regresses this fails mechanically rather than
   aesthetically.
 - **Astro brings a large transitive tree into `packages/`** → NOLLM-01's gate scans
@@ -273,15 +327,18 @@ the rule to disagree quietly.
   SDK; the gate re-checks on every verify.
 - ST-02 — `site` is a registered package name.
 - DEC-003 (the site is one of three renderings of the dataset), DEC-005 (no leaderboard;
-  cited in DEC-015's rationale), DEC-006 (unmeasured listing deferred to PDX-012),
+  cited in DEC-016's rationale), DEC-006 (unmeasured listing deferred to PDX-012),
   DEC-012 (the install command pair renders the only supported source form), DEC-014
   (the card renders the tagged attribution, surfacing `curated` rather than flattening
   it).
-- **Produced by this ticket**: DEC-015 (verdict conditions made computable: the priority
-  order adopted from the chip table; the 3-vs-4 nominal-p boundary; condition 1 narrowed
-  to what the records carry), DEC-016 (the DATA-01 gate discriminates by destination;
-  the two legal figure sources), DEC-017 (status hues never carry text or glyphs; ink on
-  tint, forced by measured contrast).
+- **Produced by this ticket**: DEC-016 (verdict conditions made computable: the priority
+  order adopted from the chip table; verdict 4 retired and the card rendering both rates
+  with both denominators instead; condition 1 narrowed to what the records carry),
+  DEC-017 (the DATA-01 gate discriminates by destination; the two legal figure sources),
+  DEC-018 (status hues never carry text or glyphs; ink on tint, forced by measured
+  contrast). The numbers moved up one from round 1's draft: DEC-015 was allocated by
+  PDX-016 at landing, because the log allocates when a decision lands and a plan proposes
+  rather than reserves.
 
 ## 7. Test Plan (mandatory — TDD)
 
@@ -289,11 +346,13 @@ the rule to disagree quietly.
   - `tests/e2e/PDX-004-the-catalogue-reads.sh` — AC-1..AC-6 (markup half of AC-6), AC-8
   - `tests/e2e/PDX-004-the-catalogue-looks-right.sh` — AC-7 and the computed-style half
     of AC-6
-  - One stated deviation from the ticket's grouping: AC-6 demands assertion "on computed
-    style, not on the class name", and computed style does not exist outside a rendering
-    engine — so AC-6 splits: scenario 1 asserts the null chip exists in markup with a
+  - One stated deviation from the ticket's grouping, **approved at round 1 and now
+    carried into the ticket** (§9.2): AC-6 demands assertion "on computed style, not on
+    the class name", and computed style does not exist outside a rendering engine — so
+    AC-6 splits: scenario 1 asserts the at-or-below-baseline chip exists in markup with a
     non-empty label (not a dash, not an absence), scenario 2 asserts its computed weight.
-    The review should confirm this split or demand the ticket's grouping amended.
+    Both halves locate the chip by comparing the two rendered rates at runtime, never by
+    a pack name (PLAN-01), and both fail loudly if no such chip exists.
 
 - **RED condition** (before implementation; `./scripts/test-loop.sh PDX-004 --red` must
   show every assertion failing for the reason it names). On today's tree `@plugdex/data`
@@ -317,14 +376,18 @@ the rule to disagree quietly.
     per the standard PDX-003's round-3 ride-along set.
   - AC-5 RED: no `dist/` → the command-pair and upstream-URL greps have nothing to match
     → FAIL (positive-match assertions only).
-  - AC-6 RED: zero chips with the null verdict found (≥ 1 floor) → FAIL.
+  - AC-6 RED: zero chips whose rendered pack rate is at or below their rendered baseline
+    rate (≥ 1 floor) → FAIL. Nothing renders at all before implementation, so the search
+    comes back empty and the floor is what turns that into a failure rather than a
+    vacuous pass (ASSERT-01).
   - AC-7 RED: scenario 2's preflight — Playwright importable from the site package —
     fails because the package does not exist → FAIL loudly at preflight, before any
     browser claim is made.
   - AC-8 RED: a positive grep of `verify.sh` for the DATA-01 step finds nothing → FAIL;
     and `check-gates.sh` scoped to the new case numbers reports no such cases.
 - **GREEN condition**: `verify.sh` PASSes with the DATA-01 step executed;
-  `check-gates.sh` catches all three planted DATA-01 violations, passes the clean-pass
+  `check-gates.sh` catches every planted DATA-01 violation from step 9 (one per stated
+  rule), passes the clean-pass
   case, and fails the empty-scan tree; both scenarios PASS every assertion including the
   browser matrix; the full regression (`e2e.sh` with no argument) PASSes so PDX-001,
   PDX-002, and PDX-003 still hold.
@@ -336,7 +399,8 @@ the rule to disagree quietly.
     tree contains no server directory or adapter entrypoint, so the output is static by
     inspection, not by configuration claim.
   - AC-2 — direct node calls to the built `verdictFor` with synthetic cell sets: one per
-    verdict, the two-condition pack (asserting verdict 1 wins), the 3-vs-4 boundary both
+    verdict, the two-condition pack (asserting verdict 1 wins), an arm at or below
+    baseline and one above it both returning verdict 3 with both pairs of counts, both
     sides of the threshold, and the unmeasured empty set (asserting no rate fields
     exist to render). This duplicates the unit tests' spine deliberately: the unit tests
     prove the reasons, the scenario proves the built export a consumer sees.
@@ -346,8 +410,11 @@ the rule to disagree quietly.
   - AC-5 — for every entry the built registry exports: both commands present, the
     install string carries `<packId>@plugdex`, and the entry's upstream repository value
     appears in the dialog markup (SRC-01 in the DOM, per the ticket).
-  - AC-6 (markup half) — at least one chip carries the null-effect verdict, with a
-    non-empty label.
+  - AC-6 (markup half) — the chip whose rendered pack rate is at or below its rendered
+    baseline rate exists and carries a non-empty label (not a dash, not an absence). The
+    chip is located by comparing the two rates the card renders, derived at runtime; the
+    assertion fails loudly if no such chip exists, rather than passing on an empty search
+    (ASSERT-01) or naming a pack that could move (PLAN-01).
   - AC-8 — positive grep: verify output (or a scoped run) shows the DATA-01 step
     executed and passing; `check-gates.sh` scoped to the new cases reports each caught /
     clean-passed as expected.
@@ -366,9 +433,16 @@ the rule to disagree quietly.
     control's `:focus-visible` outline vs its adjacent background computes to ≥ 3:1
     (non-text, unrounded). Both floors are the fetched WCAG numbers, held in the
     scenario as named constants with the SC citation.
-  - AC-6 (computed-style half): the null-effect chip's computed `opacity` is 1 and its
-    `font-size`/`font-weight` equal a non-null chip's — the same visual weight, asserted
-    on computed values, not class names.
+  - The two rates within a card are styled identically (DEC-016's live risk, raised at
+    plan review round 2): for every card, the pack rate element and the baseline rate
+    element have equal computed `font-weight`, `color`, and `font-size`, and neither
+    carries a hue or a glyph the other does not. A comparison removed from the code and
+    reintroduced through the stylesheet is the same claim by another route, so this is
+    asserted rather than trusted, on computed values.
+  - AC-6 (computed-style half): the at-or-below-baseline chip's computed `opacity` is 1
+    and its `font-size`/`font-weight` equal those of a chip whose rate is above baseline —
+    the same visual weight, asserted on computed values, not class names. A result that
+    disappoints is still a result, and the styling is what says so.
   - Keyboard (AC-7): Tab from the document body reaches an install control within a
     bounded number of steps; Enter opens the dialog; the focused element is then inside
     the dialog; Escape closes it and focus returns to the trigger.
@@ -387,7 +461,7 @@ the rule to disagree quietly.
 - `site` — cards, chips, install dialog; regression scenarios `PDX-004-*`
 - `data` — `verdictFor` extends `@plugdex/data`'s public surface; a shape change there
   breaks this ticket's scenarios
-- `harness` — a new verify step and five new golden cases affect every later ticket
+- `harness` — a new verify step and the step 9-10 golden cases affect every later ticket
 
 ## 8.5 References Consulted (REF-01)
 
@@ -397,7 +471,7 @@ Per DESIGN.md, Reference Map: PDX-004 requires `site-design` and `WCAG contrast`
 |---|---|---|
 | site-design — cursor.directory | Y (2026-08-17) | WebFetch was bot-blocked (HTTP 429 / Vercel challenge, twice), so the page was opened in a real headless browser instead and read from the accessibility tree — stated because an unverified citation is the defect class this gate blocks. Observed: the card is rank + icon + name + one-line description + a single popularity count; the author, tags, full rule text, and the install action ("Add to Cursor" deep link + copyable rule block) all live behind the click, and no card anywhere carries any quality signal beyond popularity. Taken: the card grid and the per-entry copyable install pattern — and the confirmation of DESIGN.md §3/§4: the verdict and the author must be ON the card, which is exactly the surface cursor.directory leaves empty |
 | site-design — Aider leaderboards | Y (2026-08-17) | Fetched. The main table is model / percent correct / cost / command; the test-case count (225) appears only inside per-row expandable detail panels, and no confidence information is shown. Taken by inversion: DESIGN.md credits Aider with "sample sizes printed next to every number", but the current page buries n behind a disclosure — so plugdex puts n on the chip itself (AC-3), taking the principle further than the reference now practices it |
-| WCAG contrast | Y (2026-08-17) | Fetched all three Understanding pages. SC 1.4.3: ≥ 4.5:1 for normal text, ≥ 3:1 for large text (≥ 18pt, or 14pt bold). SC 1.4.11: ≥ 3:1 for UI components and graphical objects, explicitly unrounded (2.999:1 fails); inactive components exempt. SC 1.4.1: colour never the sole visual means; a 3:1 hue-plus-lightness difference is not a substitute where the user must identify which colour — which is why the glyphs are shapes, not tints. Held against the DESIGN.md §5 palette by computation: ink 17.23:1 / 15.44:1, pass 5.80 / 7.02, fail 5.75 / 5.73, accent 7.90 / 7.51 (light / dark, on their papers) all clear 4.5:1 — but `no code` at 2.10 / 2.51 fails both floors, which forced DEC-017 (hues as tint/border only; text and glyphs in ink) and the scenario-2 computed-contrast assertions |
+| WCAG contrast | Y (2026-08-17) | Fetched all three Understanding pages. SC 1.4.3: ≥ 4.5:1 for normal text, ≥ 3:1 for large text (≥ 18pt, or 14pt bold). SC 1.4.11: ≥ 3:1 for UI components and graphical objects, explicitly unrounded (2.999:1 fails); inactive components exempt. SC 1.4.1: colour never the sole visual means; a 3:1 hue-plus-lightness difference is not a substitute where the user must identify which colour — which is why the glyphs are shapes, not tints. Held against the DESIGN.md §5 palette by computation: ink 17.23:1 / 15.44:1, pass 5.80 / 7.02, fail 5.75 / 5.73, accent 7.90 / 7.51 (light / dark, on their papers) all clear 4.5:1 — but `no code` at 2.10 / 2.51 fails both floors, which forced DEC-018 (hues as tint/border only; text and glyphs in ink) and the scenario-2 computed-contrast assertions |
 
 ## 9. Agent Review
 
@@ -405,77 +479,40 @@ Round 1 (Fable 5, 2026-08-17 19:30) returned **NEEDS_REVISION** with four blocke
 of them are findings about the project rather than about this plan, and both were verified
 first-hand before being acted on.
 
+Round 1's review is kept verbatim below as the historical record, followed by rounds 2
+and 3. The three verdicts in order: **NEEDS_REVISION** (four blockers, all design),
+**NEEDS_REVISION** (no new defect — round 1's B1 fix propagated to the argument but not to
+the instructions), **APPROVED_WITH_NOTES** (the sweep confirmed, 0 blockers, three notes,
+two applied here and one owed to the report).
+
 ### Reviewer
-- Model: Fable 5 (claude-fable-5)
-- Reviewed at: 2026-08-17 19:30
+- Model: Fable 5
+- Reviewed at: 2026-08-18 00:04 (round 3; round 2 at 2026-08-17 23:50, round 1 earlier)
 
 ### Verdict
-- [ ] APPROVED
-- [ ] APPROVED_WITH_NOTES
-- [x] NEEDS_REVISION
+- [x] APPROVED_WITH_NOTES
 
 ### Rubric
-
-Every row must be scored PASS / FAIL / N/A with one line of concrete evidence.
-Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
-
 | ID | Item | Verdict | Evidence |
 |---|---|---|---|
-| P1 | Scope fidelity: the plan stays inside the ticket's Scope.Allowed / NotAllowed and addresses every AC | PASS | §2 confines work to the Allowed list; §3 steps and §7 cover AC-1..AC-8 individually; no leaderboard, drawer, cell grid, unmeasured listing or deploy appears in §3 |
-| P2 | Step granularity: steps touch 1-3 files each and are independently verifiable | PASS | Counted per §3: steps 1, 2, 9 touch 3 files; 8 and 10 touch 2; the rest touch 1; each has its own gate or scenario assertion |
-| P3 | Decision consistency: no conflict with the DESIGN.md decision log | FAIL | DEC-015 fires chip 3 at nominal uncorrected Fisher p < 0.05, while DEC-005's recorded ground is that the one nominal effect does not survive correction for four comparisons, and that the effect is regime-confined while regime is not a recorded field — DEC-015 pools regimes and publishes the uncorrected result per card |
-| P4 | Test plan: concrete e2e file(s) with explicit RED and GREEN conditions covering each AC | PASS | §7 names both scenario files verbatim from the ticket's §5 and gives a per-AC RED condition with its failure reason, plus a global GREEN including the both-sides golden replay and full regression |
-| P5 | Risk coverage: risks, mitigations, and Out of Scope are explicit | FAIL | §4 has no row for withdrawn-run contamination: `loadAcceptanceRecords` reads every `*.acceptance.json` (`packages/data/src/load.ts:206`), the withdrawn run contributes 74 valid cells, and no `withdrawn` marker exists in the schema or the loader |
-| P6 | Language policy: the plan and referenced artifacts are English-only (LANG-01) | PASS | Hangul scan over the plan and ticket found none; `./scripts/check-language.sh` passes |
-| P7 | References consulted: the plan's References Consulted section shows the ticket's required references actually opened (Y + note), or the ticket is on the REF-01 exemption list | PASS | `./scripts/check-references.sh .docs/analysis/PDX-004_plan.md` → "REF-01 PASS — all 2 required reference(s) consulted"; the §8.5 notes carry specifics that cannot be summarised without opening the material, and every WCAG ratio quoted was independently recomputed and matched |
+| P1 | Goal and scope | PASS | Outside round 3's sweep except the B4 residue — carried from round 2; the residue itself is closed: ticket AC-2 now reads "one of the verdicts the chip table defines" with the CLAIM-01 correction record naming the old "five" text |
+| P2 | Steps | PASS | Both cited spots closed: step 1 now states "No statistic is computed here — DEC-016 retires the 3-vs-4 boundary, so there is no p, no threshold, and no second Fisher implementation", its only surviving threshold is the 0.8 no-code fraction, and its unit list tests at/below- and above-baseline arms "both returning verdict 3"; step 13 strikes verdict 4's row from the chip table |
+| P3 | Design soundness | PASS | All three cited contradictions closed: step 1, the DEC-016 bullet arguing the retirement, and the risk row rewritten around two counts with identical styling — no "caption states nominal-only" argument survives; DEC-016/017/018 mutually consistent; one inert prose residue found and carried as note 3 |
+| P4 | Test plan | PASS | All four cited spots closed: AC-6 RED targets the at-or-below-baseline chip with the ≥ 1 floor and states why an empty search fails; scenario-1 AC-2 asserts both arms returning verdict 3, no 3-vs-4 language; GREEN counts are phrased against the producing steps — "every planted DATA-01 violation from step 9 (one per stated rule)" — and no "five new golden cases" or "all three planted violations" text survives anywhere |
+| P5 | Risks | PASS | Carried from round 2 (B2 closed by PDX-016, §9.1); the one risk row in the sweep is rewritten and now carries round-2 comment 2's residual styling risk with an enforcement mechanism, not just a statement |
+| P6 | Rules/decisions applied | PASS | Carried from round 2 — §6 is outside the sweep and unchanged in substance; DEC-016's §6 entry now matches the strike ("verdict 4 retired and the card rendering both rates with both denominators"), so §6 agrees with §3 |
+| P7 | REF-01 | PASS | `./scripts/check-references.sh .docs/analysis/PDX-004_plan.md` re-run at round 3 → "REF-01 PASS — all 2 required reference(s) consulted for PDX-004"; §8.5 notes unchanged since round 1 verification |
 
 ### Comments
-1. CR-01 acknowledged and complied with: the review was read-only — no file edited, no git
-   mutation, nothing created, and no commit or push recommended. LANG-01 acknowledged: the
-   review is in English and the artifacts carry no Korean.
-2. **DEC-017 is verified and approved.** Every contrast ratio was recomputed from the
-   DESIGN.md §5 hex values with the WCAG relative-luminance formula: `#B3ADA0` on `#FAF8F3`
-   = 2.1045 and `#5A554C` on `#141311` = 2.5097, matching the plan's 2.10 and 2.51, as do
-   the other eight ratios. The conclusion — status hues never carry text or the load-bearing
-   glyph — is forced by the arithmetic rather than asserted, and scenario 2's computed-contrast
-   assertion makes it regression-proof.
-3. **Verdict 2's dead branch is acceptable as disclosed, with one condition:** the phase-C
-   hand-off must state that the `claims` input's confidence interval has to arrive as a
-   fingerprinted record rather than a caller-computed value, or verdict 2 becomes a
-   laundering path for the statistic class B1 objects to.
-4. **The AC-6 split is approved as a disclosed deviation, not scope drift** — AC-6 demands
-   an assertion on computed style, which cannot exist outside a rendering engine, so the
-   split covers the AC more completely than the ticket's grouping. The ticket's §5 mapping
-   must be amended in the same change, per the precedent PDX-003 round 3 set.
-5. DEC-016's threat model is right in principle — the gate's job is the honest mistake, and
-   false positives are what kill a gate like this. The blockers against it are about its
-   substrate and its golden-case coverage, not the design stance.
-6. PLAN-01 and ASSERT-01 hygiene is genuinely good: no golden-case numbers hard-coded, pack
-   lists derived at runtime, every count with a ≥ 1 floor, and the empty scan fails.
+1. CR-01 complied with: read-only review — no file edited, no git mutation, no commit or push recommended. LANG-01 complied with: review in English; `./scripts/check-language.sh` passes and a direct Hangul grep over the plan and ticket found none.
+2. **Round-2 comment 2's residual risk is carried and enforced, with one placement gap.** The risk row states the requirement — identical, non-comparative styling for the two rates, no hue/weight/arrow keyed to which is larger — and specifies an assertion. That is enforcement, not mere statement. However, §7's scenario-2 assertion list did not enumerate it — its AC-6 half compares chip against chip, not the two rates within a card. Since §7 is what stage 4 builds the scenario from, the test-case-first stage must include the two-rates equality assertion; the report's review should confirm it landed. **Applied** — §7's scenario-2 list now carries the assertion explicitly.
+3. **One sweep survivor, inert.** The condition-2 bullet read "the pack in question falls through to 3 **or 4**" — a phrase assuming verdict 4 is reachable. Not a blocker by round 2's own corruption test: no condition for verdict 4 exists anywhere an implementer builds from, so nothing in `verdict.ts` or the RED gate can inherit it. The fix is deleting two words, a prose correction of exactly the class REV-02 routes to the report stage; a fourth review round over two words would be the PDX-002 rounds-3/4 failure mode the rule exists to prevent. **Applied here rather than deferred**, since the sweep was open anyway.
+4. Scenario-1's "both sides of the threshold" is closed as cited — the "3-vs-4 boundary" language is gone, and with step 1 declaring the 0.8 no-code fraction "the one threshold that remains", the phrase can only refer to that boundary, which is a legitimate and useful test. Minor: step 1's unit list does not name a matching both-sides case even though the scenario claims to duplicate the unit spine; worth mirroring when the tests are written, no plan change needed.
+5. **§9.3's account is honest.** It reproduces round 2's findings without minimizing and calls the state "the worst possible half-state" in its own voice. Its REV-02 justification is the strongest available reading and correctly scoped. One obligation remains open by the rule's own text ("the report must say why"): **the PDX-004 report must carry this third-round justification, not only the plan.**
+6. Beyond the survivor in comment 3, the grep sweep for verdict-4 / p-threshold assumptions across the plan and the ticket hit only the permitted passages, including the historical round-1 review text in §9, which is correctly left unedited. The ticket's two CLAIM-01 corrections (AC-2 and AC-6) both preserve the old wording with the reason — corrections in place, not rewrites, as B4 required. No genuinely new blocker was found.
 
 ### Blockers (only if NEEDS_REVISION)
-- **B1 (P3 FAIL) — DEC-015's uncorrected-p boundary republishes, per card, the claim the
-  project retracted.** On the corpus DESIGN.md records, a nominal p < 0.05 trigger fires for
-  exactly one pack, so the landing page renders one rate chip and four "no detectable effect"
-  chips — a binary significance ranking driven by the number DESIGN.md itself says does not
-  survive correction for four tests. It is also an un-derived statistic (`bench/DERIVATIONS.md`
-  requires an entry for every published statistical claim, and a p computed inside `verdictFor`
-  has none), it is outside every preregistration (which fixes the analysis in advance and rules
-  that the two regimes are never merged), and it needs a second Fisher implementation in
-  TypeScript that can drift from the self-validating one in `bench/harness/fisher.py`.
-  **Replacement:** make the 3-vs-4 boundary descriptive rather than inferential.
-- **B2 (P5 FAIL) — every live number `verdictFor` would compute is contaminated by the
-  withdrawn run, and the plan never mentions it.** See §9.1 below: verified, and escalated
-  out of this ticket.
-- **B3 (DEC-016) — the rendered-position scanner's substrate does not resolve, and the golden
-  set does not cover both sides of every stated rule.** `@astrojs/compiler` is a transitive
-  dependency and this repository has no `.npmrc`, so pnpm's default isolated linker leaves it
-  unresolvable from `scripts/`; it must be declared and pinned. And four stated rules land with
-  neither a planted violation nor a clean pass: reader-facing attributes, digit-bearing string
-  literals in code positions, expression literals in the template body, and the element-access
-  allowance. §6 claims GATE-01 coverage the plan does not deliver.
-- **B4 — ticket revision needed**, regardless of the plan verdict: §5's e2e mapping must
-  reflect the approved AC-6 split, and the scope question B2 raises must be settled.
+- None at round 3. Round 1's four and round 2's four are all closed; three notes, two applied above, one owed to the report.
 
 ### 9.1 What round 1 found that is not about this plan
 
@@ -504,7 +541,78 @@ own ticket rather than folded in**. PDX-004 resumes against a corpus whose exclu
 recorded, and this plan's revision (round 2) assumes that mechanism exists rather than
 inventing one inside a UI ticket.
 
+**Status at round 2: the mechanism exists.** PDX-016 has landed — the withdrawal is a
+field on the record, `loadAcceptanceRecords` excludes it by default and lists it under
+`withdrawnRecords`, and the DATA-02 gate blocks its reintroduction. Both implementations
+now report the same corpus, which is what this plan needed and did not have: the loader
+`verdictFor` reads answers 371 cells and 283 valid, matching every published figure,
+where at round 1 it answered 447 and 357. The counts are not restated here as prose to be
+trusted — `bench/DERIVATIONS.md` D-003 records them with the command that reproduces both,
+and PDX-016's scenario asserts the agreement on every run.
+
+### 9.2 What round 2 changed
+
+Four blockers, each closed in the plan rather than deferred to implementation.
+
+- **B1 — the verdict boundary.** Round 1 asked for a descriptive boundary; round 2
+  concluded there is no descriptive boundary to be had, because verdict 4 is not a
+  description. The chip is struck and the card renders both rates with both denominators
+  instead. This is a larger change than "replace the threshold", and it is deliberately
+  larger: moving the threshold to the corrected value would have made every card assert a
+  negative result, which is a stronger claim than the corpus supports, not a weaker one.
+  The consequences — DESIGN.md's chip table, AC-6's target, the ticket's §5 mapping — are
+  carried in this revision rather than discovered during implementation.
+- **B2 — the contaminated corpus.** Closed outside this plan by PDX-016, as round 1
+  directed. See the paragraph above.
+- **B3 — the scanner's substrate and its coverage.** `@astrojs/compiler` is now a declared,
+  exactly-pinned devDependency of `packages/site` rather than a transitive package the
+  gate hoped to reach. And the four rules round 1 found landing with neither a planted
+  violation nor a clean pass — reader-facing attributes, digit-bearing string literals in
+  code positions, expression literals in the template body, and the element-access
+  allowance — now have cases on the side each needs, which is what §6's GATE-01 claim
+  requires to be true.
+- **B4 — ticket revision.** `.docs/tickets/PDX-004_site-catalogue-cards-verdicts-and-install.md`
+  is amended in the same change, per the precedent PDX-003 round 3 set: AC-6 is retargeted
+  at the at-or-below-baseline chip (its intent unchanged — a bad result is styled as a
+  result), and §5's e2e mapping reflects the approved AC-6 split across the two scenarios.
+  Both amendments are corrections in place with the reason stated, not rewrites.
+
+One thing round 1 approved is carried rather than changed: verdict 2's dead branch stays,
+with the condition attached to its approval now written into the plan (§3, condition 2) so
+the phase-C ticket inherits it instead of depending on someone remembering the review.
+
+### 9.3 What round 2's review caught, and the scoped third round
+
+Round 2 returned NEEDS_REVISION. It approved every design answer — B1's strike on the
+merits, B2 closed and verified first-hand against the shipped loader, B3's declared
+compiler and discriminating cases, B4's amendments as honest corrections — and then found
+that **the strike had been applied to the argument and not to the instructions**. The
+Steps table still told an implementer to put a 0.05 nominal p into `verdict.ts` and to
+unit-test the boundary either side of it; the Test Plan still red-tested "chips with the
+null verdict"; a risk row still argued from a caption stating nominal-only status; and two
+golden-case counts still said three and five against steps 9-10's six and eight. The
+ticket's AC-2 still said "one of the five verdicts".
+
+That is the worst possible half-state, and the review named why: a plan that strikes a chip
+in one section and renders it in another is worse than one that kept it, because the Steps
+table and §7 are what the implementation and the RED gate are built *from*. By report time
+either `verdict.ts` would carry the retracted statistic or the scenario would assert a
+boundary that does not exist.
+
+Every cited line is now swept — §1's framing, step 1, the risk row, the RED and GREEN
+conditions, the unit assertions, both counts, and the ticket's AC-2. Two things were
+strengthened rather than merely corrected while sweeping: the AC-6 RED now states why an
+empty search fails instead of passing (ASSERT-01), and the counts are phrased against the
+steps that produce them rather than restated as numbers that can drift (PLAN-01).
+
+**On REV-02.** The cap is two rounds, and this is a third. It is taken under the exception
+the rule states, and the reason is the one round 2 gave: the finding is not a new defect but
+an incomplete propagation of the fix round 1 demanded, and it cannot ride to the report
+stage because it would corrupt the artifacts the report is written about. The round is
+scoped to confirming the sweep — a diff-scoped re-check of the cited lines, not a fresh
+review of a plan already reviewed twice.
+
 ## 10. Final Plan Status
 
-- Agent: _(pending)_
+- Agent: APPROVED_WITH_NOTES (Fable 5, round 3, 2026-08-18 00:04) — 0 blockers; rounds 1 and 2 both NEEDS_REVISION, all eight findings closed. The third round is taken under REV-02's exception and §9.3 states why; the report owes that justification too
 - Human: _(pending)_

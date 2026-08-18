@@ -18,6 +18,8 @@ export {
   UnreasonedWithdrawalError,
 } from './load.js';
 
+export { verdictFor } from './verdict.js';
+
 export type {
   AcceptanceCorpus,
   AcceptanceRecord,
@@ -28,3 +30,12 @@ export type {
   TypecheckReason,
   Withdrawal,
 } from './schema.js';
+
+export type {
+  BuildRateVerdict,
+  ClaimNotReproducedVerdict,
+  NoCodeVerdict,
+  PackClaim,
+  PackVerdict,
+  UnmeasuredVerdict,
+} from './verdict.js';

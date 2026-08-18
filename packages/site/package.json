@@ -1,0 +1,22 @@
+{
+  "name": "@plugdex/site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "astro check",
+    "lint": "eslint src",
+    "test": "tsx --test src/**/*.test.ts",
+    "build": "astro build"
+  },
+  "dependencies": {
+    "@plugdex/data": "workspace:*",
+    "@plugdex/registry": "workspace:*",
+    "astro": "^5.1.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@astrojs/compiler": "2.10.3",
+    "playwright": "^1.49.1"
+  }
+}
