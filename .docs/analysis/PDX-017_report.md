@@ -48,15 +48,16 @@ pinned by new assertions, and §3 and §4 record what that cost.
 | `scripts/check-data-universe.sh` | DATA-02e, f and g; the probe corpus carries regimes contradicting its filenames in both directions; header's withdrawal-only disclosure removed; precedence extended |
 | `tests/meta/cases/28..33-data-*.sh` | Shared `plant_record` writes a regime; every planted field-reading loader now sets `_regime` from the record; case 31's violating loader reads the regime correctly so it still trips exactly one rule |
 | `tests/meta/cases/34..37-data-*.sh` | New: DATA-02e, DATA-02f, DATA-02g, and a both-regimes clean pass |
+| `bench/harness/fisher.py`, `scripts/check-data-universe.sh` (round 2) | Presence-not-truthiness on `regime`; a per-invocation nonce in the probe's run ids; the 35%→25% correction |
 | `tests/e2e/PDX-002-records-are-traceable.sh` | Comment only — records why its AC-3 record deliberately still lacks a regime and what that depends on |
 | `tests/e2e/PDX-016-the-corpus-agrees-with-itself.sh` | Its planter writes `blocked` by default, with the reason a fixture may default where a parser may not |
-| `tests/e2e/PDX-017-the-corpus-knows-its-conditions.sh` | New: 15 assertions across AC-1..AC-7 plus the writer arm |
+| `tests/e2e/PDX-017-the-corpus-knows-its-conditions.sh` | New: 17 assertions across AC-1..AC-7, the writer arm, the withdrawal-exemption arm, and the absent-vs-null parity arm |
 | `bench/DERIVATIONS.md` | D-004 — the before/after, the per-run adjudication with evidence and strength, and both reproduce commands |
-| `DESIGN.md` | DEC-019; DEC-015's scope note marked landed; PDX-017's harness-debt row struck |
-| `docs/WORKFLOW.md`, `CLAUDE.md` | DATA-02's rows carry the regime clause; the golden-case range is 28-37; the stale withdrawal-only sentence is gone |
+| `DESIGN.md` | DEC-019; DEC-015's scope note marked landed; PDX-017's harness-debt row marked *landing* rather than struck (a debt item is paid when it is on `main`); PDX-018 added, then narrowed by measurement; PDX-015's premise corrected |
+| `docs/WORKFLOW.md`, `CLAUDE.md` | DATA-02's rows carry the regime clause; the golden-case range is 28-38; the stale withdrawal-only sentence is gone |
 | `tests/meta/cases/38-data-*.sh` | New, round 2: a loader that name-derives the regime for withdrawn records only — the exact shape the gate could not see |
 | `.docs/analysis/PDX-017_plan.md` | The plan's round-2 review, written by the reviewer (omitted from this table in round 1; the review named it) |
-| `packages/site/src/styles/global.css` | **Out of scope, disclosed.** Prettier formatting only (§3) |
+| ~~`packages/site/src/styles/global.css`~~ | **Not on this branch.** It was formatted while the work sat on the PDX-004 stack; the ticket branch is cut from `main` and the change stayed behind with PDX-004, where the file belongs (§8) |
 
 ## 3. Plan Compliance
 
@@ -94,6 +95,7 @@ pinned by new assertions, and §3 and §4 record what that cost.
 | 11 (round 2) | `./scripts/test-loop.sh PDX-017` in a scratch worktree holding PDX-017 rebased onto PDX-016 alone | **GREEN — ALL GATES PASS**, with `e2e.sh` 5/5. The stage gate is passable on the branch this ticket will actually merge from; it was unpassable only while the work sat on top of PDX-004's committed RED |
 | 12 (report review round 2) | Fable 5, re-running the round-1 attacks | **APPROVED_WITH_NOTES**, 0 blockers, 6/6 rubric PASS |
 | 13 (notes applied) | ticket scenario / `check-gates.sh` / `verify.sh` | **17/17**, **38/38**, PASS |
+| 14 (the merge branch) | `feat/pdx-017-regime-is-a-record`, six commits cherry-picked onto `main` after PDX-016 merged as `19bdbfc` | one conflict, `global.css`, resolved by dropping PDX-004's file; gates re-run below |
 
 **The stage gate was not the thing that ran, and round 1 of this review was right to say
 so.** Stages 5 and 7 were executed as their component commands — `check-test-case.sh`,
@@ -212,11 +214,14 @@ and the harness defect behind it are recorded above and in DESIGN.md as PDX-018.
   arithmetic on D-002's table — whose own regime column was plausibly computed through the
   heuristic under suspicion. It is the best evidence available for that run and D-004 says
   exactly that.
-- **`packages/site/src/styles/global.css` was formatted, and it is outside this ticket's
-  Scope.NotAllowed.** It was committed unformatted at `5621ae4` (PDX-004, mid-RED) and
-  failed `prettier --check`, which kept `verify.sh` red and made this ticket's AC-7
-  unreachable. Two lines, double quotes to single, no behaviour. Disclosed in the RED
-  commit message and here rather than absorbed.
+- **The out-of-scope `global.css` formatting is no longer part of this ticket, and the
+  reason is worth keeping.** While the work sat on top of PDX-004 it had to be formatted:
+  PDX-004 committed the file unformatted at `5621ae4` mid-RED, `prettier --check` failed,
+  `verify.sh` stayed red, and this ticket's AC-7 was unreachable through no fault of its
+  own. Cutting the ticket branch from `main` removed the need entirely — the change stayed
+  with PDX-004, where the file belongs, and the scope violation went away rather than
+  being justified. That is the same lesson as PDX-018: the problem was the stack, not the
+  rule.
 - **`MissingEnvironmentAuditError` is now exported** — a follow-up PDX-016's report §8
   recorded and did not close. It is a one-line addition to a file already in scope.
 - **`parseWithdrawal` still does not trim-check `reference`** — the other PDX-016
@@ -301,7 +306,7 @@ Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
 |---|---|---|---|
 | R1 | AC evidence: every ticket AC is verified with reproducible gate/command output, and non-scriptable behavior is declared in the Non-Scriptable Verification section (checked via the mandated tool or explicit N/A), never silently skipped | PASS | Scenario re-run by this reviewer: 16/16 incl. the round-2 "neither fact exempts the other" arm; §5's four rows are all checked or N/A with reasons, and its `20260817-162601` claim matches the file's actual keys and `"regime": "blocked"` (re-read here) |
 | R2 | TDD integrity: the round log records a real RED (e2e FAIL) before GREEN | PASS | At `22d8e31` `fisher.py:106` still reads `"as-shipped" in name` and no committed record carries `regime` (verified via `git show`), so the 11 mechanism failures the RED commit message lists could not have passed; caveat that `test-loop --red` itself never ran is disclosed in §4.0 and filed as PDX-018 |
-| R3 | Plan compliance: deviations from the approved plan are disclosed and justified | PASS | §3 rows 4/5 now state that round 1 shipped a defect where the row said "None"; the out-of-scope `global.css` format, the hand-placed stamps, and the `test-loop` failure are all disclosed with causes, and PDX-018 exists at DESIGN.md:328 |
+| R3 | Plan compliance: deviations from the approved plan are disclosed and justified | PASS | §3 rows 4/5 now state that round 1 shipped a defect where the row said "None"; the out-of-scope `global.css` format (since removed by rebasing off `main`), the hand-placed stamps, and the `test-loop` failure are all disclosed with causes, and PDX-018 exists at DESIGN.md:328 |
 | R4 | Code match: Files Changed is accurate and claimed rules/decisions are reflected in the code | PASS | Every path in `git diff --stat 2abffd1..5bdb9e6` (38 files) appears in §2 except the report itself; both round-1 fixes verified live — 5 attack corpora (regime-less withdrawn, malformed-withdrawal+bad-regime, withdrawn+bad-regime, unwithdrawn bad regime, `regime: null`) refused by both loaders in both views, and a tampered gate copy whose probe agrees with its filename BLOCKs on the self-construction check |
 | R5 | CR-01 compliance: no commit/push/issue/PR/merge/release without explicit user instruction | PASS | Three commits under the standing delegation recorded in PDX-016 report line 196; `git status -sb` shows no upstream for the branch (never pushed) and no issue/PR artifacts exist for PDX-017 |
 | R6 | Language policy: all changed artifacts are English-only (LANG-01) | PASS | `./scripts/check-language.sh` → "LANG-01 PASS — no Korean text in repository artifacts", run by this reviewer and inside `verify.sh` (VERIFY PASS, 20s) |
