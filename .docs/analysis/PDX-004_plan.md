@@ -217,11 +217,13 @@ through an import. Three scanners, all driven from one inline node script:
    declaration containing a digit, which is blocked: `content` is the one property
    through which a stylesheet can put a claim in front of a reader.
 
-Why this closes rather than merely narrows the hole: scanner 1's name allowlist is
-spoofable in principle (`const gridColumns = 47`), but scanner 2 blocks literal digits at
-every rendered position regardless of what identifier fed them — a spoofed constant still
-cannot be *typed into markup*, and routing it through markup as `{gridColumns}` is an act
-a diff reviewer sees on a one-page site. The gate's job is the honest mistake; the ticket
+**Withdrawn in place under CLAIM-01 — the paragraph below is what this plan argued, and it is false.** The gate was tunnelled in three consecutive report-review rounds by eight channels a source scanner cannot see, five of them driven into built output. DEC-017 carries the full account and the correction; PDX-021 carries the replacement. The paragraph is left standing rather than deleted because a plan that quietly loses the argument it was approved on is a plan nobody can audit.
+
+> Why this closes rather than merely narrows the hole: scanner 1's name allowlist is
+> spoofable in principle (`const gridColumns = 47`), but scanner 2 blocks literal digits at
+> every rendered position regardless of what identifier fed them — a spoofed constant still
+> cannot be *typed into markup*, and routing it through markup as `{gridColumns}` is an act
+> a diff reviewer sees on a one-page site. The gate's job is the honest mistake; the ticket
 is explicit that false positives, not adversarial completeness, are what kill a gate like
 this, which is why the allowlist is of contexts, is short, lives at the top of the
 script, and can only be extended together with a golden case.
