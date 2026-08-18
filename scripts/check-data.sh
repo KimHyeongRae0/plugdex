@@ -23,9 +23,19 @@
 #   DATA-01c  a `content` declaration containing a digit: the one CSS property through
 #             which a stylesheet can put a claim in front of a reader
 #
-# Why b closes what a only narrows: a's allowlist is of *contexts* and is spoofable in
-# principle (`const gridColumns = 47`), but b blocks literal digits at every rendered
-# position whatever fed them, so a spoofed constant still cannot be typed into markup.
+# **What this gate is, and is not.** It was written believing that b closed what a only
+# narrows — that blocking digits at every rendered position meant a spoofed constant could
+# not reach a reader. That claim is withdrawn (DEC-017): eight channels have been driven
+# past it in four review rounds, five into built output, and the uncovered set is
+# generative rather than enumerable. `const gridColumns = 47` rendered as `{gridColumns}`
+# still exits this gate 0.
+#
+# So: this is a developer-time lint. It narrows the channel from source to a reader, it
+# catches the honest mistake, and it points at the line. DATA-01's guarantee is owed to
+# PDX-021, which checks the rendered artifact, where the surface is finite. Do not restate
+# the closed version of the claim here or anywhere else (CLAUDE.md's DATA-01 row says so
+# explicitly, and this header was the last place still doing it).
+#
 # The failure mode that kills a gate like this is false positives, not an adversary — so
 # the allowlist is short, syntactic, lives in one place, and may only be extended
 # together with a golden case.
@@ -175,8 +185,11 @@ const readerFacingMeta = ({ node, attribute }) => {
  * `/\d/` is ASCII-only, and a text node of fullwidth numerals reached built output
  * because of it. `\p{N}` covers every Unicode numeric class — decimal, letter-numeric and
  * other-numeric — which is the smallest honest definition. Spelled-out figures ("about
- * half") remain outside any digit scanner's reach and are named in DEC-017 as residue
- * rather than pretended away.
+ * half", "doubled") remain outside any digit scanner's reach at any strictness, and are
+ * named in DEC-017 as the third residue rather than pretended away. That cross-reference
+ * was false when it was written — DEC-017 listed two residues, not three — which goal
+ * audit 4 caught. A pointer to documentation that does not say what the pointer claims is
+ * the same defect this project prosecutes elsewhere, one scale down.
  */
 const DIGIT = /\p{N}/u;
 
@@ -243,9 +256,10 @@ const scanCode = ({ file, source, code, offset }) => {
 
       // A comparison operand is a guard, not a figure: its result is a boolean and
       // nothing downstream can render it. This is a syntactic exemption rather than a
-      // name one, so it does not reopen the `const buildRate = 47` spoof — and a figure
-      // smuggled through a comparison still cannot reach markup, which scanner 2 blocks
-      // at every rendered position regardless of what fed it.
+      // name one, so it does not widen the `const buildRate = 47` spoof beyond what
+      // scanner 1 already permits. It does not close that spoof either — nothing here
+      // does, and the sentence that used to claim scanner 2 caught it is withdrawn with
+      // the rest (DEC-017).
       if (ts.isBinaryExpression(current) &&
           [ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken,
            ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
@@ -378,9 +392,17 @@ const scanStyles = ({ file, source }) => {
   lines.forEach((line, index) => {
     if (!/(^|[\s{;])content\s*:/.test(line)) return;
 
-    const value = line.split(':').slice(1).join(':');
+    // Only the `content` declaration's own value, not the rest of the line: a single-line
+    // rule like `content: ""; width: 12px;` is legitimate and was being blocked by the
+    // width, which is the false-positive shape that gets a gate turned off.
+    const declaration = line.split(';').find((part) => /(^|[\s{])content\s*:/.test(part)) ?? line;
+    const value = declaration.split(':').slice(1).join(':');
 
-    if (/\d/.test(value)) {
+    // `DIGIT`, not a private `/\d/`. This scanner kept an ASCII-only test after the other
+    // two were widened, so `content: "４７％ builds"` — case 57's channel inside case 54's
+    // — exited the gate 0 while the report called all five closed and pinned. Found by
+    // report review round 4 by composing two fixes that were each correct alone.
+    if (DIGIT.test(value)) {
       violations.push(
         `DATA-01c ${file}:${index + 1}: a \`content\` declaration carries a digit — it is ` +
         `the one property through which a stylesheet can put a claim in front of a reader`,

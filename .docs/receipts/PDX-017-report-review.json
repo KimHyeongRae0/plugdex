@@ -3,9 +3,11 @@
   "mode": "report",
   "verdict": "APPROVED_WITH_NOTES",
   "reviewer_model": "Fable 5",
-  "reviewed_sha": "ea3b418769a523dbef43789900f61110233e60ca",
-  "working_tree": "dirty",
+  "review_stated_at": "2026-08-18 09:22",
+  "gate_run_at": "2026-08-18T21:36:13+0900",
+  "gate_run_sha": "abe5d111e9730dd91c361a7f0c4f1fb6532b1a47",
+  "working_tree_at_gate_run": "dirty",
   "rubric_sha256_16": "2b3e85a2966bf733",
   "document": ".docs/analysis/PDX-017_report.md",
-  "recorded_at": "2026-08-18T21:00:12+0900"
+  "attests": "review-shaped text passed the mechanical gate at gate_run_sha; the rubric hash makes later edits to it detectable. It does NOT attest that an independent reviewer read that tree — the same session can author both the review and this receipt, and golden case 52 demonstrates exactly that."
 }

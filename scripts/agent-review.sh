@@ -454,30 +454,47 @@ if [[ -n "$TKT_ID" ]]; then
   mkdir -p "$RECEIPT_DIR"
   RECEIPT="$RECEIPT_DIR/${TKT_ID}-${MODE}-review.json"
 
-  REVIEWED_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+  GATE_RUN_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
   REVIEWER_MODEL="$(grep -m1 '^- Model:' "$TARGET" | sed 's/^- Model:[[:space:]]*//' | tr -d '\r')"
+  REVIEW_STATED_AT="$(grep -m1 '^- Reviewed at:' "$TARGET" | sed 's/^- Reviewed at:[[:space:]]*//' | tr -d '\r')"
   RUBRIC_HASH="$(grep -E '^\| (P|R)[0-9]+ \|' "$TARGET" | shasum -a 256 | cut -c1-16)"
   TREE_STATE="clean"
   [[ -n "$(git status --porcelain 2>/dev/null)" ]] && TREE_STATE="dirty"
 
   TICKET_ID="$TKT_ID" REVIEW_MODE="$MODE" VERDICT="$AGENT_VERDICT" \
-  REVIEWED_SHA="$REVIEWED_SHA" REVIEWER_MODEL="${REVIEWER_MODEL:-unrecorded}" \
+  GATE_RUN_SHA="$GATE_RUN_SHA" REVIEWER_MODEL="${REVIEWER_MODEL:-unrecorded}" \
+  REVIEW_STATED_AT="${REVIEW_STATED_AT:-unrecorded}" \
   RUBRIC_HASH="$RUBRIC_HASH" TREE_STATE="$TREE_STATE" TARGET_PATH="$TARGET" \
   python3 - "$RECEIPT" <<'RECEIPTPY'
 import json, os, subprocess, sys
 
+gate_run_at = subprocess.run(
+    ["date", "+%Y-%m-%dT%H:%M:%S%z"], capture_output=True, text=True
+).stdout.strip()
+
+# `gate_run_sha`, not `reviewed_sha`. The first receipt this mechanism ever wrote named a
+# tree its reviewer had never seen: PDX-017's review happened at 09:22 and the SHA the
+# receipt recorded was committed at 20:12, because the gate was re-run over an already
+# approved document nine hours later. Goal audit 4 caught it. The field was overclaiming
+# by its name alone, so it says what it can actually attest — the tree the gate ran on —
+# and the reviewer's own stated time is carried beside it so the two can be compared.
 receipt = {
     "ticket": os.environ["TICKET_ID"],
     "mode": os.environ["REVIEW_MODE"],
     "verdict": os.environ["VERDICT"],
     "reviewer_model": os.environ["REVIEWER_MODEL"],
-    "reviewed_sha": os.environ["REVIEWED_SHA"],
-    "working_tree": os.environ["TREE_STATE"],
+    "review_stated_at": os.environ["REVIEW_STATED_AT"],
+    "gate_run_at": gate_run_at,
+    "gate_run_sha": os.environ["GATE_RUN_SHA"],
+    "working_tree_at_gate_run": os.environ["TREE_STATE"],
     "rubric_sha256_16": os.environ["RUBRIC_HASH"],
     "document": os.environ["TARGET_PATH"],
-    "recorded_at": subprocess.run(
-        ["date", "+%Y-%m-%dT%H:%M:%S%z"], capture_output=True, text=True
-    ).stdout.strip(),
+    "attests": (
+        "review-shaped text passed the mechanical gate at gate_run_sha; the rubric hash "
+        "makes later edits to it detectable. It does NOT attest that an independent "
+        "reviewer read that tree — the same session can author both the review and this "
+        "receipt, and golden case 52 demonstrates exactly that."
+    ),
 }
 
 with open(sys.argv[1], "w", encoding="utf-8") as handle:

@@ -40,7 +40,9 @@ site's figure path now holds no numeric literal at all.
 | `scripts/check-gates.sh` | Exports `PLUGDEX_REAL_ROOT` so a case can link the workspace modules the gate's parsers live in |
 | `tests/meta/cases/39..50-site-*.sh` | **Twelve** golden cases: the six blocked shapes the plan enumerates, two clean passes (imported figures; every exemption the gate grants), the three found by the report review (`set:html`, a quotable `<meta description>`, `content: attr()`), and the empty scan |
 | `tests/meta/cases/52..57-*.sh` | REV-03's receipt, and one case per channel the reviews and the audits drove into built output: spoken ARIA attributes, `content` indirection, a script writing to the document, JSON-LD, and non-ASCII numerals |
-| `scripts/agent-review.sh`, `.docs/receipts/` | REV-03 — a passing review leaves a committed receipt |
+| `scripts/agent-review.sh`, `.docs/receipts/` | REV-03 — a passing review leaves a committed receipt that states what it can attest and what it cannot |
+| `CLAUDE.md` | DATA-01's rule text: the rule is absolute, its enforcement is not — and an instruction not to restate the closed version of the claim |
+| `docs/WORKFLOW.md` | REV-03's row |
 | `tests/meta/cases/51-harness-*.sh` | The fresh-clone gate's refusal path; its passing path cannot be hosted by the golden-set model and that limit is recorded as PDX-020 |
 | `scripts/check-fresh-clone.sh` | **New, and outside this ticket's Scope.Allowed** (§8). It runs verify against a clone of a committed ref with no `node_modules` and no `dist` — the condition CI runs in and the one every local pass on this branch had defeated |
 | `tests/e2e/PDX-004-the-catalogue-reads.sh` | AC-1..AC-6 (markup), AC-8, over built output |
@@ -80,6 +82,9 @@ site's figure path now holds no numeric literal at all.
 | 12 (goal audit, third pass) | three new tunnels driven through the patched gate in half an hour, two into `dist/` | the design verdict, not the holes: source scanning cannot make DATA-01's claim |
 | 13 (report review round 3) | Fable 5 at `ea3b418` | **NEEDS_REVISION**, 1 blocker — three tunnels, one overlapping the audit's, plus the ARIA widening shipped with no case |
 | 14 | `check-gates.sh`, `verify.sh`, `e2e.sh`, `check-fresh-clone.sh` after round 3's fixes | **57/57**, PASS (31s), 7/7, PASS |
+| 15 (goal audit, fourth pass) | reproduced every figure in a fresh clone; read the receipt ledger | four claim-vs-artifact defects, no gate failure |
+| 16 (report review round 4) | Fable 5 at `abe5d11` | **NEEDS_REVISION**, 3 blockers — and it reverted every fix in a sandbox to confirm each golden case bites |
+| 17 | everything, after rounds 4's and the audit's fixes | **58/58**, verify PASS, e2e 7/7, fresh clone PASS |
 
 **The GREEN this report evidences failed a fresh clone, and that has to be said plainly.**
 `verify.sh` ran `pnpm typecheck` before `pnpm build`; the library packages typecheck with
@@ -118,7 +123,7 @@ the direction of looking fine:
 - fresh clone (`check-fresh-clone.sh`): **PASS** — the condition CI runs in
 - ticket e2e: both scenarios PASS
 - regression `e2e.sh`: **7/7**
-- golden set: **57/57**
+- golden set: **58/58**
 - unit: `@plugdex/data` 42/42 (17 verdict, 25 loader)
 - screenshots: `.docs/scratch/pdx-004-browser/{360x740,1280x800}-{light,dark}.png`
 
@@ -135,7 +140,7 @@ the direction of looking fine:
 ## 6. Regression Check
 
 `./scripts/e2e.sh` with no argument: **7/7**, including PDX-002, PDX-003, PDX-016 and
-PDX-017. `check-gates.sh` 57/57. Nothing flaky, nothing skipped.
+PDX-017. `check-gates.sh` 58/58. Nothing flaky, nothing skipped.
 
 This branch was rebuilt from `main` after PDX-016 (`19bdbfc`) and PDX-017 (`62d76dd`)
 merged, so it carries neither ticket's commits and the mid-cycle RED commits that used to
@@ -149,7 +154,7 @@ the round log's early entries keep a reachable SHA.
   it blocked was this ticket's components.
 - **DATA-02 / CLAIM-01**: no published figure moved by this ticket; the baseline changed
   because PDX-017 made a wrong one correctable, and DEC-020 records that.
-- **GATE-01**: nineteen new cases (39-57), both sides of every rule the gate enforces. Six of them exist because a review or an audit tunnelled the gate and the fix would otherwise have shipped unpinned — reverting the ARIA widening passed 51/51 until case 53.
+- **GATE-01**: twenty new cases (39-58), both sides of every rule the gate enforces. Six of them exist because a review or an audit tunnelled the gate and the fix would otherwise have shipped unpinned — reverting the ARIA widening passed 51/51 until case 53.
 - **ASSERT-01**: the AC-6 assertion that refused to pass on an empty search is what
   surfaced the unsatisfiable criterion. It behaved exactly as the rule intends.
 - **DEV-01**: §5, and the browser scenario that now runs.
@@ -178,6 +183,23 @@ the round log's early entries keep a reachable SHA.
   planted fixture page renders the card above and below baseline, a real Astro build runs,
   and the markup skeletons must match — identical skeletons mean no selector can key on
   the difference. The browser half pins what that cannot see.
+- **Two fixes that were each correct alone left their composition open.** Round 4 put
+  case 57's channel (non-ASCII numerals) inside case 54's (a CSS declaration): the digit
+  test had been widened to `\p{N}` for the markup scanners while the stylesheet scanner
+  kept a private ASCII one, so `content: "４７％ builds"` exited the gate 0 while this
+  report called all five channels "closed and pinned". Case 58 pins the composition, and
+  the same fix removed a false positive it had introduced — a single-line rule whose digit
+  belonged to `width`, not to `content`, which is the shape that gets a gate turned off.
+- **The receipt mechanism's first entry misdescribed its own review.** It recorded
+  `reviewed_sha` for a tree PDX-017's reviewer never saw: that review happened at 09:22
+  and the SHA was committed at 20:12, because the gate was re-run over an already-approved
+  document nine hours later. The field overclaimed by its name alone. It is now
+  `gate_run_sha`, `review_stated_at` is carried beside it so a backfill is readable, and
+  the receipt carries an `attests` string saying in words that it does **not** prove an
+  independent reviewer read that tree — golden case 52 demonstrates in-repo that a
+  fabricated review earns a receipt. Found by goal audit 4, which is the answer to whether
+  REV-03 closed the gap it was built for: it did not, it made the gap legible, and saying
+  so is the only version of it worth merging.
 - **The source-scanning design is the wrong sole mechanism, and both a review and an
   audit reached that independently.** The gate has been tunnelled in three consecutive
   rounds — eight channels in total, five of them driven all the way into `dist/` — and the
@@ -273,6 +295,28 @@ Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
 ### Blockers (only if NEEDS_REVISION)
 -
 
+### Round 4 (Fable 5) — NEEDS_REVISION, 3 blockers
+
+Reviewed `abe5d11`, clean tree. **It reverted every fix from rounds 1-3 in a sandbox and
+confirmed each golden case failed with MISSED** — cases 52 through 57 all bite. That is
+the check round 3's finding demanded, and it is the strongest evidence in this document
+that the golden set is not decoration.
+
+1. **R4 — two correct fixes, an open composition.** `content: "４７％ builds"` exited the
+   gate 0: `\p{N}` had reached the markup scanners and not the stylesheet one. Case 58.
+2. **R4 — the gate's own header still asserted the withdrawn closure claim**, against
+   CLAUDE.md's explicit instruction not to restate it. Rewritten to say what the gate is.
+3. **R4 — Files Changed omitted `CLAUDE.md` and `docs/WORKFLOW.md`.** Round 1's blocker 4,
+   third occurrence.
+
+Its answer to the landing question is the one this report adopts: what a reader of
+`origin/main` can check for themselves is the golden set with teeth, the fresh-clone gate,
+the receipts, the masthead arithmetic against `bench/data/runs`, and the star counts
+against GitHub. What they must still take on trust is that the bench records describe runs
+that happened as described, that the reviewer models named in receipts are who reviewed,
+and that the screenshots correspond to the committed tree. Those three are named here
+rather than left for a reader to discover.
+
 ### Round 3 (Fable 5) — NEEDS_REVISION, 1 blocker
 
 Reviewed `ea3b418`. The reviewer disclosed that the tree began changing under it while it
@@ -344,5 +388,5 @@ four combinations; the contrast figure holds against a hand-sampled screenshot p
 
 ## 11. Final Report Status
 
-- Agent: NEEDS_REVISION (Fable 5, round 3, 2026-08-18 20:59, at `ea3b418`) — 1 blocker: DATA-01 tunnelled a third time; three constructions exit `check-data.sh` 0 and build into `dist/` — `content: var(--rate)` reading a digit-bearing custom property (the exact analogue of the `attr()` channel round 2 closed), a figure in a `<script type="application/ld+json">` body (the reader class case 47 established), and `document.title = '… 47% …'` in the inline script (the same string a `.ts` file blocks as DATA-01a) — and round 2's ARIA widening is pinned by no golden case. Everything else verified first-hand at `ea3b418`: both round-2 closures block by construction with nothing legitimate broken; the masthead/DEC-020 tie is exact (21/44 = 21/44) and the widest-gap claim checked against every arm in both regimes; case 49 fails when the slice-class exemption is removed; fresh-clone PASS at HEAD and FAIL at `cf4b8d7` both reproduce; GREEN re-run (verify 30s, e2e 7/7, golden 51/51, unit 42/42); star receipts verified against the live API. Rounds 1 and 2 (17:36, 19:58, 4 blockers each) preserved below
+- Agent: NEEDS_REVISION (Fable 5, round 4, 2026-08-18 21:55, at `abe5d11`) — 1 FAIL row (R4), three blockers, all narrow: scanner 3's digit test is still ASCII so `content: "４７％ builds"` exits the gate 0 at HEAD (the fullwidth channel inside the content channel, against §3's "all five are closed"); the gate's header (check-data.sh:26-28, :246-249) still asserts the closure claim DEC-017 withdraws, against CLAUDE.md:160; and Files Changed omits CLAUDE.md and docs/WORKFLOW.md. Everything else verified first-hand at `abe5d11`: all five round-3 channel closures and the REV-03 receipt have teeth (each fails its golden case when the fix is reverted in a sandbox); the false-positive budget holds on reasonable contributor code and on the real site in a fresh clone; the receipt records clean/dirty truthfully, its rubric hash moves when a row is edited, and NEEDS_REVISION writes no receipt; `.docs/receipts/` is tracked; the masthead tie re-derives exactly (21/44 = 21/44, widest in both regimes); star receipt consistent with the live API; GREEN re-run (test-loop GREEN, e2e 7/7, golden 57/57, fresh clone 37s, unit 42/42). Rounds 1-3 (17:36, 19:58, 20:59) preserved below
 - Human: _(pending)_
