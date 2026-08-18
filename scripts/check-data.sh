@@ -48,9 +48,18 @@ gate_log_init "check-data" "-" "${*:-}"
 
 SITE_DIR="packages/site"
 
-if [[ ! -d "$SITE_DIR/src" ]]; then
-  echo -e "${GREEN}✅ DATA-01 SKIP — $SITE_DIR/src does not exist yet${NC}"
+if [[ ! -e "$SITE_DIR/package.json" ]]; then
+  # No site package at all — the tree predates it. Every gate in this repository has to
+  # have an answer before its subject exists, and "there is nothing to check" is one.
+  echo -e "${GREEN}✅ DATA-01 SKIP — $SITE_DIR is not a package yet${NC}"
   exit 0
+fi
+
+if [[ ! -d "$SITE_DIR/src" ]]; then
+  # But a site package with no sources is a deleted source tree wearing an absence, and
+  # ASSERT-01 says a report of zero work is not a pass.
+  echo -e "${RED}❌ DATA-01: $SITE_DIR is a package but has no src/ — the gate scanned nothing${NC}" >&2
+  exit 1
 fi
 
 PROBE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/plugdex-data01.XXXXXX")"
@@ -101,10 +110,54 @@ const { parse } = await import(pathToFileURL(process.env.COMPILER_MODULE).href);
  * change is the move that turns a gate into decoration.
  */
 const LAYOUT_VOCABULARY =
-  /(width|height|size|gap|column|row|radius|index|duration|delay|breakpoint|margin|padding|opacity|weight|scale|offset|threshold|ratio|max|min|count)/i;
+  /(width|height|size|gap|column|row|radius|index|duration|delay|breakpoint|margin|padding|opacity|weight|scale)/i;
 
-/** Attributes a reader can actually read. Everything else in markup is machine-facing. */
-const READER_FACING_ATTRIBUTES = new Set(['alt', 'title', 'aria-label', 'placeholder']);
+/**
+ * Attributes a reader can actually read. Everything else in markup is machine-facing.
+ *
+ * `set:html` and `set:text` are here because they are rendered positions wearing an
+ * attribute's clothes: Astro writes their value into the document verbatim. The PDX-004
+ * report review got `set:html="47% of deliveries build"` all the way into `dist/` with
+ * this gate exiting 0, which falsified DEC-017's claim that scanner 2 blocks digits at
+ * every rendered position. `content` is here for `<meta>`, which is what a search result
+ * or a link preview quotes.
+ */
+const READER_FACING_ATTRIBUTES = new Set([
+  'alt',
+  'title',
+  'aria-label',
+  'placeholder',
+  'set:html',
+  'set:text',
+]);
+
+/**
+ * `<meta content>` is two different attributes wearing one name.
+ *
+ * `viewport` carries `initial-scale=1` and is instructions for the renderer; `description`
+ * and the `og:`/`twitter:` family carry prose that a search result or a link preview
+ * quotes to a reader, which makes a figure in one of them a published figure. Blocking
+ * the whole attribute flagged this project's own viewport tag — a false positive, and
+ * false positives are how a gate like this dies.
+ */
+const MACHINE_META = new Set([
+  'viewport',
+  'charset',
+  'robots',
+  'referrer',
+  'theme-color',
+  'color-scheme',
+  'format-detection',
+  'generator',
+]);
+
+const readerFacingMeta = ({ node, attribute }) => {
+  if (attribute.name !== 'content' || node.name !== 'meta') return false;
+
+  const key = (node.attributes ?? []).find((other) => other.name === 'name' || other.name === 'property');
+
+  return !MACHINE_META.has((key?.value ?? '').toLowerCase());
+};
 
 const violations = [];
 let scanned = 0;
@@ -251,7 +304,11 @@ const scanTemplate = async ({ file, source }) => {
     }
 
     for (const attribute of node.attributes ?? []) {
-      if (READER_FACING_ATTRIBUTES.has(attribute.name) && /\d/.test(attribute.value ?? '')) {
+      // `kind` distinguishes a quoted value from an expression; both are read the same
+      // way by whoever ends up looking at the page, so both are scanned.
+      const reads = READER_FACING_ATTRIBUTES.has(attribute.name) || readerFacingMeta({ node, attribute });
+
+      if (reads && /\d/.test(attribute.value ?? '')) {
         violations.push(
           `DATA-01b ${file}:${attribute.position?.start?.line ?? node.position?.start?.line ?? '?'}: ` +
           `a digit is typed into the reader-facing attribute \`${attribute.name}\``,
