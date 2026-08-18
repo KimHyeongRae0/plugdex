@@ -112,6 +112,27 @@ export type Cell = {
   readonly newDiags?: readonly string[];
 };
 
+/**
+ * Why a run was pulled out of the default analysis pool, and when that was decided.
+ *
+ * A withdrawal is a claim about the instrument, so it is recorded rather than performed.
+ * The alternative the project used until now was a filename prefix matched in one
+ * analysis script, which meant the fact governing every published figure lived where no
+ * type could reach it, no gate could check it, and the other half of the codebase could
+ * not see it at all — DEC-005, committed a second time. `reason` is required because a
+ * withdrawal with no stated reason is a deletion wearing a field.
+ */
+export type Withdrawal = {
+  /** Why the run is not comparable to the others. Never empty. */
+  readonly reason: string;
+
+  /** When the withdrawal was decided, ISO 8601 with offset. */
+  readonly recordedAt: string;
+
+  /** Where the reasoning is written out, when it is written out somewhere. */
+  readonly reference?: string;
+};
+
 /** One graded run: its id, the environment it was graded in, and its cells. */
 export type AcceptanceRecord = {
   /** The run id — the `YYYYMMDD-HHMMSS` timestamp the harness stamped. */
@@ -120,6 +141,13 @@ export type AcceptanceRecord = {
   readonly env: RunEnv;
 
   readonly cells: readonly Cell[];
+
+  /**
+   * Present only on a withdrawn run. Absent means the run is in the default pool —
+   * the field is never written as `null` or as an empty object to mean "kept", because
+   * a reader has to be able to tell an unwithdrawn run from an unfinished record.
+   */
+  readonly withdrawn?: Withdrawal;
 };
 
 /**
@@ -136,4 +164,14 @@ export type AcceptanceCorpus = {
 
   /** Every cell across every record, in load order. */
   readonly cells: readonly Cell[];
+
+  /**
+   * Every withdrawn record in `dir`, whichever view was asked for.
+   *
+   * What was pulled is a property of the corpus, not of the caller's question, so this
+   * list does not change between the default and pooled views. A consumer that reports a
+   * figure can therefore say what was left out without loading the directory twice, and a
+   * corpus that silently dropped a run is distinguishable from one that never had it.
+   */
+  readonly withdrawnRecords: readonly AcceptanceRecord[];
 };

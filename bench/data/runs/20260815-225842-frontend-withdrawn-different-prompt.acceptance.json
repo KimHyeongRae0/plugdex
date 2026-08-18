@@ -1,5 +1,10 @@
 {
   "run": "20260815-225842",
+  "withdrawn": {
+    "reason": "Instrument failure 16 — this run carried an extra instruction the other runs did not, and was graded against a different set of installed packages, so its cells are not comparable to theirs.",
+    "recorded_at": "2026-08-17T14:56:03+09:00",
+    "reference": "bench/DERIVATIONS.md D-003"
+  },
   "env": {
     "npm_packages": 256,
     "npm_fingerprint": "4b140e75d7dc1828",

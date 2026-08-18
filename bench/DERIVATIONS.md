@@ -171,3 +171,61 @@ sp = [c for c in load_cells() if c["arm"] == "superpowers" and c.get("valid")]
 print(sum(1 for c in sp if not c.get("wrote_code")), "of", len(sp))
 EOF
 ```
+
+---
+
+## D-003 — the withdrawn run moved from a filename to the record — **no figure moves**
+
+**What changed.** Run `20260815-225842` was withdrawn as instrument failure 16 — it
+carried an extra instruction the other runs did not, and was graded against a different
+set of installed packages. Until now that withdrawal existed in exactly one place: a
+string prefix in `bench/harness/fisher.py`, compared against the filename. It is now a
+field on the record, carrying the reason and the date the withdrawal was adjudicated
+(`5d3ba47`, `2026-08-17T14:56:03+09:00`).
+
+**Why it needed an entry.** The fact deciding which cells every published figure is
+computed over lived where only one script could see it. The TypeScript loader in
+`packages/data` could not see it at all, so the two halves of this project disagreed
+about what the corpus was:
+
+| | `bench/harness/fisher.py` | `@plugdex/data` |
+|---|--:|--:|
+| all cells, before | 371 | 447 |
+| valid cells, before | 283 | 357 |
+| all cells, after | 371 | 371 |
+| valid cells, after | 283 | 283 |
+
+The withdrawn record holds 76 cells, 74 of them valid, which is the whole of the gap.
+Nothing published was wrong, because every figure in `bench/README.md` and in D-001 and
+D-002 was computed on the excluded pool and the arm-name set is the same either way. The
+first card rendered off the TypeScript loader would have been the first published error,
+and it would have contradicted, in its denominator, a table corrected under CLAIM-01.
+
+**No published figure moves.** The excluded pool is byte-for-byte the same set of cells
+it was before, so D-001's excluded-pool table (baseline 12/34, ponytail `p = 0.0352`) and
+D-002's 49 of 50 re-derive unchanged from their own existing reproduce commands. The
+PDX-016 scenario runs both of those commands as assertions rather than taking this
+paragraph's word for it.
+
+**Reproduce it**
+
+```bash
+cd ~/Desktop/project/plugdex
+pnpm --filter @plugdex/data build
+
+# the two implementations, asked the same question over the same directory
+python3 -c 'import sys; sys.path.insert(0, "bench/harness")
+from fisher import load_cells
+print("python", len(load_cells()), len(load_cells(include_withdrawn=True)))'
+
+node --input-type=module -e '
+const { loadAcceptanceRecords } = await import("./packages/data/dist/index.js");
+const dir = "bench/data/runs";
+console.log("node",
+  loadAcceptanceRecords({ dir }).cells.length,
+  loadAcceptanceRecords({ dir, includeWithdrawn: true }).cells.length);
+'
+```
+
+Both print `371 447`. Before this change the node line printed `447 447`, because it had
+no withdrawal to read.

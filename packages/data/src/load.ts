@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { AcceptanceCorpus, AcceptanceRecord, Cell, RunEnv } from './schema.js';
+import type { AcceptanceCorpus, AcceptanceRecord, Cell, RunEnv, Withdrawal } from './schema.js';
 
 /**
  * Thrown when a record carries no environment fingerprint.
@@ -53,6 +53,23 @@ export class MixedEnvironmentError extends Error {
       `records span ${String(fingerprints.length)} environments (${fingerprints.join(', ')}) — ` +
         'they are not comparable and will not be unioned',
     );
+  }
+}
+
+/**
+ * Thrown when a record is marked withdrawn without saying why, or without saying when.
+ *
+ * The point of moving the withdrawal onto the record was to make the reason legible to
+ * everything that reads the corpus. A `withdrawn` object carrying no reason would restore
+ * the old situation with extra steps: a run silently missing from every published pool,
+ * with nothing on disk a reader could argue with. So the loader refuses the record rather
+ * than honouring the exclusion.
+ */
+export class UnreasonedWithdrawalError extends Error {
+  override readonly name = 'UnreasonedWithdrawalError';
+
+  constructor({ file, detail }: { file: string; detail: string }) {
+    super(`${file}: ${detail} — a withdrawal with nothing to argue with is a deletion`);
   }
 }
 
@@ -152,6 +169,41 @@ const parseCell = ({ raw, file }: { raw: unknown; file: string }): Cell => {
   return { cell, task, arm, model, rep, valid, ...optional } as Cell;
 };
 
+/**
+ * Reads `withdrawn`, requiring a reason and a date whenever the key is present at all.
+ *
+ * Absent is the ordinary case and returns `undefined`. Anything else present — including
+ * `null`, an empty object, or a blank reason — is a record that means to exclude itself
+ * and will not say why, which is the one shape this package refuses on sight.
+ */
+const parseWithdrawal = ({ raw, file }: { raw: unknown; file: string }): Withdrawal | undefined => {
+  if (raw === undefined) return undefined;
+
+  if (!isObject(raw)) {
+    throw new UnreasonedWithdrawalError({ file, detail: 'withdrawn is present but not an object' });
+  }
+
+  const reason = raw['reason'];
+
+  if (typeof reason !== 'string' || reason.trim().length === 0) {
+    throw new UnreasonedWithdrawalError({ file, detail: 'withdrawn carries no reason' });
+  }
+
+  const recordedAt = raw['recorded_at'];
+
+  if (typeof recordedAt !== 'string' || recordedAt.trim().length === 0) {
+    throw new UnreasonedWithdrawalError({ file, detail: 'withdrawn carries no recorded_at' });
+  }
+
+  const reference = raw['reference'];
+
+  return {
+    reason,
+    recordedAt,
+    ...(typeof reference === 'string' && reference.length > 0 ? { reference } : {}),
+  };
+};
+
 /** Parses one acceptance file. Throws rather than returning a partial record. */
 export const parseAcceptanceRecord = ({
   text,
@@ -184,10 +236,13 @@ export const parseAcceptanceRecord = ({
     throw new MalformedRecordError({ file, detail: 'cells is missing or not an array' });
   }
 
+  const withdrawn = parseWithdrawal({ raw: raw['withdrawn'], file });
+
   return {
     run,
     env: parseEnv({ raw: raw['env'], file }),
     cells: cells.map((entry) => parseCell({ raw: entry, file })),
+    ...(withdrawn === undefined ? {} : { withdrawn }),
   };
 };
 
@@ -199,22 +254,42 @@ export const parseAcceptanceRecord = ({
  * rather than by convenience, so a figure that needs them has to resolve its own
  * DATA-01 story rather than inherit one quietly.
  *
+ * Withdrawn runs are left out of `records` and `cells` unless `includeWithdrawn` is
+ * asked for, and are listed under `withdrawnRecords` either way. The exclusion is read
+ * off each record's own `withdrawn` field — never off its filename, which is what
+ * `bench/harness/fisher.py` did until PDX-016 and is why the two halves of this project
+ * disagreed by 76 cells about what the corpus was.
+ *
+ * The fingerprint and the mixed-environment check are computed over every record found,
+ * withdrawn or not: a withdrawn run was still graded in some environment, and a corpus
+ * whose withdrawn record came from a different one is not a corpus this package will
+ * quietly narrow into looking consistent. That also means a directory in which every run
+ * is withdrawn loads to an empty default view rather than throwing — an empty result is
+ * a result, and it is not the same thing as an empty directory, which still refuses.
+ *
  * @throws {MissingFingerprintError} a record has no `env.npm_fingerprint`
  * @throws {MixedEnvironmentError} the loaded records span more than one fingerprint
+ * @throws {UnreasonedWithdrawalError} a record is marked withdrawn without saying why
  * @throws {MalformedRecordError} a file is not a well-formed acceptance record
  */
-export const loadAcceptanceRecords = ({ dir }: { dir: string }): AcceptanceCorpus => {
+export const loadAcceptanceRecords = ({
+  dir,
+  includeWithdrawn = false,
+}: {
+  dir: string;
+  includeWithdrawn?: boolean;
+}): AcceptanceCorpus => {
   const files = readdirSync(dir)
     .filter((name) => name.endsWith('.acceptance.json'))
     .sort();
 
-  const records = files.map((name) => {
+  const all = files.map((name) => {
     const file = join(dir, name);
 
     return parseAcceptanceRecord({ text: readFileSync(file, 'utf8'), file });
   });
 
-  const fingerprints = [...new Set(records.map((record) => record.env.npmFingerprint))].sort();
+  const fingerprints = [...new Set(all.map((record) => record.env.npmFingerprint))].sort();
 
   if (fingerprints.length > 1) {
     throw new MixedEnvironmentError({ fingerprints });
@@ -226,9 +301,13 @@ export const loadAcceptanceRecords = ({ dir }: { dir: string }): AcceptanceCorpu
     throw new MalformedRecordError({ file: dir, detail: 'no acceptance records found' });
   }
 
+  const withdrawnRecords = all.filter((record) => record.withdrawn !== undefined);
+  const records = includeWithdrawn ? all : all.filter((record) => record.withdrawn === undefined);
+
   return {
     records,
     fingerprint,
     cells: records.flatMap((record) => record.cells),
+    withdrawnRecords,
   };
 };
