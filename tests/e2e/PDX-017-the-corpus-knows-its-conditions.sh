@@ -627,6 +627,54 @@ JS
 
 judge "$(python3 "$SB/ac4-exempt.py" 2>/dev/null)" "AC-4 (neither fact exempts the other)"
 
+# Absent and null are different record shapes, and the two implementations must not
+# disagree about which. `.get()` reads an explicit `"regime": null` as absent while the
+# TypeScript loader calls it an unknown value — both refuse, but under different names,
+# and a gate case asserting which rule fired would then prove different things in the two
+# halves. That is the withdrawal defect PDX-016 fixed, one field over, and the PDX-017
+# report review found it surviving here.
+python3 "$SB/plant.py" "$SB/absent" '[{"run": "20200101-000000", "cells": 1}]' 2>/dev/null
+python3 "$SB/plant.py" "$SB/nulled" '[{"run": "20200101-000000", "regime": null, "cells": 1}]' 2>/dev/null
+
+cat > "$SB/ac4-parity.py" <<'PY'
+import json, os, subprocess, sys
+
+sys.path.insert(0, os.environ["HARNESS"])
+from fisher import load_cells
+
+sandbox = os.environ["SB"]
+problems = []
+
+
+def python_verdict(corpus):
+    try:
+        load_cells(runs_dir=corpus)
+        return "LOADED"
+    except ValueError as error:
+        return "no regime" if "no regime" in str(error) else "unknown value"
+
+
+def node_verdict(corpus):
+    answer = subprocess.run(
+        ["node", os.path.join(sandbox, "ac4-exempt.mjs"), corpus],
+        capture_output=True, text=True,
+    ).stdout.strip()
+    return {"MissingRegimeError": "no regime", "UnknownRegimeError": "unknown value"}.get(answer, answer)
+
+for shape, expected in (("absent", "no regime"), ("nulled", "unknown value")):
+    corpus = os.path.join(sandbox, shape)
+    left, right = python_verdict(corpus), node_verdict(corpus)
+
+    if left != expected or right != expected:
+        problems.append(f"{shape}: python says {left!r}, node says {right!r}, both should say {expected!r}")
+
+detail = "a missing regime and an explicit null are told apart the same way in both implementations"
+
+print("SENTINEL " + json.dumps({"ok": not problems, "detail": "; ".join(problems) or detail}))
+PY
+
+judge "$(python3 "$SB/ac4-parity.py" 2>/dev/null)" "AC-2 (absent and null agree across both)"
+
 cat > "$SB/ac4-anchors.py" <<'PY'
 import json, os, sys
 

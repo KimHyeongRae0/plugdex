@@ -66,7 +66,7 @@ def load_cells(include_withdrawn=False, runs_dir=RUNS_DIR):
 
     Each cell gains `_run`, `_regime`, and `_withdrawn`. The regime is read off the
     record too, since PDX-017. It used to be `"as-shipped" in name`: a run-level condition
-    that moves the baseline build rate from 35% to 73%, decided by a substring of a
+    that moves the baseline build rate from 25% to 73%, decided by a substring of a
     human-readable filename, in one function the TypeScript half of this project could not
     see. The ten names happened to encode it correctly and nothing checked that they did,
     so the next run named without the substring would have joined the wrong pool in
@@ -108,13 +108,18 @@ def load_cells(include_withdrawn=False, runs_dir=RUNS_DIR):
         # disagreement inside the function that exists to end them. Caught by the PDX-017
         # report review, and the ticket's own edge case said it — withdrawal and regime
         # are independent facts and neither exempts the other.
-        regime = record.get("regime")
-
-        if regime is None:
+        # Presence, not truthiness — the same distinction withdrawal needed. `.get()`
+        # reads an explicit `"regime": null` as absent, while the TypeScript loader calls
+        # it an unknown value; both refuse, but they refuse under different names, and a
+        # gate case asserting which rule fired would then prove different things in the
+        # two halves. Found by the PDX-017 report review as a residual asymmetry.
+        if "regime" not in record:
             raise ValueError(
                 f"{name}: no regime — the run does not say which condition it executed "
                 "under, and defaulting one would relabel it silently"
             )
+
+        regime = record["regime"]
 
         if regime not in REGIMES:
             raise ValueError(

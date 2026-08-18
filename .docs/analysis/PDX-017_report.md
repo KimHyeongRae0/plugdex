@@ -91,6 +91,9 @@ pinned by new assertions, and §3 and §4 record what that cost.
 | 8 (round 2) | `./scripts/check-gates.sh` | **38/38**, case 38 covering the withdrawn-only name-deriving loader |
 | 9 (round 2) | `./scripts/verify.sh` | **VERIFY PASS (19s)** |
 | 10 (round 2) | `./scripts/test-loop.sh PDX-017` | **FAIL, and disclosed rather than worked around** — see the stage-gate note below |
+| 11 (round 2) | `./scripts/test-loop.sh PDX-017` in a scratch worktree holding PDX-017 rebased onto PDX-016 alone | **GREEN — ALL GATES PASS**, with `e2e.sh` 5/5. The stage gate is passable on the branch this ticket will actually merge from; it was unpassable only while the work sat on top of PDX-004's committed RED |
+| 12 (report review round 2) | Fable 5, re-running the round-1 attacks | **APPROVED_WITH_NOTES**, 0 blockers, 6/6 rubric PASS |
+| 13 (notes applied) | ticket scenario / `check-gates.sh` / `verify.sh` | **17/17**, **38/38**, PASS |
 
 **The stage gate was not the thing that ran, and round 1 of this review was right to say
 so.** Stages 5 and 7 were executed as their component commands — `check-test-case.sh`,
@@ -113,6 +116,15 @@ That does not excuse round 1. The correct behaviour was to run the gate, see it 
 this reason, and say so in the report — not to run the stages by hand and describe the
 result as if the gate had passed.
 
+**And the disclosure has since been replaced by a real green run.** PDX-017 was extracted
+onto PDX-016 in a scratch worktree — five commits, one conflict (`global.css`, PDX-004's
+file, dropped) — and on that branch `verify.sh` PASSes, `e2e.sh` is **5/5**, and
+`test-loop.sh PDX-017` reports **GREEN — ALL GATES PASS**. So the gate was never wrong
+about this ticket; it was reporting on a working tree that had PDX-004's committed RED
+underneath it, which CLAUDE.md's commit convention forbids in the first place. PDX-018's
+row in DESIGN.md has been narrowed accordingly: the gate half is still worth fixing, but
+the larger half is branch hygiene.
+
 **What the RED proved, and what it deliberately did not.** Two of the four passing
 assertions at RED were the anchors: D-002's condition table and D-001's figures already
 re-derive, because the filenames encode the condition correctly today. Those assertions are
@@ -127,7 +139,7 @@ names, DATA-02 had no e/f/g, and the grader rejected `--regime` as an unknown ar
 
 - check-test-case: PASS (`./scripts/check-test-case.sh PDX-017`)
 - verify (language + structure + gates + typecheck + lint + test + build + SRC-01): PASS
-- ticket e2e: PASS — 16/16
+- ticket e2e: PASS — **17/17** after the round-2 notes were applied
 - unit: 39 tests, 39 pass (`pnpm --filter @plugdex/data test`)
 - golden set: 38/38 (`./scripts/check-gates.sh`)
 - stage gate (`test-loop.sh PDX-017`): **FAIL at stage 4**, for the reason recorded above
@@ -170,9 +182,10 @@ and the harness defect behind it are recorded above and in DESIGN.md as PDX-018.
 - **CLAIM-01**: no published figure moved, so no correction was owed. The check was
   executed rather than assumed — D-002's table and D-001's anchors are re-derived by the
   scenario on every run.
-- **GATE-01**: three new rules, four new cases, both sides of each; `check-gates.sh`
-  37/37. Each violation case trips exactly one lettered rule, asserted by the scenario
-  rather than by inspection.
+- **GATE-01**: three new rules, **five** cases, both sides of each; `check-gates.sh`
+  **38/38**. Each violation case trips exactly one lettered rule, asserted by the scenario
+  rather than by inspection. (This paragraph said "four new cases, 37/37" until round 2 of
+  the review caught it — round 1's numbers, left standing after case 38 was added.)
 - **ASSERT-01**: every probe prints a sentinel, every capture is checked for it before
   being read, and the per-regime comparison floors both regimes at ≥ 1 cell and ≥ 1 valid
   cell and requires the two to sum to the unfiltered count — so two empty pools cannot
@@ -223,6 +236,36 @@ and the harness defect behind it are recorded above and in DESIGN.md as PDX-018.
   the gate's probe checks its own construction before it checks anything else, which is
   the generalisable fix: a probe that cannot state why it would fail is not a probe.
 
+### Round 2 (Fable 5) — APPROVED_WITH_NOTES, and what was done with each note
+
+Applied rather than filed, because three of them were defects rather than wording:
+
+- **A figure that mixed two outcomes.** "the baseline **build** rate from 35% to 73%"
+  paired a build label with the `passes` number. Measured: build baseline is 5/20 = 25%
+  blocked against 8/11 = 73% as-shipped; `passes` is 12/34 = 35% in the blocked-haiku pool
+  against the same 73%. Corrected in place under CLAIM-01 in `fisher.py`,
+  `scripts/check-data-universe.sh` and DESIGN.md, with the cause stated. The sentence had
+  been carried unchecked since PDX-016.
+- **Absent and null were conflated in one half only.** `record.get("regime")` read an
+  explicit `"regime": null` as absent while the TypeScript loader called it an unknown
+  value. Both refused, so no corpus diverged — but they refused under different names, and
+  a gate case asserting which rule fired would have proved different things in the two
+  languages. This is precisely the defect PDX-016 fixed for `withdrawn`, surviving one
+  field over. `fisher.py` now tests presence, and the scenario asserts the parity across
+  both implementations (assertion 17).
+- **The gate's probe could be fingerprinted.** Its run ids were fixed (`202001…`), so a
+  loader special-casing that prefix passed DATA-02g while reading filenames everywhere
+  else — the reviewer demonstrated it. The ids now carry a per-invocation nonce: a probe a
+  defect can recognise is not a probe.
+- **`resolve_regime` called a well-formed JSON array "not readable JSON".** Now refused
+  with an accurate reason.
+- **§7's "four new cases, 37/37"** was round 1's count. Corrected, with the staleness noted
+  rather than silently overwritten.
+
+Two notes were left as notes: the reviewer's observation that `test-loop:red` will never
+exist in the log for this ticket (true — the RED rests on the round log and the `22d8e31`
+tree), and that the `"regime": null` identity difference was harmless before the fix.
+
 ## 9. CR-01 Compliance
 
 - Commits were made under the standing delegation the user gave for this project — an
@@ -240,15 +283,13 @@ and the harness defect behind it are recorded above and in DESIGN.md as PDX-018.
 
 ## 10. Agent Review
 
-_(placeholder — review not yet written)_
-
 ### Reviewer
-- Model:
-- Reviewed at:
+- Model: Fable 5
+- Reviewed at: 2026-08-18 09:22
 
 ### Verdict
 - [ ] APPROVED
-- [ ] APPROVED_WITH_NOTES
+- [x] APPROVED_WITH_NOTES
 - [ ] NEEDS_REVISION
 
 ### Rubric
@@ -258,18 +299,74 @@ Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
 
 | ID | Item | Verdict | Evidence |
 |---|---|---|---|
-| R1 | AC evidence: every ticket AC is verified with reproducible gate/command output, and non-scriptable behavior is declared in the Non-Scriptable Verification section (checked via the mandated tool or explicit N/A), never silently skipped | | |
-| R2 | TDD integrity: the round log records a real RED (e2e FAIL) before GREEN | | |
-| R3 | Plan compliance: deviations from the approved plan are disclosed and justified | | |
-| R4 | Code match: Files Changed is accurate and claimed rules/decisions are reflected in the code | | |
-| R5 | CR-01 compliance: no commit/push/issue/PR/merge/release without explicit user instruction | | |
-| R6 | Language policy: all changed artifacts are English-only (LANG-01) | | |
+| R1 | AC evidence: every ticket AC is verified with reproducible gate/command output, and non-scriptable behavior is declared in the Non-Scriptable Verification section (checked via the mandated tool or explicit N/A), never silently skipped | PASS | Scenario re-run by this reviewer: 16/16 incl. the round-2 "neither fact exempts the other" arm; §5's four rows are all checked or N/A with reasons, and its `20260817-162601` claim matches the file's actual keys and `"regime": "blocked"` (re-read here) |
+| R2 | TDD integrity: the round log records a real RED (e2e FAIL) before GREEN | PASS | At `22d8e31` `fisher.py:106` still reads `"as-shipped" in name` and no committed record carries `regime` (verified via `git show`), so the 11 mechanism failures the RED commit message lists could not have passed; caveat that `test-loop --red` itself never ran is disclosed in §4.0 and filed as PDX-018 |
+| R3 | Plan compliance: deviations from the approved plan are disclosed and justified | PASS | §3 rows 4/5 now state that round 1 shipped a defect where the row said "None"; the out-of-scope `global.css` format, the hand-placed stamps, and the `test-loop` failure are all disclosed with causes, and PDX-018 exists at DESIGN.md:328 |
+| R4 | Code match: Files Changed is accurate and claimed rules/decisions are reflected in the code | PASS | Every path in `git diff --stat 2abffd1..5bdb9e6` (38 files) appears in §2 except the report itself; both round-1 fixes verified live — 5 attack corpora (regime-less withdrawn, malformed-withdrawal+bad-regime, withdrawn+bad-regime, unwithdrawn bad regime, `regime: null`) refused by both loaders in both views, and a tampered gate copy whose probe agrees with its filename BLOCKs on the self-construction check |
+| R5 | CR-01 compliance: no commit/push/issue/PR/merge/release without explicit user instruction | PASS | Three commits under the standing delegation recorded in PDX-016 report line 196; `git status -sb` shows no upstream for the branch (never pushed) and no issue/PR artifacts exist for PDX-017 |
+| R6 | Language policy: all changed artifacts are English-only (LANG-01) | PASS | `./scripts/check-language.sh` → "LANG-01 PASS — no Korean text in repository artifacts", run by this reviewer and inside `verify.sh` (VERIFY PASS, 20s) |
 
 ### Comments
-1.
+
+1. **Both round-1 blockers verified closed first-hand, not from the prose.** Blocker 1a:
+   a corpus built from the real withdrawn record with its `regime` stripped is refused by
+   `fisher.py` ("no regime") and by `@plugdex/data` (`MissingRegimeError`) in both views;
+   the same holds for a malformed withdrawal stacked on a bad regime (both fire the
+   withdrawal error first — same precedence on both sides), a withdrawn record with a bad
+   regime under `include_withdrawn=True`, and an unwithdrawn record with `"blocked "`.
+   Blocker 1b: every probe record now contradicts its filename in both directions, the
+   withdrawn one included; tampering a sandbox copy so `20200103` agrees with its name
+   makes the gate BLOCK with "the regime decoy is not a decoy"; a withdrawn-only
+   name-deriving loader and a loader that trusts the name whenever the record says
+   `blocked` are both caught. Golden case 38 replayed manually trips exactly one lettered
+   rule (DATA-02g) and `check-gates.sh` is 38/38.
+2. **One residual asymmetry, refusal-only:** an explicit `"regime": null` is read by
+   `fisher.py` as absent ("no regime") and by the TypeScript loader as present-but-wrong
+   (`UnknownRegimeError`). Both refuse, so the two halves can never disagree about what
+   loads — but the error identities differ, unlike `withdrawn`, where fisher.py checks
+   presence with `in`. Worth one line in a follow-up, not a defect.
+3. **The DATA-02g probe can still be evaded by fingerprinting the probe itself:** a
+   loader that reads the record only for run names starting `202001` and name-derives the
+   rest passes the gate (demonstrated in a sandbox), because the probe's three run ids
+   are fixed constants in the gate source. No honest regression has that shape — it
+   requires special-casing the probe — but randomizing the probe's timestamps per
+   invocation would close it cheaply. Follow-up material, not a blocker.
+4. **`resolve_regime` holds against the round-1 comment-5 shapes:** an array
+   `results.json` refuses (via the JSON except-arm — its message says "not readable JSON"
+   for what is valid JSON of the wrong shape, a wording nit), `"regime": true` refuses by
+   value, explicit `null` falls through to the no-regime refusal, a planted
+   `old-results.json` sibling is never read, and a run dir symlinked under an
+   `-as-shipped` name resolves to the target's own `results.json` and returns the
+   recorded value.
+5. **The no-figure-moved claim re-derives from the current tree:** D-002's table
+   (34/35, 9/9, 6/6, 49/50), D-001's anchors (p = 0.0009 at 7/32 vs 20/31; nearest 0.0732;
+   the 12/34 = 35% current-corpus table), `fisher.py`'s corpus line (`371` / `447`), and
+   the per-regime counts (blocked 312/229, as-shipped 59/54, summing to 371 with
+   identical per-arm build counts in both implementations) were all re-run by this
+   reviewer and match the report exactly.
+6. **The blocker-2 disclosure is adequate, with one note.** `gate-runs.jsonl` now holds
+   `test-loop:green` FAIL for PDX-017 (2026-08-18T07:57:13, "regression FAILED"), the
+   report describes that failure accurately, says outright that the failure reason does
+   not excuse round 1, and files the harness defect as PDX-018. The note: a
+   `test-loop:red` entry for PDX-017 does not exist and now never will — the RED evidence
+   for this ticket permanently rests on the round log plus the `22d8e31` tree (which this
+   review verified independently), and PDX-018's fix should make that unrepeatable.
+7. **Two stale/wrong numbers in prose, non-blocking.** (a) §7's GATE-01 bullet still says
+   "four new cases; check-gates.sh 37/37" — round 2 made it five cases and 38/38, which
+   §4.0 and §4.1 state correctly. (b) "moves the baseline build rate from 35% to 73%" in
+   the `fisher.py` docstring, the `check-data-universe.sh` header, and DESIGN.md's closed
+   PDX-017 row: 35% is the baseline *passes* rate (12/35 all-valid, 12/34 code-producing);
+   the build rate is 25% (5/20), which the ticket, `schema.ts`, and `load.ts` state. Same
+   sentence, two numbers, three artifacts each way — fix the wording in a follow-up
+   commit, not another review round.
+8. **Keeping round 1's review in the document is the right call.** It is the receipt that
+   the clean state below was reached through a found-and-fixed cycle, it is clearly
+   delimited, and deleting it would make the report look clean on first pass — the exact
+   failure mode CLAIM-01 exists to prevent, applied to the harness's own paperwork.
 
 ### Blockers (only if NEEDS_REVISION)
--
+
+- None.
 
 ### Round 1 (Fable 5) — NEEDS_REVISION, 2 blockers
 
@@ -296,5 +393,5 @@ file (comment 5).
 
 ## 11. Final Report Status
 
-- Agent: NEEDS_REVISION (round 1, Fable 5, 2026-08-18 07:49 — 2 blockers: fisher.py withdrawn-record regime exemption + DATA-02g probe hole (R4); stage-5/7 gate bypassed via hand-placed stamps, undisclosed (R3))
+- Agent: APPROVED_WITH_NOTES (round 2, Fable 5, 2026-08-18 09:22 — both round-1 blockers verified closed by re-running the attacks; 0 blockers, 8 comments, follow-up items: 35%-vs-25% wording, §7's stale 37/37, probe-id randomization. Round 1: NEEDS_REVISION, Fable 5, 2026-08-18 07:49 — 2 blockers: fisher.py withdrawn-record regime exemption + DATA-02g probe hole (R4); stage-5/7 gate bypassed via hand-placed stamps, undisclosed (R3))
 - Human: _(pending)_

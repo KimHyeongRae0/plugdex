@@ -466,10 +466,17 @@ def resolve_regime(run_dir, flag):
 
     if candidate.is_file():
         try:
-            recorded = json.loads(candidate.read_text(encoding="utf-8")).get("regime")
+            parsed = json.loads(candidate.read_text(encoding="utf-8"))
         except Exception as error:
             sys.exit(f"{candidate.name} is not readable JSON ({error}) — "
                      f"pass --regime {'|'.join(REGIMES)} instead of guessing")
+
+        if not isinstance(parsed, dict):
+            sys.exit(f"{candidate.name} is valid JSON but not an object "
+                     f"({type(parsed).__name__}), so it carries no regime — "
+                     f"pass --regime {'|'.join(REGIMES)} instead of guessing")
+
+        recorded = parsed.get("regime")
 
         if recorded is not None:
             if recorded not in REGIMES:

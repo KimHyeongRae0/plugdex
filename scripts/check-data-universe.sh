@@ -15,7 +15,7 @@
 # **The boundary of what this gate enforces.** The principle above covers every
 # run-level governing fact. Two are enforced here: withdrawal (a, b, c) and regime
 # (e, f, g). Both were filename-derived once, and the regime — a condition that moves the
-# baseline build rate from 35% to 73% — was the second half of DEC-015, closed by PDX-017
+# baseline build rate from 25% to 73% — was the second half of DEC-015, closed by PDX-017
 # under DEC-019. If a third such fact appears, it belongs on the record and in this gate,
 # not in a name.
 #
@@ -83,6 +83,7 @@ sentinel is what tells the caller the probe ran at all.
 """
 import json
 import os
+import secrets
 import pathlib
 import sys
 import tempfile
@@ -209,10 +210,15 @@ else:
     # withdrawn records only slipped through the probe unseen. The PDX-017 report review
     # found that hole; a decoy that agrees with the mechanism it is decoying is not a
     # decoy.
+    # The run ids carry a per-invocation nonce. With fixed ids a loader could special-case
+    # the probe's prefix and pass the gate while reading filenames everywhere else — the
+    # PDX-017 report review demonstrated exactly that. A probe a defect can recognise is
+    # not a probe, so the identifiers it is recognised by change every run.
+    nonce = secrets.token_hex(4)
     probe_runs = {
-        "20200101-000000-withdrawn-by-name-only": (False, "as-shipped"),
-        "20200102-000000-marked-in-its-record": (True, "as-shipped"),
-        "20200103-000000-as-shipped-in-name-only": (False, "blocked"),
+        f"20200101-000000-{nonce}-withdrawn-by-name-only": (False, "as-shipped"),
+        f"20200102-000000-{nonce}-marked-in-its-record": (True, "as-shipped"),
+        f"20200103-000000-{nonce}-as-shipped-in-name-only": (False, "blocked"),
     }
 
     with tempfile.TemporaryDirectory() as sandbox:
