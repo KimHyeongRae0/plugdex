@@ -276,15 +276,19 @@ the round log's early entries keep a reachable SHA.
 
 ## 10. Agent Review
 
-_(placeholder — review not yet written)_
-
 ### Reviewer
-- Model:
-- Reviewed at:
+- Model: Fable 5
+- Reviewed at: 2026-08-18 23:13
+- SHA: `b0c3f9f27a7bc33b4245d5db2f0265a56c555502` — the tree the review read. The
+  receipt records `working_tree_at_gate_run: dirty`, and both statements are true of
+  different moments: the gate ran after this section was written, so the diff it saw
+  was this review plus the receipt itself, which CR-01 forbids committing first. The
+  receipt's field is the honest one, because it is the only one a machine produced;
+  this line is authored text and REV-03 says so on the receipt's face.
 
 ### Verdict
 - [ ] APPROVED
-- [ ] APPROVED_WITH_NOTES
+- [x] APPROVED_WITH_NOTES
 - [ ] NEEDS_REVISION
 
 ### Rubric
@@ -294,18 +298,42 @@ Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
 
 | ID | Item | Verdict | Evidence |
 |---|---|---|---|
-| R1 | AC evidence: every ticket AC is verified with reproducible gate/command output, and non-scriptable behavior is declared in the Non-Scriptable Verification section (checked via the mandated tool or explicit N/A), never silently skipped | | |
-| R2 | TDD integrity: the round log records a real RED (e2e FAIL) before GREEN | | |
-| R3 | Plan compliance: deviations from the approved plan are disclosed and justified | | |
-| R4 | Code match: Files Changed is accurate and claimed rules/decisions are reflected in the code | | |
-| R5 | CR-01 compliance: no commit/push/issue/PR/merge/release without explicit user instruction | | |
-| R6 | Language policy: all changed artifacts are English-only (LANG-01) | | |
+| R1 | AC evidence: every ticket AC is verified with reproducible gate/command output, and non-scriptable behavior is declared in the Non-Scriptable Verification section (checked via the mandated tool or explicit N/A), never silently skipped | PASS | Round 5 named the failing assertion behind every AC at `4b14ca6`; `b0c3f9f` touches only 5 text/doc files plus 7 lines in case 49 (`git show --name-only b0c3f9f`), and the full battery re-run this round is green: test-loop GREEN, verify 32s, e2e 7/7, golden 58/58, fresh clone 37s; §5 has no silent row (browser matrix PASS, honesty row Declared, CI row N/A with reason) |
+| R2 | TDD integrity: the round log records a real RED (e2e FAIL) before GREEN | PASS | §4.0 rounds 1-3 record e2e FAIL before the gate landed (`f47e190`), preserved unchanged since round 1; no test file changed in `b0c3f9f` except the case-49 pin, which was demonstrated RED-capable this round (see Comments 1) |
+| R3 | Plan compliance: deviations from the approved plan are disclosed and justified | PASS | Both withdrawn-closure instances in the plan are now marked in place under CLAIM-01 — §3 (plan line 220) and §4 Risks (plan lines 250-257, quoting the false sentence and keeping the surviving one); check-fresh-clone.sh's out-of-scope status disclosed in §2 and §8 |
+| R4 | Code match: Files Changed is accurate and claimed rules/decisions are reflected in the code | PASS | Every file in `git diff --name-only origin/main..HEAD` (46 files) maps to a §2 row — case 58 and the plan, round 5's two omissions, now have rows; the only unlisted file is this report itself, the five-round convention (Comments 2); WORKFLOW.md:135's REV-03 row now states the receipt records the SHA the gate ran on and explicitly does NOT record the SHA a reviewer read, matching `agent-review.sh`'s shipped `gate_run_sha` schema and the one committed receipt |
+| R5 | CR-01 compliance: no commit/push/issue/PR/merge/release without explicit user instruction | PASS | `git status -sb`: branch ahead of origin/main by 10, nothing pushed, no PR/issue; all 10 commits are the workflow's gated stages accepted across rounds 1-5; this review ran no git mutation |
+| R6 | Language policy: all changed artifacts are English-only (LANG-01) | PASS | `./scripts/check-language.sh` → "LANG-01 PASS — no Korean text in repository artifacts", run this round at `b0c3f9f` |
 
 ### Comments
-1.
+1. Case 49 has teeth against the exact regression it was written for: in a sandbox copy I
+   reverted scanner 3's declaration split (`check-data.sh:398` back to scanning the whole
+   line after `content:`) and `check-gates.sh 49` failed with "FALSE POSITIVE: gate blocked
+   an allowlisted/clean tree" on `exempt.css:18` — the `content: "▪"; width: 12px;` line.
+   A clean-pass case is the only shape that fails when a gate gets stricter, and this one
+   now does.
+2. §2 lists every diffed file except `.docs/analysis/PDX-004_report.md` itself. All five
+   review rounds have treated the report's self-entry as out of the table's scope
+   (round 5 verified §2 and named only case 58 and the plan), so this is recorded as the
+   standing convention, not an omission.
+3. Confirmation of round 5's three fixes, each first-hand: WORKFLOW.md:135 describes the
+   shipped receipt schema and disclaims the "SHA reviewed" reading; the plan's §4 Risks
+   bullet is the second marked instance, cross-referencing the first; §2 gained the
+   case-58 and plan rows. `b0c3f9f`'s whole diff is those fixes plus DESIGN.md's PDX-021
+   row and the case-49 pin — nothing else moved.
+4. PDX-021's row (DESIGN.md:340) lists six RED cases and the sixth is the round-5 find:
+   a form control's rendered value, `<input value="47% of deliveries build" readonly>`,
+   filed rather than patched, which is the disposition DEC-017 exists to make possible.
+5. Built-page figures re-derived from `bench/data/runs` via `fisher.py`'s loader,
+   `blocked` regime, `build` outcome over code-producing cells: baseline 5/20 = 25%,
+   karpathy 8/20 = 40%, caveman 6/21 = 29%, mattpocock 10/20 = 50%, ponytail 16/22 = 73%,
+   superpowers silent 40/41 = 98%, withdrawn count 1 — every figure in
+   `packages/site/dist/index.html` matches exactly, six for six.
+6. Unit tests: `pnpm -r test` — data 42/42, registry 13/13, site 0 (no unit file, the
+   absence §3 discloses).
 
 ### Blockers (only if NEEDS_REVISION)
--
+- None.
 
 ### Round 5 (Fable 5) — NEEDS_REVISION, 3 blockers, all one-line text
 
@@ -424,5 +452,6 @@ four combinations; the contrast figure holds against a hand-sampled screenshot p
 
 ## 11. Final Report Status
 
-- Agent: NEEDS_REVISION (Fable 5, round 5, 2026-08-18 22:01, at `4b14ca6`) — 1 FAIL row (R4), three blockers, every one a one-line text fix and none mechanical: Files Changed omits case 58 (added by `4b14ca6` itself) and the CLAIM-01-amended plan; docs/WORKFLOW.md:135 still says the receipt carries "the SHA reviewed", the exact overclaim `gate_run_sha` was renamed to withdraw; and the plan's §4 Risks restates the withdrawn scanner-2 claim unmarked while §3's copy is marked. Everything mechanical verified first-hand at `4b14ca6`: `content: "４７％ builds"` BLOCKs and case 58 bites (ASCII-revert → MISSED); the `width: 12px` false positive passes (its pin is a comment, not a case — noted, not blocked); the receipt regenerated on the clean tree records clean + HEAD and its `attests` matches the mechanism; the masthead arithmetic, per-regime counts, the exact 21/44 tie, and D-002's 49/50 all re-derive from bench/data/runs; star receipts consistent with the live GitHub API; GREEN re-run (test-loop GREEN, verify 38s, e2e 7/7, golden 58/58, fresh clone 46s, unit 42/42). One new tunnel (`<input value>`) recorded as a PDX-021 RED case per DEC-017's standing rule, not a blocker. Rounds 1-4 preserved below
+- Agent: APPROVED_WITH_NOTES (Fable 5, round 6, 2026-08-18 23:13, at `b0c3f9f`; the receipt records the gate run as dirty and §10 says why) — the confirmation round the audit scoped: round 5's three text fixes all landed (`WORKFLOW.md:135` now describes the shipped receipt schema and disclaims "the SHA reviewed"; the plan's §4 Risks instance is marked withdrawn alongside §3's; §2 covers all 46 diffed files, case 58 and plan included), case 49 demonstrated RED-capable by reverting the scanner-3 declaration split in a sandbox (FALSE POSITIVE on `exempt.css:18`), PDX-021's row carries six RED cases including the `input value` channel, every gate re-run green first-hand (test-loop GREEN, verify 32s, e2e 7/7, golden 58/58, fresh clone 37s, units 42+13), and all six built-page figures re-derive exactly from `bench/data/runs` via `fisher.py` (`blocked` regime, `build` outcome). No blocker of any admissible shape. Two notes: the report's own absence from §2 is the standing convention, and the false-positive pin now lives in a case that can fail. Previous round for the record below —
+- Agent (round 5): NEEDS_REVISION (Fable 5, round 5, 2026-08-18 22:01, at `4b14ca6`) — 1 FAIL row (R4), three blockers, every one a one-line text fix and none mechanical: Files Changed omits case 58 (added by `4b14ca6` itself) and the CLAIM-01-amended plan; docs/WORKFLOW.md:135 still says the receipt carries "the SHA reviewed", the exact overclaim `gate_run_sha` was renamed to withdraw; and the plan's §4 Risks restates the withdrawn scanner-2 claim unmarked while §3's copy is marked. Everything mechanical verified first-hand at `4b14ca6`: `content: "４７％ builds"` BLOCKs and case 58 bites (ASCII-revert → MISSED); the `width: 12px` false positive passes (its pin is a comment, not a case — noted, not blocked); the receipt regenerated on the clean tree records clean + HEAD and its `attests` matches the mechanism; the masthead arithmetic, per-regime counts, the exact 21/44 tie, and D-002's 49/50 all re-derive from bench/data/runs; star receipts consistent with the live GitHub API; GREEN re-run (test-loop GREEN, verify 38s, e2e 7/7, golden 58/58, fresh clone 46s, unit 42/42). One new tunnel (`<input value>`) recorded as a PDX-021 RED case per DEC-017's standing rule, not a blocker. Rounds 1-4 preserved below
 - Human: _(pending)_
