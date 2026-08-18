@@ -1,0 +1,11 @@
+{
+  "ticket": "PDX-017",
+  "mode": "report",
+  "verdict": "APPROVED_WITH_NOTES",
+  "reviewer_model": "Fable 5",
+  "reviewed_sha": "ea3b418769a523dbef43789900f61110233e60ca",
+  "working_tree": "dirty",
+  "rubric_sha256_16": "2b3e85a2966bf733",
+  "document": ".docs/analysis/PDX-017_report.md",
+  "recorded_at": "2026-08-18T21:00:12+0900"
+}
