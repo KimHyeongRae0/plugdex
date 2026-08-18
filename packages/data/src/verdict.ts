@@ -188,3 +188,36 @@ export const verdictFor = ({
     baselineN: baseline.n,
   };
 };
+
+/**
+ * A rate as a reader sees it: a percentage that never appears without its denominator.
+ *
+ * This lives here rather than in the site for one reason. DATA-01 forbids a typed figure
+ * in site source, and the conversion needs the constant 100 — so a component computing
+ * its own percentage has to type a number into the one place the rule is absolute. Moving
+ * the formatting next to the records keeps the site's figure path free of literals
+ * entirely, which is what makes the gate checkable rather than negotiable.
+ *
+ * No statistic is computed here. `hits` and `n` are counts the records already hold; this
+ * rounds their ratio and re-attaches `n`, because a percentage without its denominator is
+ * the shape this project refuses to publish.
+ *
+ * @throws {RangeError} `n` is zero or negative — an empty denominator has no rate, and
+ * returning "0%" for it would state a measurement that was never made.
+ */
+export const formatRate = ({ hits, n }: { hits: number; n: number }): string => {
+  if (n <= 0) {
+    throw new RangeError(`a rate needs a denominator, got n=${String(n)}`);
+  }
+
+  return `${String(Math.round((hits / n) * 100))}% n=${String(n)}`;
+};
+
+/** The same ratio as a whole-number percentage, for callers assembling their own phrase. */
+export const percentOf = ({ hits, n }: { hits: number; n: number }): number => {
+  if (n <= 0) {
+    throw new RangeError(`a percentage needs a denominator, got n=${String(n)}`);
+  }
+
+  return Math.round((hits / n) * 100);
+};
