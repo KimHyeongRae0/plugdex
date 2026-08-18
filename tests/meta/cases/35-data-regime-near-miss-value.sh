@@ -1,17 +1,21 @@
-CASE_DESC="DATA-02b: a record is withdrawn while the filename carrying it does not say so — the name contradicts the record"
+CASE_DESC="DATA-02f: a regime outside the two known values — a near-miss is a typo that moves a run between conditions"
 GATE="scripts/check-data-universe.sh"
-EXPECT_PATTERN="DATA-02b"
+EXPECT_PATTERN="DATA-02f"
+
 # Writes one acceptance record. Every case plants its own corpus and its own analysis
 # loader: the sandbox copies `scripts/` and nothing else, so a case that assumed the real
 # `bench/` would be testing the repository rather than the gate.
+#
+# `regime` is written verbatim, and the literal string `omit` leaves the key out
+# entirely — the one shape a parser must never read as `blocked`.
 plant_record() {
-  local file="$1" run="$2" withdrawn="$3"
+  local file="$1" run="$2" regime="$3"
   mkdir -p bench/data/runs
-  RUN="$run" WITHDRAWN="$withdrawn" python3 - "bench/data/runs/$file" <<'PY'
+  RUN="$run" REGIME="$regime" python3 - "bench/data/runs/$file" <<'PY'
 import json, os, sys
 
-withdrawn = os.environ["WITHDRAWN"]
 run = os.environ["RUN"]
+regime = os.environ["REGIME"]
 record = {
     "run": run,
     "env": {
@@ -35,21 +39,16 @@ record = {
     ],
 }
 
-# PDX-017 made the regime required. These cases are about withdrawal, so every planted
-# record carries a legal one and the case keeps testing what it was written to test.
-record["regime"] = "blocked"
-
-if withdrawn == "full":
-    record["withdrawn"] = {"reason": "planted", "recorded_at": "2026-01-01T00:00:00+09:00"}
-elif withdrawn == "empty-reason":
-    record["withdrawn"] = {"reason": "   ", "recorded_at": "2026-01-01T00:00:00+09:00"}
+if regime != "omit":
+    record["regime"] = regime
 
 with open(sys.argv[1], "w", encoding="utf-8") as handle:
     json.dump(record, handle)
 PY
 }
 
-# An analysis loader that selects on the record's own field — the shape DATA-02d asks for.
+# An analysis loader that reads both governing facts off the record — the shape DATA-02d
+# and DATA-02g both ask for.
 plant_field_reading_loader() {
   mkdir -p bench/harness
   cat > bench/harness/fisher.py <<'PY'
@@ -68,7 +67,6 @@ def load_cells(include_withdrawn=False, runs_dir="bench/data/runs"):
         for cell in record["cells"]:
             cell = dict(cell)
             cell["_run"] = os.path.basename(path).split(".")[0]
-            # Read off the record, so DATA-02g stays green and each case trips one rule.
             cell["_regime"] = record["regime"]
             cells.append(cell)
 
@@ -79,9 +77,13 @@ PY
 plant() {
   plant_field_reading_loader
 
-  # The name is a courtesy now rather than a mechanism, but a name that contradicts its
-  # record is how the next reader gets misled. The withdrawal itself is well-formed, so
-  # DATA-02c stays green; no filename claims withdrawal, so DATA-02a does too.
-  plant_record "20200101-000000-ordinary-looking.acceptance.json" "20200101-000000" full
-  plant_record "20200102-000000-clean.acceptance.json" "20200102-000000" none
+  # `Blocked` rather than a plainly wrong word, because the failure this rule guards
+  # against is a parser forgiving enough to case-fold or trim. A gate that accepted this
+  # would let a run change condition on one keystroke, and the condition moves the
+  # baseline build rate from 25% to 73%.
+  #
+  # DATA-02e stays green because the key is present; the planted loader reads the field,
+  # so d and g stay green too.
+  plant_record "20200101-000000-typo.acceptance.json" "20200101-000000" "Blocked"
+  plant_record "20200102-000000-clean.acceptance.json" "20200102-000000" "as-shipped"
 }

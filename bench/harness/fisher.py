@@ -15,6 +15,8 @@ import json
 import os
 from math import comb
 
+REGIMES = ("blocked", "as-shipped")
+
 RUNS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "runs")
 
 
@@ -62,12 +64,14 @@ def load_cells(include_withdrawn=False, runs_dir=RUNS_DIR):
     as that lasted. A record marked withdrawn without a reason is refused rather than
     honoured: an exclusion nobody can argue with is a deletion.
 
-    Each cell gains `_run`, `_regime`, and `_withdrawn`. The regime is still read off the
-    filename because the runner gained that stamp after these runs were written, so it is
-    not a field on the record — a run-level condition that moves the baseline build rate
-    from 35% to 73% living only in a human-readable filename is the same DATA-01 problem
-    one field over, and it is left standing here deliberately, with its successor ticket
-    named in DESIGN.md, rather than fixed in the same diff that relocates withdrawal.
+    Each cell gains `_run`, `_regime`, and `_withdrawn`. The regime is read off the
+    record too, since PDX-017. It used to be `"as-shipped" in name`: a run-level condition
+    that moves the baseline build rate from 25% to 73%, decided by a substring of a
+    human-readable filename, in one function the TypeScript half of this project could not
+    see. The ten names happened to encode it correctly and nothing checked that they did,
+    so the next run named without the substring would have joined the wrong pool in
+    silence. Absent or unknown is refused rather than defaulted, because a guessed
+    `blocked` is that same behaviour with a field in front of it (DEC-015, DEC-019).
     """
     cells = []
 
@@ -97,13 +101,39 @@ def load_cells(include_withdrawn=False, runs_dir=RUNS_DIR):
                     "a withdrawal with nothing to argue with is a deletion"
                 )
 
-            if not include_withdrawn:
-                continue
+        # Deliberately NOT `continue`-ing here. Validation of both governing facts runs
+        # on every record in the directory, whichever view was asked for: a withdrawn
+        # record with no regime used to load silently through the default view while
+        # `@plugdex/data` refused the same directory outright, which is a two-loader
+        # disagreement inside the function that exists to end them. Caught by the PDX-017
+        # report review, and the ticket's own edge case said it — withdrawal and regime
+        # are independent facts and neither exempts the other.
+        # Presence, not truthiness — the same distinction withdrawal needed. `.get()`
+        # reads an explicit `"regime": null` as absent, while the TypeScript loader calls
+        # it an unknown value; both refuse, but they refuse under different names, and a
+        # gate case asserting which rule fired would then prove different things in the
+        # two halves. Found by the PDX-017 report review as a residual asymmetry.
+        if "regime" not in record:
+            raise ValueError(
+                f"{name}: no regime — the run does not say which condition it executed "
+                "under, and defaulting one would relabel it silently"
+            )
+
+        regime = record["regime"]
+
+        if regime not in REGIMES:
+            raise ValueError(
+                f"{name}: regime is {regime!r}, expected one of {', '.join(REGIMES)} — "
+                "a near-miss value is a typo that would move the run to the other condition"
+            )
+
+        if withdrawn and not include_withdrawn:
+            continue
 
         for cell in record["cells"]:
             cell = dict(cell)
             cell["_run"] = name.split(".")[0]
-            cell["_regime"] = "as-shipped" if "as-shipped" in name else "blocked"
+            cell["_regime"] = regime
             cell["_withdrawn"] = withdrawn
             cells.append(cell)
 

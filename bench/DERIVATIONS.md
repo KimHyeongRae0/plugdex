@@ -229,3 +229,102 @@ console.log("node",
 
 Both print `371 447`. Before this change the node line printed `447 447`, because it had
 no withdrawal to read.
+
+---
+
+## D-004 — the regime moved from a filename to the record — **no figure moves**
+
+**What changed.** Every run in this corpus executed under one of two conditions:
+`blocked` (Bash disallowed, a write-don't-run instruction appended) or `as-shipped`
+(Bash allowed, ticket only). Until now that condition existed in exactly one place —
+`cell["_regime"] = "as-shipped" if "as-shipped" in name else "blocked"`, inside
+`load_cells`. It is now a required field on every record, read by both implementations.
+
+**Why it needed an entry, given that nothing was wrong.** The ten filenames encoded the
+condition correctly. That is the point rather than the objection: nothing checked that
+they did. A run named without the substring would have joined the blocked pool in
+silence, no gate would have objected, and every figure computed afterwards would have
+been wrong in a way no reader could detect. It is the D-003 defect one field over, caught
+before the two halves drifted rather than after — `@plugdex/data` had no regime at all,
+so `verdictFor` pooled both conditions and PDX-004's card rendered a baseline of 42%, a
+rate that exists under neither condition.
+
+| | blocked | as-shipped | total |
+|---|--:|--:|--:|
+| cells | 312 | 59 | 371 |
+| valid cells | 229 | 54 | 283 |
+| baseline build, code-producing valid cells | 5 / 20 | 8 / 11 | 13 / 31 |
+
+The pooled column is what the site rendered while the field did not exist. 5/20 is 25%
+and 8/11 is 73%; 13/31 is 42%, and it describes neither condition. The preregistrations
+kept the two apart deliberately.
+
+```bash
+cd ~/Desktop/project/plugdex
+python3 - <<'EOF'
+import sys; sys.path.insert(0, "bench/harness")
+from fisher import load_cells, rate_table
+cells = load_cells()
+for regime in ("blocked", "as-shipped"):
+    sel = [c for c in cells if c["_regime"] == regime]
+    valid = [c for c in sel if c.get("valid")]
+    base = rate_table([c for c in valid if c.get("wrote_code")], outcome="build")["baseline"]
+    print(regime, len(sel), len(valid), base)
+EOF
+```
+
+**The adjudication, and how strong each one is.** No regime was settled from a filename —
+the name is the thing under suspicion. Each is settled from a document, and the documents
+are not equally good evidence. That is recorded per run rather than presented as one
+table of equals (DEC-019).
+
+| Run | Regime | Evidence | Strength |
+|---|---|---|---|
+| `20260815-225842` | blocked | `bench/PREREGISTRATION.md`: "Bash stays blocked, matching run `20260815-225842`" | inference — a preregistration written to match it, not to describe it |
+| `20260816-010513` | blocked | the per-run table in `.docs/handoff-2026-08-17-plugdex-pdx002-merged-round3-measured.md` — "backend, blocked" | a document naming the run |
+| `20260816-020247` | blocked | same table — "frontend, blocked" | a document naming the run |
+| `20260816-092732` | blocked | same table, and `bench/PREREGISTRATION-2.md` §Experiment C — caveman "in the `blocked` regime" | a document naming the run, twice |
+| `20260816-094325` | blocked | same table — "frontend, blocked" | a document naming the run |
+| `20260816-094958` | as-shipped | same table; corroborated by `PREREGISTRATION-2.md` placing `colorpicker`'s interrupted cells in the as-shipped data, and by `deps: cell-local`, which requires the Bash the blocked regime withholds | a document naming the run, corroborated twice |
+| `20260816-113302` | as-shipped | same table, and the other `deps: cell-local` run | a document naming the run, corroborated |
+| `20260816-121801` | as-shipped | same table — "as-shipped, combination arm" | a document naming the run |
+| `20260816-222615` | blocked | D-002's row "Bash blocked, **sonnet** — 6 / 6"; the corpus holds exactly six valid sonnet superpowers cells, three here and three in `20260817-162601`, so the row decomposes only one way | inference, and weaker than it looks — D-002's own regime column was counted off the published corpus, plausibly through the heuristic under suspicion. This pins the run to consistency with a published claim, not to an independent source. It remains the best evidence available for it |
+| `20260817-162601` | blocked | its `results.json` carries `"regime": "blocked"` beside the verbatim `no_run_prompt` and a `run_py_sha256`; corroborated by `bench/PREREGISTRATION-3.md` §Design, written before the run | **machine-written** — the only one in the corpus |
+
+The last row is the whole ticket in one line. The runner had already learned to stamp the
+condition; it simply never crossed into the acceptance record.
+
+**The check that the adjudication is right is not this prose.** D-002's corrected
+condition table is re-derived from the recorded field, and it must not move:
+
+```bash
+cd ~/Desktop/project/plugdex
+python3 - <<'EOF'
+import sys; sys.path.insert(0, "bench/harness")
+from fisher import load_cells
+sp = [c for c in load_cells() if c["arm"] == "superpowers" and c.get("valid")]
+table = {}
+for c in sp:
+    key = (c["_regime"], c["model"])
+    no_code, total = table.get(key, (0, 0))
+    table[key] = (no_code + (not c.get("wrote_code")), total + 1)
+for key in sorted(table):
+    print(key, table[key])
+print("total", sum(1 for c in sp if not c.get("wrote_code")), "of", len(sp))
+EOF
+```
+
+It prints `('as-shipped', 'haiku') (9, 9)`, `('blocked', 'haiku') (34, 35)`,
+`('blocked', 'sonnet') (6, 6)`, `total 49 of 50` — D-002's published table, row for row.
+`derive_d001.py` likewise still prints `baseline 12/34` and `p = 0.0352` for the excluded
+pool, and `fisher.py` still prints `corpus: 371 cells (447 with the withdrawn run)`.
+`tests/e2e/PDX-017-the-corpus-knows-its-conditions.sh` executes all of it rather than
+quoting it, and it compares the two implementations per regime so the halves cannot
+drift apart again.
+
+**What the writer does now.** `bench/harness/acceptance.py` takes `--regime`, prefers a
+regime already recorded in the run's own `results.json`, and refuses to grade a run whose
+condition it cannot establish — before any cell is scored, so an unestablished condition
+is a reason not to start rather than a directory of scored cells with no home. A required
+field the writer does not stamp would mean the next graded run emitting a record this
+project's own loader refuses.

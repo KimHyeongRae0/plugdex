@@ -1,5 +1,6 @@
 {
   "run": "20260816-222615",
+  "regime": "blocked",
   "env": {
     "npm_packages": 256,
     "npm_fingerprint": "4b140e75d7dc1828",

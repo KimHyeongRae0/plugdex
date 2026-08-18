@@ -156,11 +156,15 @@ the reason the harness was worth porting rather than reinventing.
   number nobody can check.
 - **DATA-02 — no fact that governs the analysis lives outside the record.** DATA-01's
   other half. Which records a figure is computed over is decided by fields on those
-  records — a withdrawal carries its reason and its date on the record itself — and no
-  filename comparison decides whether a live record enters an analysis pool. The rule
-  exists because the opposite shipped: one run was excluded by a filename prefix inside
-  a single analysis script, and the two halves of this codebase disagreed by 76 cells
-  about what the corpus was. Gate: `./scripts/check-data-universe.sh` (verify step 6).
+  records — a withdrawal carries its reason and its date on the record itself, and a run
+  carries its regime, `blocked` or `as-shipped`, matched exactly — and no filename
+  comparison decides whether a live record enters an analysis pool or which condition it
+  ran under. The rule exists because the opposite shipped: one run was excluded by a
+  filename prefix inside a single analysis script, and the two halves of this codebase
+  disagreed by 76 cells about what the corpus was. The regime was the same defect caught
+  one step earlier — ten filenames happened to encode it correctly and nothing checked
+  that they did (PDX-017, DEC-019). Gate: `./scripts/check-data-universe.sh` (verify
+  step 6).
 - **CLAIM-01 — withdrawn claims stay reachable.** A published verdict that turns out
   to be wrong is corrected in place and its previous value, the cause, and the
   replacement remain on the site. Deleting a wrong number is worse than never

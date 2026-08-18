@@ -23,7 +23,8 @@ deterministically. What this measures is whether the code is alive. See
 `gate_probes.py` for a measurement of exactly which defects this gate misses.
 
 Usage:
-    python3 acceptance.py <run_dir> [--workers 4] [--out acceptance.json]
+    python3 acceptance.py <run_dir> [--regime blocked|as-shipped] [--workers 4]
+                                    [--out acceptance.json]
 
 Environment:
     DIC_FIXTURE   path to the seeded fixture repo (defaults to the vendored copy)
@@ -439,14 +440,72 @@ def score_cell(cell_dir):
     return rec
 
 
+REGIMES = ("blocked", "as-shipped")
+
+
+def resolve_regime(run_dir, flag):
+    """The condition this run executed under, from the flag or from the run's own results.
+
+    Refused rather than defaulted. The writer is the one place a wrong regime enters the
+    corpus with nothing to contradict it, and the reader (`fisher.py`, `@plugdex/data`)
+    now requires the field — so a record written without one is a record this project's
+    own loader refuses. It is resolved before any grading work starts: a condition that
+    cannot be established is a reason not to begin, not a reason to stop halfway through
+    with a directory full of scored cells.
+    """
+    if flag is not None:
+        if flag not in REGIMES:
+            sys.exit(f"--regime {flag!r} is not one of {', '.join(REGIMES)}")
+
+        return flag
+
+    # Exactly `results.json`, not a glob. A `*results.json` pattern would let a stale
+    # sibling — a copy, a timestamped variant — outrank the run's own file and decide the
+    # condition, which is a filename choosing a governing fact by another route.
+    candidate = run_dir / "results.json"
+
+    if candidate.is_file():
+        try:
+            parsed = json.loads(candidate.read_text(encoding="utf-8"))
+        except Exception as error:
+            sys.exit(f"{candidate.name} is not readable JSON ({error}) — "
+                     f"pass --regime {'|'.join(REGIMES)} instead of guessing")
+
+        if not isinstance(parsed, dict):
+            sys.exit(f"{candidate.name} is valid JSON but not an object "
+                     f"({type(parsed).__name__}), so it carries no regime — "
+                     f"pass --regime {'|'.join(REGIMES)} instead of guessing")
+
+        recorded = parsed.get("regime")
+
+        if recorded is not None:
+            if recorded not in REGIMES:
+                sys.exit(f"{candidate.name} records regime {recorded!r}, "
+                         f"which is not one of {', '.join(REGIMES)}")
+
+            return recorded
+
+    sys.exit(f"no regime for {run_dir.name}\n"
+             f"pass --regime {'|'.join(REGIMES)}, or write it into the run's results.json\n"
+             f"the loader requires it, and a guessed regime silently relabels the run")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("run_dir")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--regime", default=None,
+                    help="the condition this run executed under; "
+                         "read from the run's results.json when omitted")
     a = ap.parse_args()
 
     run_dir = Path(a.run_dir).resolve()
+
+    # Before anything else, including the fixture checks below: an unestablished regime
+    # means this run cannot produce a loadable record, so nothing is graded.
+    regime = resolve_regime(run_dir, a.regime)
+
     cells = sorted(d for d in run_dir.iterdir() if d.is_dir() and parse_cell(d.name))
 
     if not SHARED_NM.is_dir():
@@ -484,7 +543,8 @@ def main():
 
     env = environment()
     dest = Path(a.out) if a.out else run_dir / "acceptance.json"
-    dest.write_text(json.dumps({"run": run_dir.name, "env": env, "cells": out},
+    dest.write_text(json.dumps({"run": run_dir.name, "regime": regime, "env": env,
+                                "cells": out},
                                indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nwrote {dest} ({len(out)} cells)")
     print(f"environment npm={env['npm_fingerprint']} ({env['npm_packages']} pkgs, "

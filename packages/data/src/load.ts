@@ -1,7 +1,17 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { AcceptanceCorpus, AcceptanceRecord, Cell, RunEnv, Withdrawal } from './schema.js';
+import type {
+  AcceptanceCorpus,
+  AcceptanceRecord,
+  Cell,
+  Regime,
+  RunEnv,
+  Withdrawal,
+} from './schema.js';
+
+/** The two conditions a run can have executed under. Closed, and matched exactly. */
+const REGIMES: readonly Regime[] = ['blocked', 'as-shipped'];
 
 /**
  * Thrown when a record carries no environment fingerprint.
@@ -34,6 +44,44 @@ export class MissingEnvironmentAuditError extends Error {
     super(
       `${file}: no env.npm_undeclared_toplevel — the record cannot say whether its ` +
         `environment was audited, and a missing audit must not read as a clean one`,
+    );
+  }
+}
+
+/**
+ * Thrown when a record does not say which condition it executed under.
+ *
+ * Absent must never read as `blocked`. That default is the pre-PDX-017 behaviour with a
+ * field in front of it: the condition moves the baseline build rate from 25% to 73%, so a
+ * guessed regime silently relabels a run and every figure computed afterwards is wrong in
+ * a way no reader could detect. A record that does not say is refused.
+ */
+export class MissingRegimeError extends Error {
+  override readonly name = 'MissingRegimeError';
+
+  constructor({ file }: { file: string }) {
+    super(
+      `${file}: no regime — the run does not say which condition it executed under, ` +
+        'and defaulting one would relabel it silently',
+    );
+  }
+}
+
+/**
+ * Thrown when `regime` is present but is not one of the two known values.
+ *
+ * Matched exactly, with no trimming and no case folding. `Blocked`, `as shipped`, and
+ * `blocked ` are typos, and a parser forgiving enough to accept them is a parser that
+ * moves a run between conditions on a stray keystroke — which is the whole failure this
+ * field was introduced to prevent.
+ */
+export class UnknownRegimeError extends Error {
+  override readonly name = 'UnknownRegimeError';
+
+  constructor({ file, value }: { file: string; value: unknown }) {
+    super(
+      `${file}: regime is ${JSON.stringify(value)}, expected one of ${REGIMES.join(', ')} — ` +
+        'a near-miss value is a typo that would move the run to the other condition',
     );
   }
 }
@@ -204,6 +252,25 @@ const parseWithdrawal = ({ raw, file }: { raw: unknown; file: string }): Withdra
   };
 };
 
+/**
+ * Reads `regime`, requiring one of the two known values exactly.
+ *
+ * Two separate refusals rather than one, so a gate case can prove which fired: absent is
+ * a record that was written without the field, and an unknown value is a record that was
+ * written with the wrong one. They have different causes and different fixes.
+ */
+const parseRegime = ({ raw, file }: { raw: unknown; file: string }): Regime => {
+  if (raw === undefined) {
+    throw new MissingRegimeError({ file });
+  }
+
+  if (typeof raw !== 'string' || !REGIMES.includes(raw as Regime)) {
+    throw new UnknownRegimeError({ file, value: raw });
+  }
+
+  return raw as Regime;
+};
+
 /** Parses one acceptance file. Throws rather than returning a partial record. */
 export const parseAcceptanceRecord = ({
   text,
@@ -238,9 +305,18 @@ export const parseAcceptanceRecord = ({
 
   const withdrawn = parseWithdrawal({ raw: raw['withdrawn'], file });
 
+  // The order below is load-bearing and is not left to evaluation order in an object
+  // literal: fingerprint, then the environment audit, then the regime. A record missing
+  // more than one required field has to fail on the same one every time, and
+  // `tests/e2e/PDX-002-records-are-traceable.sh` AC-3 plants a record missing both the
+  // fingerprint and the regime and requires MissingFingerprintError by name.
+  const env = parseEnv({ raw: raw['env'], file });
+  const regime = parseRegime({ raw: raw['regime'], file });
+
   return {
     run,
-    env: parseEnv({ raw: raw['env'], file }),
+    env,
+    regime,
     cells: cells.map((entry) => parseCell({ raw: entry, file })),
     ...(withdrawn === undefined ? {} : { withdrawn }),
   };
@@ -267,7 +343,17 @@ export const parseAcceptanceRecord = ({
  * is withdrawn loads to an empty default view rather than throwing — an empty result is
  * a result, and it is not the same thing as an empty directory, which still refuses.
  *
+ * `regime` narrows the corpus to one condition. The two options answer different
+ * questions and do not overlap: `regime` decides which runs are in scope at all, because
+ * `blocked` and `as-shipped` are not one population and a figure pooling them describes
+ * neither; `includeWithdrawn` decides how a run already in scope is reported. Asking for
+ * a regime no record carries returns an empty corpus rather than falling back to
+ * everything — an empty pool is a result, and a silent fallback would publish the pooled
+ * rate under the label of one condition.
+ *
  * @throws {MissingFingerprintError} a record has no `env.npm_fingerprint`
+ * @throws {MissingRegimeError} a record does not say which condition it ran under
+ * @throws {UnknownRegimeError} a record's `regime` is not one of the two known values
  * @throws {MixedEnvironmentError} the loaded records span more than one fingerprint
  * @throws {UnreasonedWithdrawalError} a record is marked withdrawn without saying why
  * @throws {MalformedRecordError} a file is not a well-formed acceptance record
@@ -275,9 +361,11 @@ export const parseAcceptanceRecord = ({
 export const loadAcceptanceRecords = ({
   dir,
   includeWithdrawn = false,
+  regime,
 }: {
   dir: string;
   includeWithdrawn?: boolean;
+  regime?: Regime;
 }): AcceptanceCorpus => {
   const files = readdirSync(dir)
     .filter((name) => name.endsWith('.acceptance.json'))
@@ -301,8 +389,15 @@ export const loadAcceptanceRecords = ({
     throw new MalformedRecordError({ file: dir, detail: 'no acceptance records found' });
   }
 
-  const withdrawnRecords = all.filter((record) => record.withdrawn !== undefined);
-  const records = includeWithdrawn ? all : all.filter((record) => record.withdrawn === undefined);
+  // Every record is parsed and every fingerprint compared before this narrowing, so a
+  // malformed record outside the asked-for regime still refuses the corpus. A filter that
+  // could hide a broken record would make the refusals depend on the question asked.
+  const inScope = regime === undefined ? all : all.filter((record) => record.regime === regime);
+
+  const withdrawnRecords = inScope.filter((record) => record.withdrawn !== undefined);
+  const records = includeWithdrawn
+    ? inScope
+    : inScope.filter((record) => record.withdrawn === undefined);
 
   return {
     records,

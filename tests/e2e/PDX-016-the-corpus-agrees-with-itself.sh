@@ -124,6 +124,12 @@ for entry in spec:
         ],
     }
 
+    # PDX-017 made the regime a required field, and this scenario is not about it: a
+    # fixture may default where a parser may not, so every planted record here is
+    # `blocked` unless a spec says otherwise. Without this the whole file would fail for
+    # a reason that has nothing to do with withdrawal.
+    record["regime"] = entry.get("regime", "blocked")
+
     if "withdrawn" in entry:
         record["withdrawn"] = entry["withdrawn"]
     elif entry.get("null_withdrawal"):

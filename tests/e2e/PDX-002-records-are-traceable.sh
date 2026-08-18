@@ -131,6 +131,13 @@ fi
 # AC-3 — the loader refuses a record with no fingerprint.
 # Exercised through the built package, against a synthetic record, so it cannot
 # pass merely because today's corpus happens to be well-formed.
+#
+# The record below is missing more than one required field — since PDX-017 it has no
+# regime either — so this assertion depends on the loader's check order rather than on
+# the record's shape alone. That order is fixed deliberately in `parseAcceptanceRecord`
+# (fingerprint, then the environment audit, then the regime) and this scenario is named
+# in the comment there. Adding a regime here would make the assertion pass for a weaker
+# reason: the point is that the *first* refusal is the one about traceability.
 # ---------------------------------------------------------------------------
 SB="$(mktemp -d "${TMPDIR:-/tmp}/plugdex-pdx002.XXXXXX")"
 trap 'rm -rf "$SB"' EXIT
