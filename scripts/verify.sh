@@ -86,25 +86,33 @@ command -v pnpm >/dev/null || fail "pnpm not found in PATH"
 step "7/12 Figure-provenance gate (DATA-01)"
 ./scripts/check-data.sh || fail "DATA-01"
 
-# ---- 8. Typecheck ----
-step "8/12 pnpm typecheck"
+# ---- 8. Build ----
+# Before typecheck, and the order is load-bearing rather than tidy. The library packages
+# typecheck with `tsc --noEmit`, so nothing emits `dist/` on their behalf, and the site's
+# `astro check` resolves `@plugdex/data` through the package's `exports`, which point at
+# `dist/`. On a developer's tree that directory is left over from a previous run and the
+# ordering never shows — which is how a GREEN stamp, a written report, and a full report
+# review round were all taken on a tree whose fresh clone failed here. CI clones fresh, so
+# this was the first defect in this repository that only CI could have seen.
+# `./scripts/check-fresh-clone.sh` now makes that condition reproducible locally.
+step "8/12 pnpm build"
+pnpm build || fail "pnpm build"
+ok "build"
+
+# ---- 9. Typecheck ----
+step "9/12 pnpm typecheck"
 pnpm typecheck || fail "pnpm typecheck"
 ok "typecheck"
 
-# ---- 9. Lint ----
-step "9/12 pnpm lint"
+# ---- 10. Lint ----
+step "10/12 pnpm lint"
 pnpm lint || fail "pnpm lint"
 ok "lint"
 
-# ---- 10. Tests ----
-step "10/12 pnpm test"
+# ---- 11. Tests ----
+step "11/12 pnpm test"
 pnpm test || fail "pnpm test"
 ok "test"
-
-# ---- 11. Build ----
-step "11/12 pnpm build"
-pnpm build || fail "pnpm build"
-ok "build"
 
 # ---- 12. SRC-01 ----
 # Runs after the build on purpose: the gate reads the built registry, because what a
