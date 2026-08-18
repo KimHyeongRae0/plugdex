@@ -1,0 +1,49 @@
+---
+import type { PackVerdict } from '@plugdex/data';
+
+/**
+ * Renders one verdict object.
+ *
+ * Every figure on this chip is a field of the object it was handed. There is no
+ * arithmetic here beyond turning a numerator and a denominator into a percentage, and no
+ * literal a reader could see — which is what makes DATA-01 hold at this boundary rather
+ * than by review. The shape glyph is the primary signal (SC 1.4.1) and renders in ink;
+ * the status hue is background and border only (DEC-018).
+ */
+interface Props {
+  verdict: PackVerdict;
+}
+
+const { verdict } = Astro.props;
+
+/** Glyph and label per verdict, from the DESIGN.md chip table. */
+const describe = ({ value }: { value: PackVerdict }): { glyph: string; label: string } => {
+  if (value.verdict === 'no-code') {
+    const percent = Math.round((value.silent / value.n) * 100);
+
+    return { glyph: '░', label: `writes no code in ${percent}% of cells, n=${value.n}` };
+  }
+
+  if (value.verdict === 'claim-not-reproduced') {
+    return {
+      glyph: '▫',
+      label: `published ${value.metric} claim not reproduced: claimed ${value.claimed}, measured ${value.low}–${value.high}`,
+    };
+  }
+
+  if (value.verdict === 'build-rate') {
+    const percent = Math.round((value.builds / value.n) * 100);
+
+    return { glyph: '▪', label: `${percent}% builds, n=${value.n}` };
+  }
+
+  return { glyph: '·', label: 'unmeasured' };
+};
+
+const { glyph, label } = describe({ value: verdict });
+---
+
+<span class="chip" data-verdict={verdict.verdict} data-glyph={glyph}>
+  <span class="glyph" aria-hidden="true">{glyph}</span>
+  <span>{label}</span>
+</span>

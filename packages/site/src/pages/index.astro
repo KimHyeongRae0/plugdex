@@ -1,0 +1,128 @@
+---
+import { loadAcceptanceRecords, verdictFor } from '@plugdex/data';
+import { entries } from '@plugdex/registry';
+
+import PackCard from '../components/PackCard.astro';
+import '../styles/global.css';
+
+/**
+ * The catalogue.
+ *
+ * The corpus is loaded at build time and every verdict is derived from it, so the emitted
+ * HTML carries the figures and the page needs no JavaScript to be read. The withdrawn run
+ * is excluded by the loader's default view — it reads the record's own `withdrawn` field
+ * (PDX-016), so these cards count the same cells every published figure counts.
+ *
+ * **One condition, named on the page (DEC-020).** Every run executed under `blocked` or
+ * `as-shipped`, and the two are not one population: the baseline build rate is 5/20 in
+ * one and 8/11 in the other. Pooling them produced 13/31 — a rate that exists under
+ * neither condition, which is what this page rendered until `regime` became a record
+ * field (PDX-017). It is not averaged and it is not shown as two numbers per card either:
+ * `as-shipped` is a smaller side experiment that never ran one of the arms at all, so a
+ * second column would invite a comparison across unequal designs. The catalogue reports
+ * the `blocked` condition, says so, and links the other rather than folding it in.
+ *
+ * Alphabetical order, deliberately. DEC-005 refuses a leaderboard, and ordering the grid
+ * by verdict would be one by another name.
+ */
+const REGIME = 'blocked';
+
+const corpus = loadAcceptanceRecords({
+  dir: new URL('../../../../bench/data/runs', import.meta.url).pathname,
+  regime: REGIME,
+});
+
+const packs = [...entries]
+  .sort((left, right) => left.displayName.localeCompare(right.displayName))
+  .map((entry) => ({
+    entry,
+    verdict: verdictFor({ packId: entry.packId, cells: corpus.cells }),
+  }));
+
+const withdrawn = corpus.withdrawnRecords.length;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>plugdex — behaviour packs, measured</title>
+    <meta
+      name="description"
+      content="Every listed pack was run against real tickets in a real repository, and the code it delivered was built."
+    />
+  </head>
+
+  <body>
+    <div class="wrap">
+      <header class="masthead">
+        <h1>plugdex</h1>
+        <p>
+          Behaviour packs for Claude Code, with a verdict beside each one. Every pack here
+          was run against real tickets in a real repository, and the code it delivered was
+          built. Each card states the pack's build rate and the baseline's, both with their
+          denominators, and leaves the comparison to you — the corpus is not large enough
+          for us to make it on your behalf.
+        </p>
+        <p>
+          Every figure below is the <span class="mono">{REGIME}</span> condition: the agent
+          was given the ticket with Bash withheld and told to write rather than run. A
+          second condition was measured with Bash allowed, at a smaller sample and without
+          one of the arms. The two are not averaged together — their baselines differ by
+          more than any pack does — so this page reports one condition and names it rather
+          than publishing a rate that describes neither.
+        </p>
+        <p>
+          Runs withdrawn as instrument failures are excluded and stay on record; the
+          count of them is <span class="mono">{withdrawn}</span>.
+        </p>
+      </header>
+
+      <ul class="grid">
+        {
+          packs.map(({ entry, verdict }) => (
+            <PackCard
+              packId={entry.packId}
+              displayName={entry.displayName}
+              author={entry.author}
+              upstreamRepo={entry.installSource.repo}
+              stars={entry.stars}
+              verdict={verdict}
+            />
+          ))
+        }
+      </ul>
+    </div>
+
+    <script>
+      // The whole of this page's JavaScript. Everything above is in the HTML.
+      const dialogFor = (trigger: HTMLElement): HTMLDialogElement | null =>
+        document.getElementById(trigger.dataset.dialog ?? '') as HTMLDialogElement | null;
+
+      document.querySelectorAll<HTMLElement>('[data-install-trigger]').forEach((trigger) => {
+        trigger.addEventListener('click', () => {
+          const dialog = dialogFor(trigger);
+
+          if (!dialog) return;
+
+          dialog.showModal();
+          dialog.querySelector<HTMLElement>('button')?.focus();
+
+          // Focus goes back to the control that opened the dialog, however it closed —
+          // a keyboard user who presses Escape must not be dropped at the top of the page.
+          dialog.addEventListener('close', () => trigger.focus(), { once: true });
+        });
+      });
+
+      document.querySelectorAll<HTMLElement>('[data-close-dialog]').forEach((button) => {
+        button.addEventListener('click', () => button.closest('dialog')?.close());
+      });
+
+      document.querySelectorAll<HTMLElement>('[data-copy-command]').forEach((button) => {
+        button.addEventListener('click', () => {
+          void navigator.clipboard?.writeText(button.dataset.copyCommand ?? '');
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,257 @@
+/*
+ * The theme, from DESIGN.md §5: claims look like a paper, evidence looks like a terminal.
+ *
+ * Two rules here are load-bearing rather than decorative:
+ *
+ *   Status hues never carry text or the load-bearing glyph (DEC-018). The palette's
+ *   `no code` value computes to 2.10:1 on paper and 2.51:1 on dark ground — below the
+ *   4.5:1 text floor of WCAG SC 1.4.3 and below the 3:1 non-text floor of SC 1.4.11. So a
+ *   hue appears as a background tint and a border, and everything a reader must read is
+ *   ink. This is an application constraint; the §5 values themselves stand.
+ *
+ *   The two rates on a card are styled identically (DEC-016). The verdict function no
+ *   longer decides whether a difference is real, and a weight or a hue keyed to which
+ *   rate is larger would put that claim straight back through the stylesheet. They share
+ *   one class and differ in nothing but their content.
+ */
+
+:root {
+  --paper: #faf8f3;
+  --ink: #16150f;
+  --pass: #3f6b4a;
+  --fail: #9c4a32;
+  --no-code: #b3ada0;
+  --accent: #1d4e89;
+
+  --rule: color-mix(in srgb, var(--ink) 14%, transparent);
+  --tint: color-mix(in srgb, var(--ink) 4%, transparent);
+
+  --measure: 68ch;
+  --serif: ui-serif, Georgia, 'Times New Roman', serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141311;
+    --ink: #edeae1;
+    --pass: #7fa98a;
+    --fail: #c97b5f;
+    --no-code: #5a554c;
+    --accent: #7fa8d8;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 2rem 1rem 4rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Tabular figures wherever a digit can appear: a table whose digits shift is a table
+   nobody trusts. */
+.mono,
+.rate,
+.stars,
+code,
+pre {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.wrap {
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+.masthead {
+  max-width: var(--measure);
+  margin: 0 auto 3rem;
+}
+
+.masthead h1 {
+  font-size: 1.9rem;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+}
+
+.masthead p {
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--tint);
+}
+
+.card h2 {
+  font-size: 1.15rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.byline,
+.stars {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.curated {
+  font-style: italic;
+}
+
+/* The chip. Ink on tint, with the shape glyph in the same ink as the label — the hue is
+   background and border only (DEC-018). */
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  align-self: flex-start;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--chip-hue, var(--rule));
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--chip-hue, var(--ink)) 12%, transparent);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 1;
+}
+
+.chip[data-verdict='build-rate'] {
+  --chip-hue: var(--pass);
+}
+
+.chip[data-verdict='no-code'] {
+  --chip-hue: var(--no-code);
+}
+
+.chip[data-verdict='claim-not-reproduced'] {
+  --chip-hue: var(--fail);
+}
+
+.chip[data-verdict='unmeasured'] {
+  --chip-hue: var(--rule);
+}
+
+.glyph {
+  font-family: var(--mono);
+}
+
+/* Both rates, one class. There is no `.rate--above` and there must never be one: the
+   card states two counts and asserts nothing about their order. */
+.rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rate {
+  color: var(--ink);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.rate-label {
+  opacity: 0.75;
+}
+
+.install {
+  align-self: flex-start;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.install:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+dialog {
+  max-width: min(40rem, 92vw);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+dialog::backdrop {
+  background: color-mix(in srgb, #000 55%, transparent);
+}
+
+.command {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+
+.command code {
+  flex: 1 1 20rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.copy,
+.close {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.copy:focus-visible,
+.close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.origin {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}

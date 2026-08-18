@@ -1,0 +1,71 @@
+---
+import type { PackVerdict } from '@plugdex/data';
+
+import InstallDialog from './InstallDialog.astro';
+import VerdictChip from './VerdictChip.astro';
+
+/**
+ * One pack, one card.
+ *
+ * The author is rendered as it is stored: DEC-014 tags every attribution as `upstream`
+ * (the author's own declaration) or `curated` (ours), and flattening the two to a bare
+ * string would make our claim about a real person indistinguishable from theirs. The
+ * `curated` tag is surfaced, not hidden.
+ *
+ * The two rates share one class and one style. The verdict function no longer decides
+ * whether a difference is real, and a card that styles the larger rate differently would
+ * be making that claim on its behalf.
+ */
+interface Props {
+  packId: string;
+  displayName: string;
+  author: { from: string; value: string };
+  upstreamRepo: string;
+  stars: { count: number; readAt: string };
+  verdict: PackVerdict;
+}
+
+const { packId, displayName, author, upstreamRepo, stars, verdict } = Astro.props;
+
+/** A rate as the card shows it: a percentage that always arrives with its denominator. */
+const asRate = ({ hits, n }: { hits: number; n: number }): string =>
+  `${Math.round((hits / n) * 100)}% n=${n}`;
+
+const rates =
+  verdict.verdict === 'build-rate' && verdict.n > 0 && verdict.baselineN > 0
+    ? {
+        pack: asRate({ hits: verdict.builds, n: verdict.n }),
+        baseline: asRate({ hits: verdict.baselineBuilds, n: verdict.baselineN }),
+      }
+    : null;
+---
+
+<li class="card" data-pack-id={packId}>
+  <h2>{displayName}</h2>
+
+  <p class="byline">
+    by {author.value}
+    {author.from === 'curated' ? <span class="curated">(attributed by plugdex)</span> : null}
+  </p>
+
+  <VerdictChip verdict={verdict} />
+
+  {
+    rates ? (
+      <p class="rates">
+        <span class="rate" data-rate="pack">
+          <span class="rate-label">builds</span> {rates.pack}
+        </span>
+        <span class="rate" data-rate="baseline">
+          <span class="rate-label">baseline</span> {rates.baseline}
+        </span>
+      </p>
+    ) : null
+  }
+
+  <p class="stars">
+    <span class="mono">{stars.count}</span> stars, read {stars.readAt}
+  </p>
+
+  <InstallDialog packId={packId} displayName={displayName} upstreamRepo={upstreamRepo} />
+</li>
