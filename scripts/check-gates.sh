@@ -48,6 +48,11 @@ fail_hard() { GATE_LOG_DETAIL="$1"; echo -e "${RED}❌ $1${NC}" >&2; exit 1; }
 # nested self-tests (verify.sh checks this variable before step 3).
 export PLUGDEX_GATE_SANDBOX=1
 
+# The real root, for the few cases whose gate needs a parser the workspace already has.
+# A case may symlink `node_modules` from here; it may NOT read the repository's own
+# source, which would make it a test of this tree rather than of the gate.
+export PLUGDEX_REAL_ROOT="$PROJECT_ROOT"
+
 # shellcheck source=tests/meta/lib.sh
 source "$LIB"
 

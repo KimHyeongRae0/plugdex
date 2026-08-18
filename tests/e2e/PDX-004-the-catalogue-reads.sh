@@ -482,6 +482,17 @@ else:
             site = sandbox / "packages" / "site" / "src"
             site.mkdir(parents=True)
 
+            # The gate resolves its two parsers from `packages/site`, by design: pinning
+            # `@astrojs/compiler` there is what keeps the gate's contract declared rather
+            # than inherited from Astro's transitive tree. So the fixture needs the site
+            # manifest and a link to the installed modules — without them the gate refuses
+            # to run at all, which is correct behaviour and useless as a fixture.
+            shutil.copy(root / "packages" / "site" / "package.json",
+                        sandbox / "packages" / "site" / "package.json")
+            (sandbox / "node_modules").symlink_to(root / "node_modules")
+            (sandbox / "packages" / "site" / "node_modules").symlink_to(
+                root / "packages" / "site" / "node_modules")
+
             for name, text in sources.items():
                 target = site / name
                 target.parent.mkdir(parents=True, exist_ok=True)

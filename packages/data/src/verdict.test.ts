@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import type { Cell } from './schema.js';
-import { verdictFor } from './verdict.js';
+import { formatRate, percentOf, verdictFor } from './verdict.js';
 
 /**
  * Synthetic cells throughout. The verdict fold is a set of properties, and a test that
@@ -257,5 +257,29 @@ test('no input produces the struck verdict', () => {
       false,
       `builds=${String(builds)} produced a detectability verdict`,
     );
+  }
+});
+
+test('a rate never appears without its denominator', () => {
+  assert.equal(formatRate({ hits: 5, n: 20 }), '25% n=20');
+  assert.equal(formatRate({ hits: 8, n: 11 }), '73% n=11');
+});
+
+test('an empty denominator has no rate, and does not quietly become zero percent', () => {
+  // Returning "0% n=0" would state a measurement that was never made, which is the
+  // failure DATA-01 exists to prevent — one level down from the site.
+  assert.throws(() => formatRate({ hits: 0, n: 0 }), RangeError);
+  assert.throws(() => percentOf({ hits: 0, n: 0 }), RangeError);
+  assert.throws(() => percentOf({ hits: 1, n: -1 }), RangeError);
+});
+
+test('percentOf rounds the same way the formatted rate does', () => {
+  for (const [hits, n] of [
+    [5, 20],
+    [8, 11],
+    [16, 22],
+    [1, 3],
+  ] as const) {
+    assert.equal(formatRate({ hits, n }), `${String(percentOf({ hits, n }))}% n=${String(n)}`);
   }
 });

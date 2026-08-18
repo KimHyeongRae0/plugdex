@@ -18,7 +18,7 @@ export {
   UnreasonedWithdrawalError,
 } from './load.js';
 
-export { verdictFor } from './verdict.js';
+export { verdictFor, formatRate, percentOf } from './verdict.js';
 
 export type {
   AcceptanceCorpus,

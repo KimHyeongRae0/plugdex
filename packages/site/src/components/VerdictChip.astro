@@ -1,4 +1,5 @@
 ---
+import { percentOf } from '@plugdex/data';
 import type { PackVerdict } from '@plugdex/data';
 
 /**
@@ -19,7 +20,7 @@ const { verdict } = Astro.props;
 /** Glyph and label per verdict, from the DESIGN.md chip table. */
 const describe = ({ value }: { value: PackVerdict }): { glyph: string; label: string } => {
   if (value.verdict === 'no-code') {
-    const percent = Math.round((value.silent / value.n) * 100);
+    const percent = percentOf({ hits: value.silent, n: value.n });
 
     return { glyph: '░', label: `writes no code in ${percent}% of cells, n=${value.n}` };
   }
@@ -32,7 +33,7 @@ const describe = ({ value }: { value: PackVerdict }): { glyph: string; label: st
   }
 
   if (value.verdict === 'build-rate') {
-    const percent = Math.round((value.builds / value.n) * 100);
+    const percent = percentOf({ hits: value.builds, n: value.n });
 
     return { glyph: '▪', label: `${percent}% builds, n=${value.n}` };
   }

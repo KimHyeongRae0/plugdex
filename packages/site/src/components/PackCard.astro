@@ -1,4 +1,5 @@
 ---
+import { formatRate } from '@plugdex/data';
 import type { PackVerdict } from '@plugdex/data';
 
 import InstallDialog from './InstallDialog.astro';
@@ -27,15 +28,20 @@ interface Props {
 
 const { packId, displayName, author, upstreamRepo, stars, verdict } = Astro.props;
 
-/** A rate as the card shows it: a percentage that always arrives with its denominator. */
-const asRate = ({ hits, n }: { hits: number; n: number }): string =>
-  `${Math.round((hits / n) * 100)}% n=${n}`;
-
+/**
+ * The two rates, formatted by the package that holds the records.
+ *
+ * The conversion is imported rather than written here on purpose: DATA-01 blocks a typed
+ * figure in site source, and `Math.round(x * 100)` needs a literal. Keeping it in
+ * `@plugdex/data` leaves this component with no numeric literal on the figure path at
+ * all, which is what lets the gate be absolute instead of maintaining an allowlist that
+ * would eventually admit a real one.
+ */
 const rates =
   verdict.verdict === 'build-rate' && verdict.n > 0 && verdict.baselineN > 0
     ? {
-        pack: asRate({ hits: verdict.builds, n: verdict.n }),
-        baseline: asRate({ hits: verdict.baselineBuilds, n: verdict.baselineN }),
+        pack: formatRate({ hits: verdict.builds, n: verdict.n }),
+        baseline: formatRate({ hits: verdict.baselineBuilds, n: verdict.baselineN }),
       }
     : null;
 ---
