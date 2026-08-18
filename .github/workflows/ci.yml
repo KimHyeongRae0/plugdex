@@ -151,11 +151,32 @@ jobs:
       # and writes into a scratch CLAUDE_CONFIG_DIR the scenario creates.
       - name: Install the Claude Code CLI (PDX-003 AC-5 needs a real install)
         run: npm install -g @anthropic-ai/claude-code
-      # The browser driver is NOT installed here yet. The catalogue lands with
-      # PDX-004, and until a scenario actually drives a browser, installing one
-      # is two minutes of runner time per PR buying nothing. The step returns
-      # with the first UI scenario, pinned, and the ticket that adds it is the
-      # ticket that adds this back.
+      # The step this comment used to defer. Its earlier text said the browser
+      # driver returns "with the first UI scenario, and the ticket that adds it is
+      # the ticket that adds this back" — PDX-004 is that ticket and it did not,
+      # so the first CI run of `PDX-004-the-catalogue-looks-right.sh` died on a
+      # missing executable while the same scenario passed locally, on a machine
+      # that already had the browser — which is the third defect in this
+      # repository that only a fresh environment could see, after the leftover
+      # `dist/` and the depth-1 checkout, and all three were a local PASS that
+      # was true of one machine.
+      #
+      # `pnpm install --frozen-lockfile` installs the playwright PACKAGE, which is
+      # a devDependency of packages/site; it does not download the BROWSER, which
+      # lives outside node_modules in ~/.cache/ms-playwright. Those are two
+      # separate installs and only the first is in the lockfile.
+      #
+      # Run through the site package so the CLI is the version the lockfile pins,
+      # rather than whatever `npx playwright` would fetch. `--with-deps` adds the
+      # system libraries a headless Chromium needs on a bare ubuntu runner, and
+      # `chromium` alone is the whole browser matrix — the scenario launches
+      # nothing else, and installing firefox and webkit would be runner time
+      # buying nothing.
+      #
+      # The scenario does not skip when this step is missing: it prints the
+      # launch error and FAILS, which is why this defect is legible at all.
+      - name: Install the Chromium the browser matrix drives
+        run: pnpm --filter @plugdex/site exec playwright install --with-deps chromium
       - name: Run the e2e regression
         # No ticket argument = regression mode over every tests/e2e/*.sh.
         run: ./scripts/e2e.sh

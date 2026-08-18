@@ -140,12 +140,21 @@ the direction of looking fine:
 | Screenshots written and non-empty | **PASS** | Four files, each asserted non-empty by the scenario |
 | The chip legible without colour | **PASS** | Glyph distinctness asserted per verdict; DEC-018 keeps every hue to background and border |
 | Whether the page reads as honest to a human | **Declared, not scriptable** | No gate can check that the masthead's account of the two conditions lands. It is stated in the page rather than in a footnote, and this is recorded as a judgement rather than a measurement |
-| CI workflow on the runner | N/A | No workflow file changed |
+| CI workflow on the runner | **PASS, after a follow-up** | This row read "N/A — no workflow file changed" through six review rounds, and that was the defect. Not changing `ci.yml` is not evidence that a browser launches on the runner; it is the reason one did not. `pnpm install --frozen-lockfile` installs the playwright package, which is in the lockfile, and not the browser binary, which is not — two installs, one of them nobody had run on CI. PR #10's first e2e job died at `browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1234/...` while the same scenario passed locally. `ci.yml` now installs Chromium through the site package so the CLI is the lockfile's version (verified locally: `pnpm --filter @plugdex/site exec playwright --version` → 1.62.1), and the deferral comment that promised this step would return with the first UI scenario is replaced by the step itself |
 
 ## 6. Regression Check
 
 `./scripts/e2e.sh` with no argument: **7/7**, including PDX-002, PDX-003, PDX-016 and
 PDX-017. `check-gates.sh` 58/58. Nothing flaky, nothing skipped.
+
+On CI that number was 6/7 on the first run, and the difference was the environment rather
+than the code: `PDX-004-the-catalogue-looks-right.sh` refused to run its browser matrix
+because the runner had no Chromium. The scenario printed the launch error and FAILED
+instead of skipping, which is the only reason this is a paragraph rather than a green run
+with five unverified visual assertions underneath it. The fix is in §5's CI row. Three
+defects in this repository have now been visible only to a fresh environment — leftover
+`dist/`, the depth-1 checkout, and this — and all three presented as a local PASS that was
+true of exactly one machine.
 
 This branch was rebuilt from `main` after PDX-016 (`19bdbfc`) and PDX-017 (`62d76dd`)
 merged, so it carries neither ticket's commits and the mid-cycle RED commits that used to
