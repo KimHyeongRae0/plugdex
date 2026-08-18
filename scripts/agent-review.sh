@@ -437,7 +437,60 @@ if ! $GATE_PASS; then
 fi
 
 echo -e "${BOLD}${GREEN}========== AGENT-REVIEW PASS ==========${NC}"
+
+# ---- the receipt (REV-03) ----
+#
+# The stage stamps and the gate log live under `.docs/state/` and `.docs/scratch/`, both
+# gitignored on purpose. The consequence, which three goal audits in a row named and the
+# third escalated: on `origin/main` the only evidence that a review ever happened is
+# authored prose inside the artifact it approves. For a project whose position is that a
+# claim is worth what its receipt is worth, that is the one shape it cannot publish.
+#
+# So a passing review leaves a receipt that is committed with the ticket: what was
+# approved, by whom, at which tree, and a hash over the rubric rows so an edited rubric
+# stops matching its own receipt.
 if [[ -n "$TKT_ID" ]]; then
+  RECEIPT_DIR="$PROJECT_ROOT/.docs/receipts"
+  mkdir -p "$RECEIPT_DIR"
+  RECEIPT="$RECEIPT_DIR/${TKT_ID}-${MODE}-review.json"
+
+  REVIEWED_SHA="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
+  REVIEWER_MODEL="$(grep -m1 '^- Model:' "$TARGET" | sed 's/^- Model:[[:space:]]*//' | tr -d '\r')"
+  RUBRIC_HASH="$(grep -E '^\| (P|R)[0-9]+ \|' "$TARGET" | shasum -a 256 | cut -c1-16)"
+  TREE_STATE="clean"
+  [[ -n "$(git status --porcelain 2>/dev/null)" ]] && TREE_STATE="dirty"
+
+  TICKET_ID="$TKT_ID" REVIEW_MODE="$MODE" VERDICT="$AGENT_VERDICT" \
+  REVIEWED_SHA="$REVIEWED_SHA" REVIEWER_MODEL="${REVIEWER_MODEL:-unrecorded}" \
+  RUBRIC_HASH="$RUBRIC_HASH" TREE_STATE="$TREE_STATE" TARGET_PATH="$TARGET" \
+  python3 - "$RECEIPT" <<'RECEIPTPY'
+import json, os, subprocess, sys
+
+receipt = {
+    "ticket": os.environ["TICKET_ID"],
+    "mode": os.environ["REVIEW_MODE"],
+    "verdict": os.environ["VERDICT"],
+    "reviewer_model": os.environ["REVIEWER_MODEL"],
+    "reviewed_sha": os.environ["REVIEWED_SHA"],
+    "working_tree": os.environ["TREE_STATE"],
+    "rubric_sha256_16": os.environ["RUBRIC_HASH"],
+    "document": os.environ["TARGET_PATH"],
+    "recorded_at": subprocess.run(
+        ["date", "+%Y-%m-%dT%H:%M:%S%z"], capture_output=True, text=True
+    ).stdout.strip(),
+}
+
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    json.dump(receipt, handle, indent=2, ensure_ascii=False)
+    handle.write("\n")
+RECEIPTPY
+
+  echo -e "  ${GREEN}✅${NC} receipt written: ${RECEIPT#"$PROJECT_ROOT"/}"
+
+  if [[ "$TREE_STATE" == "dirty" ]]; then
+    warn "the working tree was dirty at review time — the receipt records that, and the SHA it names is not what was read"
+  fi
+
   if [[ "$MODE" == "plan" ]]; then
     "$STATE" stamp "$TKT_ID" plan-reviewed
   else

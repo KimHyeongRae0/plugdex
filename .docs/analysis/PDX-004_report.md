@@ -39,6 +39,8 @@ site's figure path now holds no numeric literal at all.
 | `scripts/verify.sh` | DATA-01 composed as step 7 of 12 |
 | `scripts/check-gates.sh` | Exports `PLUGDEX_REAL_ROOT` so a case can link the workspace modules the gate's parsers live in |
 | `tests/meta/cases/39..50-site-*.sh` | **Twelve** golden cases: the six blocked shapes the plan enumerates, two clean passes (imported figures; every exemption the gate grants), the three found by the report review (`set:html`, a quotable `<meta description>`, `content: attr()`), and the empty scan |
+| `tests/meta/cases/52..57-*.sh` | REV-03's receipt, and one case per channel the reviews and the audits drove into built output: spoken ARIA attributes, `content` indirection, a script writing to the document, JSON-LD, and non-ASCII numerals |
+| `scripts/agent-review.sh`, `.docs/receipts/` | REV-03 — a passing review leaves a committed receipt |
 | `tests/meta/cases/51-harness-*.sh` | The fresh-clone gate's refusal path; its passing path cannot be hosted by the golden-set model and that limit is recorded as PDX-020 |
 | `scripts/check-fresh-clone.sh` | **New, and outside this ticket's Scope.Allowed** (§8). It runs verify against a clone of a committed ref with no `node_modules` and no `dist` — the condition CI runs in and the one every local pass on this branch had defeated |
 | `tests/e2e/PDX-004-the-catalogue-reads.sh` | AC-1..AC-6 (markup), AC-8, over built output |
@@ -53,7 +55,7 @@ site's figure path now holds no numeric literal at all.
 |---|---|---|
 | 1 — verdict types and the pure function | ✅ | Extended: `formatRate` / `percentOf` were added when the DATA-01 gate blocked the site's own percentage arithmetic. The plan did not foresee that the gate it specified would forbid the components it specified |
 | 2-7 — the site, theme, chip, card, dialog, page | ✅ | None structurally. `index.astro` gained the regime selection and the masthead paragraph that names the condition — a deviation, justified in §8 |
-| 8 — the DATA-01 gate | ✅ | **Seven defects across two review rounds, and the same class twice.** Two found by the ticket's own scenario and five by the report review. The scenario found `<style>` bodies being read as rendered text (so `z-index: 10` was blocked) and the slice-class exemption unwritten. The review found the gate exiting 0 on `set:html="47% of deliveries build"` — which it then built into `dist/`, falsifying DEC-017's claim that scanner 2 covers every rendered position — and `LAYOUT_VOCABULARY` silently widened during implementation with `offset|threshold|ratio|max|min|count`, so `const ratio = 47` passed scanner 1. The list is back to the one the plan fixed, `set:html` / `set:text` are rendered positions, and `<meta content>` is split between machine directives and prose a search result quotes. **Round 2 then drove a figure into `dist/` again**, through `aria-description` / `aria-valuetext` and through a digit-free `data-rate` rendered by `content: attr(data-rate)`. Every ARIA attribute whose value is spoken or shown is now a rendered position — a screen reader is a reader — and a `content` declaration using `attr()` is refused outright, because the value it renders lives in a file this scanner does not read. Two consecutive rounds falsifying the same sentence in DEC-017 is the finding, not the individual holes |
+| 8 — the DATA-01 gate | ✅ | **Seven defects across two review rounds, and the same class twice.** Two found by the ticket's own scenario and five by the report review. The scenario found `<style>` bodies being read as rendered text (so `z-index: 10` was blocked) and the slice-class exemption unwritten. The review found the gate exiting 0 on `set:html="47% of deliveries build"` — which it then built into `dist/`, falsifying DEC-017's claim that scanner 2 covers every rendered position — and `LAYOUT_VOCABULARY` silently widened during implementation with `offset|threshold|ratio|max|min|count`, so `const ratio = 47` passed scanner 1. The list is back to the one the plan fixed, `set:html` / `set:text` are rendered positions, and `<meta content>` is split between machine directives and prose a search result quotes. **Round 2 then drove a figure into `dist/` again**, through `aria-description` / `aria-valuetext` and through a digit-free `data-rate` rendered by `content: attr(data-rate)`. Every ARIA attribute whose value is spoken or shown is now a rendered position — a screen reader is a reader — and a `content` declaration using `attr()` is refused outright, because the value it renders lives in a file this scanner does not read. **Round 3 and a goal audit then did it again, five more channels between them**: `content: var(--rate)` and `content: counter(rate)` (the CSS scanner reads only `content:` lines, so the declaration carrying the figure is never seen), a figure inside `<script type="application/ld+json">`, `document.title` written by the inline script — inconsistent with the gate's own treatment of the same string in a `.ts` file — and a plain text node of fullwidth numerals, because the digit test was ASCII-only. All five are closed and pinned by cases 53-57. **Three consecutive rounds falsifying the same sentence is the finding, not the individual holes**, and the response is in DEC-017 and PDX-021 rather than in a fourth patch: the closure claim is withdrawn under CLAIM-01, and the guarantee is moved to a check on the rendered artifact, where the channel set is closed |
 | 9-10 — golden cases | ✅ | **Five of the planned eight at first submission, which this report did not say.** Missing were 9(e) a digit-bearing string literal in a code position, 9(f) an expression literal in the template body, and step 10's empty-scan case — and the empty scan was worse than absent: a tree with no `packages/site/src` returned SKIP green, where the plan required FAIL. Now thirteen cases. Round 2 found the clean-pass side still short: no case planted `cells[3]`, `slice(0, 2)`, `viewBox` or a digit-free `content`, so the element-access and slice-class exemptions shipped with zero coverage — and the slice-class list was added *by this ticket*, against its own rule that an allowlist may only be extended together with a case. Case 49 plants every exemption the gate grants. The empty scan distinguishes a package that does not exist yet (SKIP) from a package whose sources are gone (FAIL) |
 | 11-12 — the two scenarios | ✅ | Both rewritten in place; see §4 for what they were doing before |
 | 13 — decision log | ✅ | **This row said "as planned" while the step had not landed at all, and the report review caught it.** `grep -c DEC-016 DESIGN.md` returned 0: the decisions existed only as citations in code comments, and DESIGN.md's chip table still offered verdict 4 as a live verdict while `verdict.ts` struck it — the exact code/spec half-state the plan's §9.3 warned about. All three rows are now in the log, verdict 4 is struck from the table, and the "priority 4 is a result, not a blank" rule is rewritten to say what replaced it rather than deleted |
@@ -75,6 +77,9 @@ site's figure path now holds no numeric literal at all.
 | 9 (report review round 2) | Fable 5 | **NEEDS_REVISION**, 4 blockers |
 | 10 | `./scripts/check-fresh-clone.sh` at HEAD | **FRESH-CLONE PASS — VERIFY PASS (32s)** |
 | 11 | `verify.sh`, `e2e.sh`, `check-gates.sh` after round 2's fixes | PASS, 7/7, **51/51** |
+| 12 (goal audit, third pass) | three new tunnels driven through the patched gate in half an hour, two into `dist/` | the design verdict, not the holes: source scanning cannot make DATA-01's claim |
+| 13 (report review round 3) | Fable 5 at `ea3b418` | **NEEDS_REVISION**, 1 blocker — three tunnels, one overlapping the audit's, plus the ARIA widening shipped with no case |
+| 14 | `check-gates.sh`, `verify.sh`, `e2e.sh`, `check-fresh-clone.sh` after round 3's fixes | **57/57**, PASS (31s), 7/7, PASS |
 
 **The GREEN this report evidences failed a fresh clone, and that has to be said plainly.**
 `verify.sh` ran `pnpm typecheck` before `pnpm build`; the library packages typecheck with
@@ -113,7 +118,7 @@ the direction of looking fine:
 - fresh clone (`check-fresh-clone.sh`): **PASS** — the condition CI runs in
 - ticket e2e: both scenarios PASS
 - regression `e2e.sh`: **7/7**
-- golden set: **51/51**
+- golden set: **57/57**
 - unit: `@plugdex/data` 42/42 (17 verdict, 25 loader)
 - screenshots: `.docs/scratch/pdx-004-browser/{360x740,1280x800}-{light,dark}.png`
 
@@ -130,7 +135,7 @@ the direction of looking fine:
 ## 6. Regression Check
 
 `./scripts/e2e.sh` with no argument: **7/7**, including PDX-002, PDX-003, PDX-016 and
-PDX-017. `check-gates.sh` 51/51. Nothing flaky, nothing skipped.
+PDX-017. `check-gates.sh` 57/57. Nothing flaky, nothing skipped.
 
 This branch was rebuilt from `main` after PDX-016 (`19bdbfc`) and PDX-017 (`62d76dd`)
 merged, so it carries neither ticket's commits and the mid-cycle RED commits that used to
@@ -144,7 +149,7 @@ the round log's early entries keep a reachable SHA.
   it blocked was this ticket's components.
 - **DATA-02 / CLAIM-01**: no published figure moved by this ticket; the baseline changed
   because PDX-017 made a wrong one correctable, and DEC-020 records that.
-- **GATE-01**: five new cases, both sides.
+- **GATE-01**: nineteen new cases (39-57), both sides of every rule the gate enforces. Six of them exist because a review or an audit tunnelled the gate and the fix would otherwise have shipped unpinned — reverting the ARIA widening passed 51/51 until case 53.
 - **ASSERT-01**: the AC-6 assertion that refused to pass on an empty search is what
   surfaced the unsatisfiable criterion. It behaved exactly as the rule intends.
 - **DEV-01**: §5, and the browser scenario that now runs.
@@ -173,6 +178,22 @@ the round log's early entries keep a reachable SHA.
   planted fixture page renders the card above and below baseline, a real Astro build runs,
   and the markup skeletons must match — identical skeletons mean no selector can key on
   the difference. The browser half pins what that cannot see.
+- **The source-scanning design is the wrong sole mechanism, and both a review and an
+  audit reached that independently.** The gate has been tunnelled in three consecutive
+  rounds — eight channels in total, five of them driven all the way into `dist/` — and the
+  uncovered set is generative rather than enumerable: CSS keeps adding indirection
+  functions, HTML keeps adding rendering attributes, and a figure is strictly larger than
+  an ASCII digit. Two channels no source scanner can close at all: a figure drawn as
+  pixels, and a figure encoded as layout, where `width: 47%` is simultaneously legal
+  layout vocabulary and a published claim. Every instance found is closed and pinned, the
+  false closure claim is withdrawn under CLAIM-01 in DEC-017, in this ticket's own opening
+  paragraph and in CLAUDE.md's rule text, and **PDX-021** files the replacement: render
+  `dist/` in the Playwright harness this repository already runs, extract text, the
+  accessibility tree and computed `::before`/`::after` content, normalise Unicode
+  numerals, and require every numeric token to be derivable from a record. The five
+  demonstrated tunnels are its RED conditions. What this ticket ships is a developer-time
+  lint that catches the honest mistake and points at the line — which is worth having, and
+  is not what the original sentence promised.
 - **The masthead published a comparative that is false, and the site rendered it.** It
   said the two conditions' baselines differ by *more* than any pack does from its own.
   Exactly: 8/11 − 5/20 = 21/44, and ponytail 16/22 − 5/20 = 21/44. An exact tie, because
@@ -252,6 +273,29 @@ Any FAIL row requires verdict NEEDS_REVISION (the gate rejects APPROVED + FAIL).
 ### Blockers (only if NEEDS_REVISION)
 -
 
+### Round 3 (Fable 5) — NEEDS_REVISION, 1 blocker
+
+Reviewed `ea3b418`. The reviewer disclosed that the tree began changing under it while it
+wrote — an unrelated audit response landing mid-round — which is round 2's blocker 4
+happening to the reviewer instead of the report. Its results were taken against the clean
+tree and it said so; that disclosure is the behaviour the rule wants.
+
+- **R4 — the gate was tunnelled a third time.** `content: var(--rate)`,
+  `<script type="application/ld+json">`, and `document.title = '… 47% …'` all exited the
+  gate 0 and were built into `dist/`. The last is the sharpest: the identical string in a
+  `.ts` file was already a BLOCK, so the script exemption was inconsistent with the gate's
+  own treatment of it. Closed and pinned by cases 54, 56 and 55.
+- **And the fix from round 2 had shipped unpinned.** `grep -r aria- tests/meta/cases/`
+  matched nothing, so reverting the widened attribute set would still have passed 51/51.
+  Case 53 exists because of that, and it is the more useful finding: a gate whose last fix
+  has no case is a gate one careless revert from its previous hole.
+
+The reviewer also checked things this report asserts rather than only its deltas: it
+recomputed every arm's gap in both regimes to confirm "the widest" holds, and it verified
+the star counts against the live GitHub API on the suspicion they were fabricated. They
+were not. And it built the passing case for `check-fresh-clone.sh` that PDX-020 called
+unhostable — 23 files, no network, under a second — so that row is corrected too.
+
 ### Round 2 (Fable 5) — NEEDS_REVISION, 4 blockers
 
 1. **R4 — DATA-01 passed a figure a reader sees, the same class as round 1.**
@@ -300,5 +344,5 @@ four combinations; the contrast figure holds against a hand-sampled screenshot p
 
 ## 11. Final Report Status
 
-- Agent: NEEDS_REVISION (Fable 5, round 2, 2026-08-18 19:58) — 4 blockers: DATA-01 passes `aria-description`/`aria-valuetext`/`data-*`+`attr()` figures into a built dist (DEC-017 falsified a second time); the masthead and DEC-020 comparative is exactly false (21/44 = 21/44, a tie, not "more"); plan step 10's clean-pass exemption plants (`cells[3]`, `slice(0,2)`, `viewBox`, digit-free `content`) exist in no golden case; commit `149f9c2` (check-fresh-clone.sh + verify reorder, FRESH-CLONE FAIL on `cf4b8d7` verified) postdates the report and appears nowhere in it. Round 1 (17:36, 4 blockers) verified closed first-hand — all four fixes hold
+- Agent: NEEDS_REVISION (Fable 5, round 3, 2026-08-18 20:59, at `ea3b418`) — 1 blocker: DATA-01 tunnelled a third time; three constructions exit `check-data.sh` 0 and build into `dist/` — `content: var(--rate)` reading a digit-bearing custom property (the exact analogue of the `attr()` channel round 2 closed), a figure in a `<script type="application/ld+json">` body (the reader class case 47 established), and `document.title = '… 47% …'` in the inline script (the same string a `.ts` file blocks as DATA-01a) — and round 2's ARIA widening is pinned by no golden case. Everything else verified first-hand at `ea3b418`: both round-2 closures block by construction with nothing legitimate broken; the masthead/DEC-020 tie is exact (21/44 = 21/44) and the widest-gap claim checked against every arm in both regimes; case 49 fails when the slice-class exemption is removed; fresh-clone PASS at HEAD and FAIL at `cf4b8d7` both reproduce; GREEN re-run (verify 30s, e2e 7/7, golden 51/51, unit 42/42); star receipts verified against the live API. Rounds 1 and 2 (17:36, 19:58, 4 blockers each) preserved below
 - Human: _(pending)_

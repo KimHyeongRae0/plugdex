@@ -169,6 +169,17 @@ const readerFacingMeta = ({ node, attribute }) => {
   return !MACHINE_META.has((key?.value ?? '').toLowerCase());
 };
 
+/**
+ * A digit, in the sense a reader means.
+ *
+ * `/\d/` is ASCII-only, and a text node of fullwidth numerals reached built output
+ * because of it. `\p{N}` covers every Unicode numeric class — decimal, letter-numeric and
+ * other-numeric — which is the smallest honest definition. Spelled-out figures ("about
+ * half") remain outside any digit scanner's reach and are named in DEC-017 as residue
+ * rather than pretended away.
+ */
+const DIGIT = /\p{N}/u;
+
 const violations = [];
 let scanned = 0;
 
@@ -254,7 +265,7 @@ const scanCode = ({ file, source, code, offset }) => {
     const literal =
       ts.isNumericLiteral(node) ||
       ((ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) &&
-        /\d/.test(node.text));
+        DIGIT.test(node.text));
 
     if (literal) {
       const name = contextName(node);
@@ -290,12 +301,40 @@ const scanTemplate = async ({ file, source }) => {
         for (const child of node.children ?? []) {
           scanStyles({ file, source: child.value ?? '' });
         }
+
+        return;
+      }
+
+      // A script body is machine-facing only until it writes to the document. Two shapes
+      // reached built output while this was exempt wholesale: a figure inside
+      // `<script type="application/ld+json">`, which a search result quotes to a reader by
+      // exactly the argument that made `<meta description>` reader-facing, and
+      // `document.title = '… 47% …'`, which is the page's own name. The same string in a
+      // `.ts` file was already a BLOCK, so the exemption was also inconsistent with itself.
+      const type = (node.attributes ?? []).find((attribute) => attribute.name === 'type');
+      const body = (node.children ?? []).map((child) => child.value ?? '').join('\n');
+
+      if ((type?.value ?? '').includes('ld+json') && DIGIT.test(body)) {
+        violations.push(
+          `DATA-01b ${file}:${node.position?.start?.line ?? '?'}: a digit inside ` +
+          `<script type="${type?.value}"> — structured data is quoted back to readers`,
+        );
+      } else {
+        for (const [line, offset] of body.split('\n').map((value, index) => [value, index])) {
+          if (/\b(document\.title|\.textContent|\.innerText|\.innerHTML|insertAdjacentHTML)\b/.test(line) &&
+              DIGIT.test(line)) {
+            violations.push(
+              `DATA-01b ${file}:${(node.position?.start?.line ?? 0) + offset + 1}: a script ` +
+              `writes a digit into the document (${JSON.stringify(line.trim().slice(0, 48))})`,
+            );
+          }
+        }
       }
 
       return;
     }
 
-    if (node.type === 'text' && /\d/.test(node.value ?? '')) {
+    if (node.type === 'text' && DIGIT.test(node.value ?? '')) {
       violations.push(
         `DATA-01b ${file}:${node.position?.start?.line ?? '?'}: a digit is typed into ` +
         `rendered text (${JSON.stringify((node.value ?? '').trim().slice(0, 40))})`,
@@ -304,7 +343,7 @@ const scanTemplate = async ({ file, source }) => {
 
     if (node.type === 'expression') {
       for (const child of node.children ?? []) {
-        if (child.type === 'text' && /(^|[^\w.])\d/.test(child.value ?? '')) {
+        if (child.type === 'text' && /(^|[^\w.])\p{N}/u.test(child.value ?? '')) {
           violations.push(
             `DATA-01b ${file}:${node.position?.start?.line ?? '?'}: a digit literal is ` +
             `rendered from an expression (${JSON.stringify((child.value ?? '').trim().slice(0, 40))})`,
@@ -318,7 +357,7 @@ const scanTemplate = async ({ file, source }) => {
       // way by whoever ends up looking at the page, so both are scanned.
       const reads = READER_FACING_ATTRIBUTES.has(attribute.name) || readerFacingMeta({ node, attribute });
 
-      if (reads && /\d/.test(attribute.value ?? '')) {
+      if (reads && DIGIT.test(attribute.value ?? '')) {
         violations.push(
           `DATA-01b ${file}:${attribute.position?.start?.line ?? node.position?.start?.line ?? '?'}: ` +
           `a digit is typed into the reader-facing attribute \`${attribute.name}\``,
@@ -353,11 +392,17 @@ const scanStyles = ({ file, source }) => {
     // and what it holds, lives in another file this scanner does not read — so the
     // channel is refused rather than followed. The report review drove a figure into
     // `dist/` through exactly this pair with the gate green.
-    if (/\battr\s*\(/.test(value)) {
+    // Every indirection, not only `attr()`. `var(--rate)` and `counter(rate)` each render
+    // a value declared somewhere this scanner does not follow, and both were driven into
+    // built output after `attr()` alone had been closed. The rule is the channel, not the
+    // function name — otherwise the next CSS release reopens it.
+    const indirection = value.match(/\b(attr|var|counter|counters|env)\s*\(/);
+
+    if (indirection) {
       violations.push(
-        `DATA-01c ${file}:${index + 1}: a \`content\` declaration renders an attribute ` +
-        `through attr() — the value comes from markup this scanner cannot see, so the ` +
-        `channel is refused rather than followed`,
+        `DATA-01c ${file}:${index + 1}: a \`content\` declaration renders a value through ` +
+        `${indirection[1]}() — it comes from a declaration this scanner does not follow, ` +
+        `so the channel is refused rather than followed`,
       );
     }
   });

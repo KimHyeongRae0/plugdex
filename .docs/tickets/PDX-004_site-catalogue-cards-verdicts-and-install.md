@@ -12,8 +12,16 @@ a thing someone uses.
 
 It is also where DATA-01 becomes a gate rather than an intention: a numeric literal in a
 component that did not come from `@plugdex/data` is a BLOCK. Every published benchmark
-this project objects to could pass its own review; the difference here is that a
-hand-typed number cannot survive `verify.sh`.
+this project objects to could pass its own review; the difference here is that the honest
+mistake is caught by a script rather than by a reader's goodwill.
+
+*(Corrected in place under CLAIM-01. This paragraph read "a hand-typed number cannot
+survive `verify.sh`". That is false: the source scanner has been tunnelled three times by
+channels it cannot see — `set:html`, ARIA descriptions with `content: attr()`, and
+`content: var()` / `content: counter()` / fullwidth digits — twice into built output. The
+scanner narrows the channel; it does not close it, and the guarantee the original sentence
+made is owed to PDX-021, which checks the rendered artifact instead. DEC-017 carries the
+full account.)*
 
 ## 2. Scope
 

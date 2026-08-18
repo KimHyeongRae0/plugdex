@@ -153,7 +153,11 @@ the reason the harness was worth porting rather than reinventing.
 - **DATA-01 — no hand-typed numbers.** Every figure rendered by the site must come
   from a record in `packages/data`, and every record must carry the environment
   fingerprint of the run that produced it. A number typed into a component is a
-  number nobody can check.
+  number nobody can check. **The rule is absolute; its enforcement is not yet.**
+  `check-data.sh` scans source and narrows the channel — it has been tunnelled three
+  times by channels a source scanner cannot see, twice into built output — so the rule's
+  guarantee is owed to PDX-021, which checks the rendered artifact. DEC-017 records what
+  the scanner does and does not close; do not restate the closed version of that claim.
 - **DATA-02 — no fact that governs the analysis lives outside the record.** DATA-01's
   other half. Which records a figure is computed over is decided by fields on those
   records — a withdrawal carries its reason and its date on the record itself, and a run
