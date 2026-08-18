@@ -125,10 +125,20 @@ const LAYOUT_VOCABULARY =
 const READER_FACING_ATTRIBUTES = new Set([
   'alt',
   'title',
-  'aria-label',
   'placeholder',
   'set:html',
   'set:text',
+  // Every ARIA attribute whose value is spoken or shown. `aria-label` was here from the
+  // start; the rest were not, and the PDX-004 report review put a figure through
+  // `aria-description` and `aria-valuetext` into built output at round 2 — the same class
+  // of miss as `set:html` at round 1. A screen reader is a reader.
+  'aria-label',
+  'aria-description',
+  'aria-valuetext',
+  'aria-roledescription',
+  'aria-placeholder',
+  'aria-braillelabel',
+  'aria-brailleroledescription',
 ]);
 
 /**
@@ -327,10 +337,27 @@ const scanStyles = ({ file, source }) => {
   const lines = source.split('\n');
 
   lines.forEach((line, index) => {
-    if (/(^|[\s{;])content\s*:/.test(line) && /\d/.test(line.split(':').slice(1).join(':'))) {
+    if (!/(^|[\s{;])content\s*:/.test(line)) return;
+
+    const value = line.split(':').slice(1).join(':');
+
+    if (/\d/.test(value)) {
       violations.push(
         `DATA-01c ${file}:${index + 1}: a \`content\` declaration carries a digit — it is ` +
         `the one property through which a stylesheet can put a claim in front of a reader`,
+      );
+      return;
+    }
+
+    // `content: attr(data-rate)` renders an attribute's value as text. Which attribute,
+    // and what it holds, lives in another file this scanner does not read — so the
+    // channel is refused rather than followed. The report review drove a figure into
+    // `dist/` through exactly this pair with the gate green.
+    if (/\battr\s*\(/.test(value)) {
+      violations.push(
+        `DATA-01c ${file}:${index + 1}: a \`content\` declaration renders an attribute ` +
+        `through attr() — the value comes from markup this scanner cannot see, so the ` +
+        `channel is refused rather than followed`,
       );
     }
   });
