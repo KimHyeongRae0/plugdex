@@ -1,0 +1,74 @@
+---
+import { formatMeasured, formatTokens, measuredOrZero } from '@plugdex/data';
+import type { ArmEconomics } from '@plugdex/data';
+
+/**
+ * Where the tokens go, per arm.
+ *
+ * Cache reads dominate every arm on this corpus, which is why a pack that shortens its own
+ * output can still cost what it costs — the finding this section exists to show.
+ *
+ * The shares arrive as fractions from `@plugdex/data`, so nothing here multiplies anything
+ * by a hundred; the only arithmetic is a fraction becoming a width. Every segment prints its
+ * own count beside the bar and the segments keep a fixed order, so the row is readable in
+ * greyscale and a reader never has to match a shade to a legend to get a number.
+ */
+interface Props {
+  arms: readonly ArmEconomics[];
+}
+
+const { arms } = Astro.props;
+
+const fullWidthScale = 100;
+
+// A mean nothing measured contributes nothing to a total — it is no observation rather than
+// zero tokens. The fold lives in @plugdex/data, because the fallback is a figure and
+// DATA-01 refuses figures typed into site source.
+const totalOf = ({ arm }: { arm: (typeof arms)[number] }): number =>
+  measuredOrZero({ measured: arm.outputTokens }) +
+  measuredOrZero({ measured: arm.inputTokens }) +
+  measuredOrZero({ measured: arm.cacheTokens });
+
+const widest = Math.max(...arms.map((arm) => totalOf({ arm })));
+
+const rows = arms.map((arm) => {
+  const total = totalOf({ arm });
+
+  return {
+    arm: arm.arm,
+    barWidth: widest > 0 ? (total / widest) * fullWidthScale : 0,
+    total: formatTokens({ count: total }),
+    segments: [
+      { name: 'output', width: arm.shares.output * fullWidthScale, count: formatMeasured({ measured: arm.outputTokens, format: ({ value }) => formatTokens({ count: value }) }) },
+      { name: 'input', width: arm.shares.input * fullWidthScale, count: formatMeasured({ measured: arm.inputTokens, format: ({ value }) => formatTokens({ count: value }) }) },
+      { name: 'cache read', width: arm.shares.cacheRead * fullWidthScale, count: formatMeasured({ measured: arm.cacheTokens, format: ({ value }) => formatTokens({ count: value }) }) },
+    ],
+  };
+});
+---
+
+<div class="tokens">
+  {
+    rows.map((row) => (
+      <div class="tokrow" data-token-row={row.arm}>
+        <div class="name">{row.arm}</div>
+
+        <div class="tokbar" style={`width: ${row.barWidth}%`} aria-hidden="true">
+          {row.segments.map((segment) => (
+            <span class={`seg seg-${segment.name.replace(' ', '-')}`} style={`width: ${segment.width}%`} />
+          ))}
+        </div>
+
+        <div class="toktotal">{row.total}</div>
+
+        <div class="tokparts">
+          {row.segments.map((segment) => (
+            <span class="tokpart">
+              {segment.name} {segment.count}
+            </span>
+          ))}
+        </div>
+      </div>
+    ))
+  }
+</div>

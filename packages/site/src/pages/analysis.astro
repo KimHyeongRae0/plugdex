@@ -1,0 +1,381 @@
+---
+import {
+  armSummary,
+  cellGrid,
+  domainSummary,
+  formatCountOverCount,
+  formatTaskLabel,
+  invalidByTask,
+  loadAcceptanceRecords,
+  loadEconomics,
+  paretoFrontier,
+  rateFraction,
+  taskOrder,
+  taskSummary,
+} from '@plugdex/data';
+import type { CellState, ParetoPoint } from '@plugdex/data';
+import { entries } from '@plugdex/registry';
+
+import CellGrid from '../components/analysis/CellGrid.astro';
+import DomainSplit from '../components/analysis/DomainSplit.astro';
+import Leaderboard from '../components/analysis/Leaderboard.astro';
+import TicketBreakdown from '../components/analysis/TicketBreakdown.astro';
+import TokenBars from '../components/analysis/TokenBars.astro';
+import TradeoffScatter from '../components/analysis/TradeoffScatter.astro';
+import '../styles/global.css';
+
+/**
+ * The evidence page.
+ *
+ * The catalogue states a verdict per pack; this page shows what the verdict is made of —
+ * the leaderboard with its intervals, the two trade-off scatters, the frontend/backend
+ * split, the per-ticket breakdown, the token economics, and every cell of the corpus.
+ *
+ * Everything is computed at build time from `@plugdex/data` and emitted as markup. There is
+ * no island and no client-side chart library: every chart here is a pure function of records
+ * this page already holds, so drawing it in the browser would ship a runtime to recompute
+ * what the build already knows. The one interactive element is the cell drawer, which is a
+ * native `<dialog>` opened by a handful of lines — the pattern the catalogue's install
+ * dialog already established.
+ *
+ * **One condition, named** (DEC-020). `blocked` withheld Bash and told the agent to write
+ * rather than run. The other condition ran at a smaller sample without one of the arms, and
+ * pooling the two produces a rate that describes neither.
+ */
+const REGIME = 'blocked';
+
+const corpus = loadAcceptanceRecords({
+  dir: new URL('../../../../bench/data/runs', import.meta.url).pathname,
+  regime: REGIME,
+});
+
+const economics = loadEconomics({
+  dir: new URL('../../../../bench/data/runs', import.meta.url).pathname,
+  corpus,
+});
+
+const cells = corpus.cells;
+const arms = [...entries.map((entry) => entry.packId), 'baseline'];
+const tasks = taskOrder({ cells });
+const grid = cellGrid({ cells });
+
+const econFor = ({ arm }: { arm: string }) =>
+  economics.arms.find((entry) => entry.arm === arm) ?? null;
+
+const rows = arms.map((arm) => ({
+  arm,
+  summary: armSummary({ cells, arm }),
+  econ: econFor({ arm }),
+}));
+
+/**
+ * Ordered by point estimate, with the unmeasured arm last.
+ *
+ * The interval prints beside every estimate, which is what makes this disclosure rather
+ * than the ranking DEC-005 refuses — and the sentence under the table says how much the
+ * ordering is worth on a corpus this size.
+ */
+const afterIndex = 1;
+const beforeIndex = -1;
+
+const ranked = [...rows].sort((left, right) => {
+  if (left.summary.n === 0 && right.summary.n === 0) return left.arm.localeCompare(right.arm);
+  if (left.summary.n === 0) return afterIndex;
+  if (right.summary.n === 0) return beforeIndex;
+
+  // Both non-null: the three guards above return for every row with no graded cell, so
+  // this comparator only ever sees summaries with n > 0.
+  return (rateFraction({ summary: right.summary }) as number) -
+    (rateFraction({ summary: left.summary }) as number);
+});
+
+const measured = ranked.filter((row) => row.summary.n > 0);
+
+/** The AC-8 statement: the refusal, its reason, and the one thing the ordering supports. */
+const baselineRow = rows.find((row) => row.arm === 'baseline');
+const baselineHigh = baselineRow?.summary.wilson?.hi ?? null;
+
+const clears = measured
+  .filter(
+    (row) =>
+      row.arm !== 'baseline' &&
+      baselineHigh !== null &&
+      row.summary.wilson !== null &&
+      row.summary.wilson.lo > baselineHigh,
+  )
+  .map((row) => row.arm);
+
+const refusal =
+  'There is no composite index on this page, and that is deliberate. A single score needs ' +
+  'weights across build rate, cost, turns and silence, and this corpus gives no basis for ' +
+  'choosing them, so an index would advertise a ranking the measurements cannot support. ' +
+  'What they do support is stated plainly: of the arms with a graded frontend rate, ' +
+  (clears.length === 0
+    ? "none clears the baseline's interval outright."
+    : `${clears.join(', ')} ${clears.length === 1 ? 'clears' : 'clear'} the baseline's interval outright.`);
+
+/** The two trade-off charts, each with the frontier the economics actually produce. */
+const scatterPoints = ({ field }: { field: 'cost' | 'seconds' }): ParetoPoint[] =>
+  measured.flatMap((row) =>
+    row.econ === null
+      ? []
+      : row.econ[field].value === null
+        ? []
+        : [
+            {
+              id: row.arm,
+              // Non-null by the guard above. An arm whose mean was never measured is absent
+              // from the chart rather than plotted at the origin, which is where reading an
+              // absence as a zero would have put it.
+              x: row.econ[field].value as number,
+              y: rateFraction({ summary: row.summary }) as number,
+            },
+          ],
+  );
+
+const costPoints = scatterPoints({ field: 'cost' });
+const secondsPoints = scatterPoints({ field: 'seconds' });
+
+/** The frontend/backend split, per arm, with the two graders named in the headers. */
+const domains = ranked.map((row) => ({
+  arm: row.arm,
+  frontend: domainSummary({ cells, arm: row.arm, domain: 'frontend' as const }),
+  backend: domainSummary({ cells, arm: row.arm, domain: 'backend' as const }),
+}));
+
+const backendIntervals = domains
+  .map((entry) => entry.backend.wilson)
+  .filter((interval) => interval !== null);
+
+const backendAllOverlap = backendIntervals.every((left) =>
+  backendIntervals.every((right) => left.lo <= right.hi && right.lo <= left.hi),
+);
+
+const domainNote = backendAllOverlap
+  ? 'Every backend interval on this corpus overlaps every other one, so the backend tickets ' +
+    'do not tell the packs apart — a finding about the tickets as much as about the packs, ' +
+    'and the reason one headline rate spanning both domains would mislead in either direction.'
+  : 'The backend intervals do not all overlap on this corpus, so the split is worth reading ' +
+    'on its own rather than through the frontend rate.';
+
+/** A spoke with nothing behind it sits at the centre. A radius, not a rate of zero. */
+const emptyRadiusFraction = 0;
+
+/** The radars, one per measured pack, over every ticket in the loader's order. */
+const radars = measured.map((row) => ({
+  arm: row.arm,
+  graded: row.summary.n,
+  spokes: tasks.map((task) => {
+    const perTask = taskSummary({ cells, arm: row.arm, task });
+
+    return {
+      task,
+      hi: perTask.wilson === null ? emptyRadiusFraction : perTask.wilson.hi,
+      estimate: rateFraction({ summary: perTask }) ?? emptyRadiusFraction,
+    };
+  }),
+}));
+
+const counts = arms.map((arm) => ({
+  arm,
+  cells: tasks.map((task) => taskSummary({ cells, arm, task })),
+}));
+
+/** The grid, its states, and the invalid callout the corpus derives. */
+const states = [...new Set(grid.squares.flatMap((square) => square.marks.map((mark) => mark.state)))];
+const stateOrder: readonly CellState[] = ['built', 'failed', 'no-code', 'ungraded', 'invalid'];
+const legendStates = stateOrder.filter((state) => states.includes(state));
+
+const invalid = invalidByTask({ cells });
+const invalidTotal = grid.totals.cells - grid.totals.valid;
+const worst = invalid
+  .filter((entry) => entry.invalid > 0)
+  .slice(0, legendStates.length)
+  .map(
+    (entry) =>
+      `${formatTaskLabel({ task: entry.task })} ${formatCountOverCount({ hits: entry.invalid, n: entry.cells })}`,
+  )
+  .join(', ');
+
+const invalidNote =
+  `${formatCountOverCount({ hits: invalidTotal, n: grid.totals.cells })} cells are invalid, ` +
+  `and they are not spread evenly — the worst are ${worst}. Nearly all of them are one ` +
+  'instrument failure, a session limit hit mid-run, and they are drawn rather than dropped ' +
+  'so a reader can judge how much each column is worth.';
+
+const kicker =
+  `${REGIME} condition, ` +
+  `${formatCountOverCount({ hits: grid.totals.valid, n: grid.totals.cells })} valid cells over ` +
+  `${String(grid.totals.arms)} arms and ${String(grid.totals.tasks)} tickets`;
+
+const withdrawn = corpus.withdrawnRecords.length;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>plugdex — what the rates are made of</title>
+    <meta
+      name="description"
+      content="The evidence behind every rate the catalogue publishes: intervals, trade-offs, the frontend and backend split, and every graded cell."
+    />
+  </head>
+
+  <body>
+    <div class="wrap">
+      <nav class="sitenav" aria-label="sections">
+        <span class="brand">plugdex</span>
+        <a href="/">catalogue</a>
+        <a href="/analysis" aria-current="page">analysis</a>
+      </nav>
+
+      <header class="masthead">
+        <p class="kicker">{kicker}</p>
+        <h1>Agent packs, measured by whether the code they wrote builds</h1>
+        <p>
+          Every pack ran against the same tickets in the same repository. We built what it
+          delivered with that repository's own toolchain and kept every cell. Rates below
+          carry their denominators and their Wilson score intervals, because at these sample
+          sizes the interval is the finding.
+        </p>
+        <p>
+          Two populations, never blended. A frontend ticket is graded by whether the
+          repository's own build accepted the delivered code; a backend ticket by whether the
+          delivered code imports and introduces no new lint or type diagnostic. No test suite
+          runs for a backend ticket, and the two gates are not comparable. The headline on the
+          <a href="/">catalogue</a> is the frontend rate and now says so.
+        </p>
+        <p>
+          Every figure here is the <span class="mono">{REGIME}</span> condition: the agent was
+          given the ticket with Bash withheld and told to write rather than run. A second
+          condition was measured with Bash allowed, at a smaller sample and without one of the
+          arms, and it is reported separately rather than averaged in. Runs withdrawn as
+          instrument failures are excluded and stay on record; the count of them is
+          <span class="mono">{withdrawn}</span>.
+        </p>
+      </header>
+
+      <section>
+        <p class="kicker">Leaderboard</p>
+        <h2>Every listed pack, one row</h2>
+        <p class="note">
+          The economics are per cell and measured under this condition only — pooling the two
+          conditions would report a cost that describes neither. Invalid cells are in the
+          pool: the money was spent whether or not the cell was later invalidated, and a mean
+          over the survivors would report the run as cheaper than it was. A few rows recorded
+          no measurement at all, and those are absent from the mean rather than counted as
+          zero — a figure taken over fewer rows than its arm's pool prints how many.
+</p>
+        <Leaderboard rows={ranked} refusal={refusal} />
+      </section>
+
+      <section>
+        <p class="kicker">Trade-offs</p>
+        <h2>Build rate against what it costs you</h2>
+        <div class="charts">
+          <TradeoffScatter
+            kind="cost"
+            title="Frontend build rate against cost per cell"
+            axisTitle="mean cost per cell, USD"
+            points={costPoints}
+            frontier={paretoFrontier({ points: costPoints })}
+          />
+          <TradeoffScatter
+            kind="seconds"
+            title="Frontend build rate against wall clock"
+            axisTitle="mean wall clock per cell, seconds"
+            points={secondsPoints}
+            frontier={paretoFrontier({ points: secondsPoints })}
+          />
+        </div>
+      </section>
+
+      <section>
+        <p class="kicker">Where the difference is</p>
+        <h2>Packs separate on frontend work and not on backend work</h2>
+        <p class="note">
+          The two domains are graded by different gates and are never folded into one number.
+          The bar is the Wilson interval, the tick is the point estimate, and the label carries
+          the counts both are computed from.
+        </p>
+        <DomainSplit arms={domains} note={domainNote} />
+      </section>
+
+      <section>
+        <p class="kicker">Per ticket</p>
+        <h2>Which tickets each pack is actually good at</h2>
+        <p class="note">
+          One spoke per ticket, in the order the records introduce them. The solid shape is the
+          measured rate; the pale shape behind it is the upper bound of the interval, drawn
+          unclipped because its size is the finding.
+        </p>
+        <TicketBreakdown tasks={tasks} radars={radars} counts={counts} />
+      </section>
+
+      <section>
+        <p class="kicker">Token economics</p>
+        <h2>Where the tokens go</h2>
+        <p class="note">
+          Mean tokens per cell, split by kind and printed as counts beside the bar. The
+          segments keep a fixed order, so the row reads in greyscale.
+        </p>
+        <TokenBars arms={economics.arms} />
+      </section>
+
+      <section>
+        <p class="kicker">The corpus</p>
+        <h2>Every cell, one mark per repetition</h2>
+        <p class="note">
+          This is what the rates are computed over, with nothing aggregated away. A row of one
+          shape is a pack that behaves the same everywhere; a column of one shape is a ticket
+          that decides itself regardless of pack. Select a mark for the cell behind it.
+        </p>
+        <noscript>
+          <p class="note">
+            The cell drawer is the one thing on this page that needs JavaScript. Every figure,
+            chart, table and mark above and below is already in this document.
+          </p>
+        </noscript>
+        <CellGrid
+          arms={arms}
+          tasks={tasks}
+          squares={grid.squares}
+          states={legendStates}
+          invalidNote={invalidNote}
+        />
+      </section>
+
+      <footer>
+        <p>
+          Figures on this page are computed from the graded runs in
+          <span class="mono">bench/data/runs</span> and formatted by
+          <span class="mono">@plugdex/data</span>. Nothing here is typed by hand.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      // The whole of this page's JavaScript. Every figure above is in the HTML.
+      document.querySelectorAll<HTMLElement>('[data-cell-trigger]').forEach((trigger) => {
+        trigger.addEventListener('click', () => {
+          const dialog = document.getElementById(
+            trigger.dataset.dialog ?? '',
+          ) as HTMLDialogElement | null;
+
+          if (!dialog) return;
+
+          dialog.showModal();
+          dialog.querySelector<HTMLElement>('button')?.focus();
+
+          // Focus goes back to the mark that opened the drawer, however it closed.
+          dialog.addEventListener('close', () => trigger.focus(), { once: true });
+        });
+      });
+
+      document.querySelectorAll<HTMLElement>('[data-close-dialog]').forEach((button) => {
+        button.addEventListener('click', () => button.closest('dialog')?.close());
+      });
+    </script>
+  </body>
+</html>

@@ -25,6 +25,11 @@ rate that describes neither.
   from 25% (no pack) to 73%; backend rates sit between 35% and 47% for every arm, with every
   interval overlapping every other one. On this corpus the backend tickets cannot tell the
   packs apart — a finding about the tickets as much as about the packs.
+- **The two are graded by different gates and are never blended.** A frontend ticket is
+  graded by whether the repository's own build accepted the delivered code; a backend ticket
+  by whether that code imports and introduces no new lint or type diagnostic. No test suite
+  runs for a backend ticket. Until this was published, the headline rate on every card
+  counted frontend cells only and said nothing about it.
 - **One widely installed pack writes no code at all** in an unattended session. `superpowers`
   produced code in 1 of 41 valid cells; it classifies the ticket, asks a clarifying question,
   and stops. It is also the cheapest and fastest arm on the board, which is what "does
@@ -48,8 +53,6 @@ One spoke per ticket. The solid shape is the measured rate; the pale shape behin
 upper bound of the 95% interval. Every spoke rests on about three repetitions, so the pale
 shape is enormous — which is the honest reading, and the reason this project publishes cells
 rather than a ranking.
-
-![Per-ticket pass counts, packs by tickets, coloured by rate with the counts printed](docs/images/analysis-heat.png)
 
 ### What it costs you
 
@@ -90,8 +93,9 @@ Early, and built ticket by ticket on measurements already in this repository:
 so a preregistration still provably precedes the runs it predicts. A number reaches the site
 from a fingerprinted record or it does not reach the site (DATA-01).
 
-The screenshots above are the analysis view, which is being implemented now. The catalogue
-page — cards, verdict chips, install dialogs — is live in the repository today.
+The screenshots above are rendered from the analysis page as it is built today, not from a
+mockup. Both pages — the catalogue and the analysis — are in the repository and build from
+the same records.
 
 ## Withdrawals
 

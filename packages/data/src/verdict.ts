@@ -1,3 +1,4 @@
+import { domainSummary } from './aggregate.js';
 import type { Cell } from './schema.js';
 
 /**
@@ -69,13 +70,27 @@ export type ClaimNotReproducedVerdict = {
  * render one rate without the other. There is no percentage field on purpose: a consumer
  * that wants a rate has to divide, which means it is holding the denominator at the
  * moment it renders the numerator (AC-3 by construction).
+ *
+ * **Both populations, or neither.** `builds` counts frontend cells, graded by whether the
+ * repository's own build passed, and it always did — every build-graded cell in this corpus
+ * is a frontend ticket, which the card did not say. The backend counts sit beside them now
+ * rather than in a second call, so a consumer holding one domain's rate is holding the
+ * other's at the same moment and cannot publish one as though it were the whole.
  */
 export type BuildRateVerdict = {
   readonly verdict: 'build-rate';
+
+  /** Frontend cells that built, over frontend cells a gate graded. */
   readonly builds: number;
   readonly n: number;
   readonly baselineBuilds: number;
   readonly baselineN: number;
+
+  /** Backend cells that imported and added no new diagnostic, over backend cells a gate graded. */
+  readonly backendPasses: number;
+  readonly backendN: number;
+  readonly baselineBackendPasses: number;
+  readonly baselineBackendN: number;
 };
 
 /** Priority 5 — no cells for this pack. Not a rate of zero; the absence of a rate. */
@@ -96,12 +111,19 @@ const SILENT_FRACTION = 0.8;
 const BASELINE_ARM = 'baseline';
 
 /**
- * Counts the cells of one arm that a gate could grade.
+ * Counts the cells of one arm that the frontend gate could grade.
  *
  * A cell whose outcome is absent was never graded and is not evidence either way, so it
  * is skipped rather than counted as a failure — the same rule `rate_table` follows in
  * `bench/harness/fisher.py`, kept identical on purpose so the two halves of this project
  * cannot answer the same question differently.
+ *
+ * Unchanged by PDX-005, deliberately. This is the rule the catalogue has published since
+ * PDX-004 and the figures it produces do not move; what moves is that the card now says
+ * which population they are over. `build` is the frontend gate and no backend cell records
+ * one, so this counts frontend cells whether or not it says the word — which is exactly
+ * the silence AC-2 fixes, and fixing the disclosure is not the same as re-grading the
+ * corpus.
  */
 const buildCounts = ({ cells, arm }: { cells: readonly Cell[]; arm: string }) => {
   let builds = 0;
@@ -116,9 +138,6 @@ const buildCounts = ({ cells, arm }: { cells: readonly Cell[]; arm: string }) =>
     // findings, and the first one already has its own verdict.
     if (cell.wroteCode !== true) continue;
 
-    // A cell nobody graded is not evidence in either direction. The same rule
-    // `rate_table` follows in `bench/harness/fisher.py`, kept identical on purpose so the
-    // two halves of this project cannot answer the same question differently.
     if (cell.build === undefined || cell.build === null) continue;
 
     n += 1;
@@ -127,6 +146,17 @@ const buildCounts = ({ cells, arm }: { cells: readonly Cell[]; arm: string }) =>
 
   return { builds, n };
 };
+
+/**
+ * Counts the cells of one arm that the backend gate could grade.
+ *
+ * Domain-scoped, and it has to be: `passes` is recorded on frontend cells too, so counting
+ * the field alone would report a backend rate over a population that is mostly frontend —
+ * 12/35 where the backend tickets say 7/15. The grader in `grade.ts` reads each cell's own
+ * domain, which is the only place that distinction is written down.
+ */
+const backendCounts = ({ cells, arm }: { cells: readonly Cell[]; arm: string }) =>
+  domainSummary({ cells, arm, domain: 'backend' });
 
 /**
  * Derives what the catalogue may say about one pack.
@@ -179,6 +209,8 @@ export const verdictFor = ({
   // rates on a card are always over the same corpus.
   const pack = buildCounts({ cells, arm: packId });
   const baseline = buildCounts({ cells, arm: BASELINE_ARM });
+  const packBackend = backendCounts({ cells, arm: packId });
+  const baselineBackend = backendCounts({ cells, arm: BASELINE_ARM });
 
   return {
     verdict: 'build-rate',
@@ -186,31 +218,11 @@ export const verdictFor = ({
     n: pack.n,
     baselineBuilds: baseline.builds,
     baselineN: baseline.n,
+    backendPasses: packBackend.hits,
+    backendN: packBackend.n,
+    baselineBackendPasses: baselineBackend.hits,
+    baselineBackendN: baselineBackend.n,
   };
-};
-
-/**
- * A rate as a reader sees it: a percentage that never appears without its denominator.
- *
- * This lives here rather than in the site for one reason. DATA-01 forbids a typed figure
- * in site source, and the conversion needs the constant 100 — so a component computing
- * its own percentage has to type a number into the one place the rule is absolute. Moving
- * the formatting next to the records keeps the site's figure path free of literals
- * entirely, which is what makes the gate checkable rather than negotiable.
- *
- * No statistic is computed here. `hits` and `n` are counts the records already hold; this
- * rounds their ratio and re-attaches `n`, because a percentage without its denominator is
- * the shape this project refuses to publish.
- *
- * @throws {RangeError} `n` is zero or negative — an empty denominator has no rate, and
- * returning "0%" for it would state a measurement that was never made.
- */
-export const formatRate = ({ hits, n }: { hits: number; n: number }): string => {
-  if (n <= 0) {
-    throw new RangeError(`a rate needs a denominator, got n=${String(n)}`);
-  }
-
-  return `${String(Math.round((hits / n) * 100))}% n=${String(n)}`;
 };
 
 /** The same ratio as a whole-number percentage, for callers assembling their own phrase. */

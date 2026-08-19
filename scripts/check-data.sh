@@ -207,7 +207,7 @@ const walk = ({ dir }) => {
       continue;
     }
 
-    if (/\.(ts|astro|css)$/.test(name)) found.push(path);
+    if (/\.(ts|tsx|astro|css)$/.test(name)) found.push(path);
   }
 
   return found;
@@ -234,6 +234,17 @@ const scanCode = ({ file, source, code, offset }) => {
     let current = node.parent;
 
     while (current) {
+      // A JSX attribute is decided by the attribute, not by whatever declaration the climb
+      // would eventually reach. Two reasons, both verified: the generic rule reaches the
+      // component's own declaration and reports `Card`, which flags machine-facing
+      // `className="grid-2"` for no reason; and the same accident *passes*
+      // `title="47% of deliveries build"` inside a component called `LeaderboardRow`,
+      // because `/row/i` is layout vocabulary. So the exemption is granted here and the
+      // reader-facing case is blocked below, on the attribute itself.
+      if (ts.isJsxAttribute(current)) {
+        return '__exempt__';
+      }
+
       if (ts.isVariableDeclaration(current) || ts.isPropertyAssignment(current) ||
           ts.isPropertyDeclaration(current) || ts.isParameter(current)) {
         return current.name?.getText?.(sourceFile) ?? '';
@@ -276,6 +287,32 @@ const scanCode = ({ file, source, code, offset }) => {
   };
 
   const visit = (node) => {
+    // A rendered position in JSX. `ts.isJsxText` is not `ts.isStringLiteral`, so the
+    // generic rule below walks straight past `<p>47% of deliveries build</p>` — the hole a
+    // `.tsx` walk would have shipped rather than closed (case 69).
+    if (ts.isJsxText(node) && DIGIT.test(node.text)) {
+      violations.push(
+        `DATA-01b ${file}:${lineOf({ source, index: offset + node.getStart(sourceFile) })}: ` +
+        `a digit is typed into rendered JSX text (${JSON.stringify(node.text.trim().slice(0, 40))})`,
+      );
+    }
+
+    // The other rendered position in JSX, and the one the exemption above opens. Every
+    // attribute string initializer is already a `StringLiteral`, so the generic rule reads
+    // all of them with the wrong context; this branch decides them by name instead — the
+    // same list scanner 2 uses on `.astro`, because a screen reader is a reader (case 70).
+    if (ts.isJsxAttribute(node)) {
+      const attribute = node.name.getText(sourceFile);
+      const initializer = node.initializer?.getText?.(sourceFile) ?? '';
+
+      if (READER_FACING_ATTRIBUTES.has(attribute) && DIGIT.test(initializer)) {
+        violations.push(
+          `DATA-01b ${file}:${lineOf({ source, index: offset + node.getStart(sourceFile) })}: ` +
+          `a digit is typed into the reader-facing JSX attribute \`${attribute}\``,
+        );
+      }
+    }
+
     const literal =
       ts.isNumericLiteral(node) ||
       ((ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) &&
@@ -440,7 +477,14 @@ for (const path of walk({ dir: join(process.env.SITE_DIR, 'src') }).sort()) {
     continue;
   }
 
-  if (path.endsWith('.ts')) {
+  // `.tsx` routes here with `.ts`, and the branch is load-bearing rather than tidy: the
+  // test below used to be `endsWith('.ts')` alone, which `.tsx` fails, so widening only the
+  // walk regex sent every component down the Astro branch. The Astro parser reads a `.tsx`
+  // as a template, reports its code lines as pseudo-text, and blocks `const markSize = 8`
+  // as a rendered digit — the right verdict from the wrong scanner, and a false-positive
+  // machine. `ts.createSourceFile` infers TSX from the file name, which cases 69-71 prove
+  // by parsing JSX rather than by assertion.
+  if (path.endsWith('.ts') || path.endsWith('.tsx')) {
     scanCode({ file, source, code: source, offset: 0 });
     continue;
   }
