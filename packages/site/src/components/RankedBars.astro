@@ -1,0 +1,150 @@
+---
+import {
+  formatDenominator,
+  formatIntervalPercent,
+  formatRate,
+  rateFraction,
+} from '@plugdex/data';
+import type { ArmSummary } from '@plugdex/data';
+
+/**
+ * The landing figure: one bar per arm, ordered by point estimate, with the Wilson interval
+ * drawn over every bar as a whisker.
+ *
+ * **Why the whisker is not decoration.** DEC-005 refused a ranked landing view on a stated
+ * ground: a grid ordered by verdict asserts a confidence this corpus lacks, because four
+ * of five packs are indistinguishable from the baseline. A ranked bar chart that printed
+ * only the point estimates would assert exactly that. Drawing the interval on the same
+ * mark makes the overlap the most visible thing in the figure — the reader sees the order
+ * and sees, in the same glance, how much of it survives the sample size. That is the
+ * finding, not a caveat on the finding, which is why it is the hero rather than a footnote.
+ *
+ * **Every string is resolved before the markup.** The rows below carry finished text, so
+ * the template holds no comparison and no literal. That is not tidiness: DATA-01 reads a
+ * digit inside a rendered expression as a typed figure, and it is right to — a ternary in
+ * markup is exactly where an unsourced number gets in. What is left here is a width and a
+ * left offset, which is layout vocabulary rather than a figure a reader reads (DEC-017).
+ *
+ * **Both strings name their denominator, and the repetition is the rule working.** A
+ * percentage has to sit in an element that also states its `n` and its population, so the
+ * point estimate arrives from `formatRate` with the denominator baked in and the interval
+ * gets `formatDenominator` printed beside it. Splitting `73%` from `n=22 (frontend)` into
+ * two elements to save a line is exactly the shape AC-2 sweeps the built page for, and it
+ * caught this component the first time it was written that way.
+ */
+interface Props {
+  rows: readonly { arm: string; summary: ArmSummary }[];
+  hues: Readonly<Record<string, string>>;
+}
+
+const { rows, hues } = Astro.props;
+
+/** A fraction becomes a percentage of the track. The scale is named, so the literal is layout. */
+const fullWidthScale = 100;
+
+/** An unmeasured arm draws no fill; a zero-width bar would state a rate nobody measured. */
+const emptyFillWidth = 0;
+
+const baselineArm = 'baseline';
+const fallbackHue = 'var(--arm-base)';
+
+const measured = rows.filter((row) => row.summary.n > 0);
+const unmeasured = rows.filter((row) => row.summary.n === 0);
+
+const ordered = [
+  ...[...measured].sort(
+    (left, right) =>
+      (rateFraction({ summary: right.summary }) as number) -
+      (rateFraction({ summary: left.summary }) as number),
+  ),
+  ...[...unmeasured].sort((left, right) => left.arm.localeCompare(right.arm)),
+];
+
+/**
+ * One finished row: geometry as numbers, everything a reader reads as a string.
+ *
+ * The guards live here so the template never asks whether an arm was measured. An arm with
+ * no graded frontend cell gets the absence in words and no band at all — a band from zero
+ * to zero would draw an interval nobody computed.
+ */
+const view = ordered.map((row) => {
+  const wilson = row.summary.wilson;
+
+  if (row.summary.n === 0 || wilson === null) {
+    return {
+      arm: row.arm,
+      isBaseline: String(row.arm === baselineArm),
+      fillWidth: emptyFillWidth,
+      hue: hues[row.arm] ?? fallbackHue,
+      band: null,
+      estimateRate: undefined,
+      population: undefined,
+      value: 'no graded cell',
+      meta: formatDenominator({ n: row.summary.n, population: 'frontend' as const }),
+    };
+  }
+
+  const fraction = rateFraction({ summary: row.summary }) as number;
+
+  return {
+    arm: row.arm,
+    isBaseline: String(row.arm === baselineArm),
+    fillWidth: fraction * fullWidthScale,
+    hue: hues[row.arm] ?? fallbackHue,
+    band: {
+      marginLeft: wilson.lo * fullWidthScale,
+      bandWidth: (wilson.hi - wilson.lo) * fullWidthScale,
+    },
+    estimateRate: `${row.arm}-estimate`,
+    population: 'frontend' as const,
+    value: formatRate({ hits: row.summary.hits, n: row.summary.n, population: 'frontend' as const }),
+    meta: `${formatIntervalPercent(wilson)} ${formatDenominator({ n: row.summary.n, population: 'frontend' as const })}`,
+  };
+});
+---
+
+<div class="ranked" data-ranked>
+  {
+    view.map((row) => (
+      <div class="rrow" data-ranked-row={row.arm} data-baseline={row.isBaseline}>
+        <span class="rname">{row.arm}</span>
+
+        <div class="rtrack">
+          <span class="rfill" style={`width:${String(row.fillWidth)}%;--bar:${row.hue}`} />
+
+          {row.band === null ? null : (
+            <span
+              class="rband"
+              data-ranked-band={row.arm}
+              style={`left:${String(row.band.marginLeft)}%;width:${String(row.band.bandWidth)}%`}
+            />
+          )}
+
+        </div>
+
+        <span
+          class="rval"
+          data-rate={row.estimateRate}
+          data-population={row.population}
+          data-ranked-value={row.arm}
+        >
+          {row.value}
+        </span>
+
+        <span
+          class="rmeta"
+          data-rate={row.estimateRate === undefined ? undefined : `${row.arm}-interval`}
+          data-population={row.population}
+        >
+          {row.meta}
+        </span>
+      </div>
+    ))
+  }
+</div>
+
+<p class="legend-key">
+  <span><span class="whisker-key" aria-hidden="true"></span> Wilson interval</span>
+  <span>bar = point estimate</span>
+  <span>dashed track = baseline (no pack installed)</span>
+</p>

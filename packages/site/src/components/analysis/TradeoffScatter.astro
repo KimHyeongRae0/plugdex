@@ -21,9 +21,22 @@ interface Props {
   axisTitle: string;
   points: readonly ParetoPoint[];
   frontier: readonly ParetoPoint[];
+  /**
+   * One colour per arm, so a reader can follow the same arm from the ranked bars to this
+   * chart. Optional: the evidence page draws one hue for every dot, because there the
+   * chart sits among five other figures that already key colour to cell state, and a
+   * second colour language on the same page would compete with it.
+   */
+  hues?: Readonly<Record<string, string>>;
+  /**
+   * The point whose quadrant is shaded: everything cheaper *and* better than it. Passing
+   * the baseline shades "beats installing nothing on both axes at once", which is the only
+   * comparison this corpus supports without a weighting nobody can source.
+   */
+  quadrant?: { x: number; y: number } | null;
 }
 
-const { kind, title, axisTitle, points, frontier } = Astro.props;
+const { kind, title, axisTitle, points, frontier, hues, quadrant = null } = Astro.props;
 
 const chartWidth = 420;
 const chartHeight = 300;
@@ -38,6 +51,8 @@ const headroomScale = 1.15;
 const coordinateScale = 100;
 const originIndex = 0;
 const labelBaselineGap = 3;
+const quadrantLabelMarginX = 8;
+const quadrantLabelMarginY = 15;
 const axisLabelGap = 15;
 const halfScale = 2;
 const fullScale = 1;
@@ -67,7 +82,19 @@ const drawn = points.map((point) => ({
   id: point.id,
   cx: atX({ value: point.x }),
   cy: atY({ value: point.y }),
+  hue: hues?.[point.id] ?? null,
 }));
+
+/** The shaded region: left of the reference on cost, above it on rate. */
+const shaded =
+  quadrant === null
+    ? null
+    : {
+        x: plotPaddingLeft,
+        y: plotPaddingTop,
+        width: Math.max(originIndex, atX({ value: quadrant.x }) - plotPaddingLeft),
+        height: Math.max(originIndex, atY({ value: quadrant.y }) - plotPaddingTop),
+      };
 
 /**
  * A line needs two distinct positions on the x axis; one point is not a trade-off.
@@ -149,12 +176,43 @@ const sole = frontier[originIndex];
       </text>
     </g>
 
+    {
+      shaded === null ? null : (
+        <rect
+          class="quadrant"
+          data-quadrant="true"
+          x={shaded.x}
+          y={shaded.y}
+          width={shaded.width}
+          height={shaded.height}
+        />
+      )
+    }
+
+    {
+      shaded === null ? null : (
+        <text
+          class="quadrant-label"
+          x={shaded.x + quadrantLabelMarginX}
+          y={shaded.y + quadrantLabelMarginY}
+        >
+          cheaper and better than baseline
+        </text>
+      )
+    }
+
     {drawsLine ? <path class="pareto" d={geometry} /> : null}
 
     {
       drawn.map((point) => (
         <>
-          <circle class="dot" cx={point.cx} cy={point.cy} r={dotRadius} />
+          <circle
+            class="dot"
+            cx={point.cx}
+            cy={point.cy}
+            r={dotRadius}
+            style={point.hue === null ? undefined : `fill:${point.hue}`}
+          />
           <text class="dotlabel" x={point.cx + dotLabelGap} y={point.cy + labelBaselineGap}>
             {point.id}
           </text>
