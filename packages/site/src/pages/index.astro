@@ -1,29 +1,42 @@
 ---
-import { loadAcceptanceRecords, verdictFor } from '@plugdex/data';
+import {
+  armSummary,
+  loadAcceptanceRecords,
+  loadEconomics,
+  paretoFrontier,
+  verdictFor,
+} from '@plugdex/data';
+import type { ParetoPoint } from '@plugdex/data';
 import { entries } from '@plugdex/registry';
 
 import PackCard from '../components/PackCard.astro';
+import RankedBars from '../components/RankedBars.astro';
+import TradeoffScatter from '../components/analysis/TradeoffScatter.astro';
 import '../styles/global.css';
 
 /**
- * The catalogue.
+ * The catalogue, led by the figure the catalogue is about.
  *
  * The corpus is loaded at build time and every verdict is derived from it, so the emitted
  * HTML carries the figures and the page needs no JavaScript to be read. The withdrawn run
  * is excluded by the loader's default view — it reads the record's own `withdrawn` field
- * (PDX-016), so these cards count the same cells every published figure counts.
+ * (PDX-016), so these figures count the same cells every published figure counts.
  *
  * **One condition, named on the page (DEC-020).** Every run executed under `blocked` or
  * `as-shipped`, and the two are not one population: the baseline build rate is 5/20 in
- * one and 8/11 in the other. Pooling them produced 13/31 — a rate that exists under
- * neither condition, which is what this page rendered until `regime` became a record
- * field (PDX-017). It is not averaged and it is not shown as two numbers per card either:
- * `as-shipped` is a smaller side experiment that never ran one of the arms at all, so a
- * second column would invite a comparison across unequal designs. The catalogue reports
- * the `blocked` condition, says so, and links the other rather than folding it in.
+ * one and 8/11 in the other. Pooling them produced a rate that exists under neither.
  *
- * Alphabetical order, deliberately. DEC-005 refuses a leaderboard, and ordering the grid
- * by verdict would be one by another name.
+ * **The ordering, and what it is allowed to mean.** DEC-005 refused a ranked landing view,
+ * and its ground was specific: an order asserts a confidence this corpus lacks. The lead
+ * figure here is ordered — and draws the 95% Wilson interval on every bar, so the overlap
+ * is the most visible thing in it. DEC-025 already fixed that boundary for the evidence
+ * page ("sorting by point estimate while publishing the intervals is how a benchmark
+ * reader audits a claim; hiding the order while publishing the same numbers would be
+ * coyness rather than caution"). Bringing it to the landing page keeps every condition
+ * that argument rested on: the interval is drawn, not tucked into a column; the refusal of
+ * a composite index is stated on the page in a `data-composite-index="refused"` element;
+ * the cards below stay alphabetical and decision-first; and no chip and no single score
+ * spans the two populations.
  */
 const REGIME = 'blocked';
 
@@ -32,6 +45,13 @@ const corpus = loadAcceptanceRecords({
   regime: REGIME,
 });
 
+const economics = loadEconomics({
+  dir: new URL('../../../../bench/data/runs', import.meta.url).pathname,
+  corpus,
+});
+
+const cells = corpus.cells;
+
 const packs = [...entries]
   .sort((left, right) => left.displayName.localeCompare(right.displayName))
   .map((entry) => ({
@@ -39,7 +59,100 @@ const packs = [...entries]
     verdict: verdictFor({ packId: entry.packId, cells: corpus.cells }),
   }));
 
+const arms = [...entries.map((entry) => entry.packId), 'baseline'];
+
+const rows = arms.map((arm) => ({ arm, summary: armSummary({ cells, arm }) }));
+
+/**
+ * One hue per arm, assigned by position in the alphabetical arm list rather than by rank.
+ *
+ * Keyed to rank, the colour would encode the ordering a second time and make a weak
+ * ranking look like a strong one. Keyed to identity, it does what a legend colour is for:
+ * it lets a reader follow one arm across the two figures on this page. The baseline keeps
+ * the colourless graphite — the control is not a competitor.
+ */
+const palette = [
+  'var(--arm-flame)',
+  'var(--arm-sky)',
+  'var(--arm-iris)',
+  'var(--arm-rose)',
+  'var(--arm-jade)',
+];
+
+const hues: Record<string, string> = { baseline: 'var(--arm-base)' };
+
+[...entries]
+  .map((entry) => entry.packId)
+  .sort((left, right) => left.localeCompare(right))
+  .forEach((packId, index) => {
+    hues[packId] = palette[index % palette.length] as string;
+  });
+
+/** The cost frontier, drawn from the same records the leaderboard reads. */
+const costPoints: readonly ParetoPoint[] = economics.arms
+  .map((econ) => {
+    const summary = armSummary({ cells, arm: econ.arm });
+
+    return summary.n > 0 && econ.cost.value !== null
+      ? { id: econ.arm, x: econ.cost.value, y: summary.hits / summary.n }
+      : null;
+  })
+  .filter((point): point is ParetoPoint => point !== null);
+
+const costFrontier = paretoFrontier({ points: costPoints });
+
+/**
+ * The reference the shaded quadrant is drawn from: the baseline, when it has both a cost
+ * and a rate. Shading "cheaper and better than installing nothing" is the only region this
+ * corpus can defend — any other corner would need a weighting across the two axes, which is
+ * the composite index this page refuses in as many words.
+ */
+const baselinePoint = costPoints.find((point) => point.id === 'baseline') ?? null;
+
+/**
+ * Who is actually in the shaded quadrant — derived, because an empty region is a finding
+ * and an unexplained green box is not. On the live corpus this is empty: ponytail builds
+ * three times as often as the baseline and costs more per cell to do it, so nothing here
+ * is both cheaper and better than installing nothing.
+ */
+const inQuadrant =
+  baselinePoint === null
+    ? []
+    : costPoints
+        .filter(
+          (point) =>
+            point.id !== 'baseline' &&
+            point.x < baselinePoint.x &&
+            point.y > baselinePoint.y,
+        )
+        .map((point) => point.id);
+
 const withdrawn = corpus.withdrawnRecords.length;
+
+const measured = rows.filter((row) => row.summary.n > 0);
+const baselineRow = rows.find((row) => row.arm === 'baseline');
+const baselineHigh = baselineRow?.summary.wilson?.hi ?? null;
+
+/** The one thing the ordering supports, derived rather than asserted. */
+const clears = measured
+  .filter(
+    (row) =>
+      row.arm !== 'baseline' &&
+      baselineHigh !== null &&
+      row.summary.wilson !== null &&
+      row.summary.wilson.lo > baselineHigh,
+  )
+  .map((row) => row.arm);
+
+const anyClears = clears.length > 0;
+const anyInQuadrant = inQuadrant.length > 0;
+
+const sections = [
+  { id: 'build', label: 'Build rate' },
+  { id: 'cost', label: 'Cost frontier' },
+  { id: 'packs', label: 'The packs' },
+  { id: 'method', label: 'Method' },
+];
 ---
 
 <html lang="en">
@@ -54,60 +167,155 @@ const withdrawn = corpus.withdrawnRecords.length;
   </head>
 
   <body>
-    <div class="wrap">
-      <nav class="sitenav" aria-label="sections">
+    <div class="topbar">
+      <nav class="topbar-in sitenav" aria-label="sections">
         <span class="brand">plugdex</span>
         <a href="/" aria-current="page">catalogue</a>
         <a href="/analysis">analysis</a>
       </nav>
+    </div>
 
-      <header class="masthead">
-        <h1>plugdex</h1>
-        <p>
-          Behaviour packs for Claude Code, with a verdict beside each one. Every pack here
-          was run against real tickets in a real repository, and the code it delivered was
-          built. Each card states the pack's build rate and the baseline's, both with their
-          denominators, and leaves the comparison to you — the corpus is not large enough
-          for us to make it on your behalf.
-        </p>
-        <p>
-          Every figure below is the <span class="mono">{REGIME}</span> condition: the agent
-          was given the ticket with Bash withheld and told to write rather than run. A
-          second condition was measured with Bash allowed, at a smaller sample and without
-          one of the arms. The two are not averaged together — the gap between their
-          baselines is as wide as the widest gap any pack opens on its own baseline — so
-          this page reports one condition and names it rather than publishing a rate that
-          describes neither.
-        </p>
-        <p>
-          The headline on every card is the <strong>frontend build rate</strong>: the share
-          of frontend tickets whose delivered code the repository's own build accepted. The
-          backend tickets are graded by a different gate — whether the delivered code imports
-          and introduces no new lint or type diagnostic
-          — so they are printed beside it rather than folded into it. Two populations, two
-          denominators, no single number spanning both. The
-          <a href="/analysis">analysis page</a> shows what each of them is made of.
-        </p>
-        <p>
-          Runs withdrawn as instrument failures are excluded and stay on record; the
-          count of them is <span class="mono">{withdrawn}</span>.
-        </p>
-      </header>
+    <div class="wrap">
+      <div class="shell">
+        <nav class="rail" aria-label="figures">
+          <span class="rail-head">Measured</span>
+          {sections.map((section) => <a href={`#${section.id}`}>{section.label}</a>)}
+        </nav>
 
-      <ul class="grid">
-        {
-          packs.map(({ entry, verdict }) => (
-            <PackCard
-              packId={entry.packId}
-              displayName={entry.displayName}
-              author={entry.author}
-              upstreamRepo={entry.installSource.repo}
-              stars={entry.stars}
-              verdict={verdict}
-            />
-          ))
-        }
-      </ul>
+        <main>
+          <header class="masthead">
+            <p class="eyebrow">Behaviour packs for Claude Code</p>
+            <h1>Does the code it writes actually build?</h1>
+            <p>
+              Every pack here was installed and run against real tickets in a real
+              repository, unattended, and the code it delivered was put through that
+              repository's own build. This is the result. There is no submission form and no
+              self-reported score — a listing carries a measurement or it carries nothing.
+            </p>
+          </header>
+
+          <section class="panel" id="build">
+            <p class="eyebrow">Frontend build rate · {REGIME} condition</p>
+            <h2>Share of tickets whose delivered code built</h2>
+            <p class="panel-sub">
+              Ordered by point estimate, with the Wilson interval drawn on every bar.
+              The overlap is the point: read the order, then read how much of it survives a
+              corpus this size.
+            </p>
+
+            <RankedBars rows={rows} hues={hues} />
+
+            <p class="callout" data-composite-index="refused">
+              <strong>There is no composite index here, and that is deliberate.</strong> A
+              single score would need weights across build rate, cost, turns and silence, and
+              this corpus gives no basis for choosing them — an index would be our opinion
+              wearing a number's clothes. What the ordering above supports is one sentence:
+              {
+                anyClears
+                  ? ` of the measured arms, ${clears.join(', ')} clears the baseline's interval outright. Every other interval overlaps the baseline's, so at these sample sizes those packs are not distinguishable from installing nothing.`
+                  : ' no measured arm clears the baseline’s interval outright, so at these sample sizes none of them is distinguishable from installing nothing.'
+              }
+            </p>
+          </section>
+
+          <section class="panel" id="cost">
+            <p class="eyebrow">Cost against build rate</p>
+            <h2>What a build is worth paying for</h2>
+            <p class="panel-sub">
+              Mean cost per cell against the frontend build rate. Up and to the left is
+              better; the shaded region is the quadrant that beats the baseline on both.
+            </p>
+
+            <div class="figure-row">
+              <TradeoffScatter
+                kind="cost"
+                title="Build rate against mean cost per cell"
+                axisTitle="Mean cost per cell (USD)"
+                points={costPoints}
+                frontier={costFrontier}
+                hues={hues}
+                quadrant={baselinePoint}
+              />
+
+              <ul class="arm-key">
+                {
+                  [...rows]
+                    .sort((left, right) => left.arm.localeCompare(right.arm))
+                    .map((row) => (
+                      <li>
+                        <span class="swatch" style={`background:${hues[row.arm] ?? 'var(--arm-base)'}`} />
+                        {row.arm}
+                      </li>
+                    ))
+                }
+              </ul>
+            </div>
+
+            <p class="callout">
+              {
+                anyInQuadrant
+                  ? `In the shaded quadrant: ${inQuadrant.join(', ')} — cheaper per cell than installing nothing, and building more often.`
+                  : 'The shaded quadrant is empty, and that is the result. No pack here is both cheaper per cell than installing nothing and better at getting code to build. The one arm that clears the baseline on build rate costs more per cell to do it, so the choice is a trade rather than a free win — which is why this page draws the axes instead of ranking them into one number.'
+              }
+            </p>
+          </section>
+
+          <section id="packs">
+            <p class="eyebrow">Alphabetical · not ranked</p>
+            <h2>The packs</h2>
+            <p class="panel-sub">
+              The cards stay alphabetical. Each states the pack's build rate and the
+              baseline's, both with their denominators, and draws no comparison between
+              them.
+            </p>
+
+            <ul class="grid">
+              {
+                packs.map(({ entry, verdict }) => (
+                  <PackCard
+                    packId={entry.packId}
+                    displayName={entry.displayName}
+                    author={entry.author}
+                    upstreamRepo={entry.installSource.repo}
+                    stars={entry.stars}
+                    verdict={verdict}
+                  />
+                ))
+              }
+            </ul>
+          </section>
+
+          <section class="panel prose" id="method">
+            <p class="eyebrow">Method</p>
+            <h2>What these numbers are, exactly</h2>
+
+            <p>
+              Every figure above is the <span class="mono">{REGIME}</span> condition: the
+              agent was given the ticket with Bash withheld and told to write rather than
+              run. A second condition was measured with Bash allowed, at a smaller sample
+              and without one of the arms. The two are not averaged together — the gap
+              between their baselines is as wide as the widest gap any pack opens on its own
+              baseline — so this page reports one condition and names it rather than
+              publishing a rate that describes neither.
+            </p>
+
+            <p>
+              The headline is the <strong>frontend build rate</strong>: the share of frontend
+              tickets whose delivered code the repository's own build accepted. The backend
+              tickets are graded by a different gate — whether the delivered code imports and
+              introduces no new lint or type diagnostic — so they are printed beside it
+              rather than folded into it. Two populations, two denominators, no single number
+              spanning both. The <a href="/analysis">analysis page</a> shows what each of them
+              is made of, cell by cell.
+            </p>
+
+            <p>
+              Runs withdrawn as instrument failures are excluded and stay on record; the
+              count of them is <span class="mono">{withdrawn}</span>.
+            </p>
+          </section>
+        </main>
+      </div>
     </div>
 
     <script>
