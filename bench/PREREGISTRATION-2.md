@@ -142,6 +142,17 @@ Every valid superpowers cell was checked, not a sample:
 | `as-shipped`, 3 tasks, **sonnet** | 3 / 3 |
 | **Total** | **68 / 69** |
 
+**Withdrawn 2026-08-19 (CLAIM-01): this table is superseded and is kept for the record.**
+D-002 re-derived the same finding over the corrected corpus and reports **49 / 50**, and
+that is the figure every published surface uses. Two things moved it. The withdrawn run
+`20260815-225842` was excluded once withdrawal became a field on the record rather than a
+prefix in a filename (PDX-016), and the regime of two sonnet runs was re-adjudicated from
+documents rather than from filenames (PDX-017, DEC-019) — `20260816-222615` is adjudicated
+`blocked` in `bench/DERIVATIONS.md` D-004, which is the opposite of the condition this
+table files it under, and D-004 grades its own evidence for that as inference rather than
+as machine-written. The finding itself is unchanged in direction and strength; only the
+denominator and the per-condition rows moved.
+
 The 18 as-shipped cells include the 9 `ponytail+superpowers` cells: loading ponytail alongside
 it does not suppress the behaviour.
 
