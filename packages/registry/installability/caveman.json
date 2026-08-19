@@ -1,0 +1,16 @@
+{
+  "attemptedAt": "2026-08-18T22:57:08Z",
+  "cliVersion": "2.1.233 (Claude Code)",
+  "outcome": "blocked",
+  "pack": "caveman",
+  "repo": "JuliusBrussee/caveman",
+  "signature": {
+    "keys": [
+      "agents"
+    ],
+    "kind": "manifest-validation"
+  },
+  "transport": "https",
+  "upstreamHead": "6c5eea66548edd858d9ed5ed80541d2e34760191",
+  "verbatim": "Installing plugin \"caveman@plugdex\"...\u2718 Failed to install plugin \"caveman@plugdex\": Plugin <cache-id> has an invalid manifest file at <scratch>/claude-home/plugins/cache/<cache-id>/.claude-plugin/plugin.json.\n\nValidation errors: agents: Invalid input"
+}
