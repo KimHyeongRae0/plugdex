@@ -71,11 +71,26 @@ with a clone, and four of them were falsified that way while this ticket was bei
          condition the shipped chip means. Correct whichever is wrong — but say which, and
          say that they disagreed.
       4. `bench/README.md:186` — method commitment 5, "Invalid cells are counted in the
-         denominator, with their reasons." Counted independently across `bench/data/runs/`:
-         **90 invalid of 447 acceptance rows, 7 of 441 results rows**, and the results records
-         carry no `valid` key at all. DEC-024 pools the *results* rows for economics. The
-         commitment is true of one record kind and false of the other; PDX-026 fixes the
-         substance, this AC fixes the sentence and says the substance is owed.
+         denominator, with their reasons." The two record kinds carry a field of the same
+         name that means two different things. Counted across `bench/data/runs/`,
+         non-withdrawn runs only: **acceptance marks 88 invalid, results marks 7**, over the
+         same 93 `(task, arm, model)` keys — and they **disagree on 30 of the 93**. The
+         reasons say why they cannot both be commitment 5: acceptance's are execution
+         failures (`api_error: session limit` ×74, `killed-on-cell-timeout` ×7,
+         `no-work` ×2), results' are all parse failures
+         (`unparseable result json` ×7). One field name, two predicates, no sentence
+         anywhere saying which one "invalid" means. PDX-026 fixes the substance; this AC
+         fixes the sentence and states that the substance is owed.
+         *Recorded because the first version of this AC got it wrong and shipped
+         (commit `7909c40`, PR #16): it claimed "the results records carry no `valid` key at
+         all", read off a truncated key counter. They carry it in 369 of 441 rows; the 72
+         without are the withdrawn run in its entirety. The corrected finding is the stronger
+         one, and the way it was found — re-deriving a claim instead of citing it — is the
+         method this whole ticket is about.*
+         Not a defect in what the site publishes: `packages/data/src/economics.ts:211`
+         already pools every joined row including invalid cells, deliberately and in writing,
+         because the money was spent whether or not the cell was later invalidated. The
+         defect is the `bench/README.md` sentence, not the figure.
       5. `bench/README.md` — "The repository's own 60-test backend suite runs on every probe"
          and "Four of eight". `grep -n pytest bench/harness/acceptance.py` returns nothing;
          `bench/harness/gate_probes.py:91` lists pytest among its checks. Under the gate we

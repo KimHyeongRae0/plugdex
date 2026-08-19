@@ -12,12 +12,42 @@ about the same question — *what makes a cell valid, and where is that written 
 marks 78 of its 165 cells invalid, each with a reason, while the results record for the same
 run marks **zero** of the same 165 rows invalid, every one carrying `"valid": true` and an
 empty `invalid_reason`. Two more runs disagree the same way, always in the same direction.
-Two later runs agree exactly (3 and 3, 4 and 4), which says the harness was corrected at
-some point and the earlier records were never regenerated. Counted over the whole corpus:
-**90 invalid cells by the acceptance records, 7 by the results records.** The site grades
-cells from the acceptance record and pools economics from the results rows, so today a
-published mean is taken over rows the same corpus calls invalid — a defensible policy that
-nothing states, resting on a contradiction nothing detects.
+Counted over the whole corpus: **90 invalid cells by the acceptance records, 7 by the
+results records** (88 and 7 excluding the withdrawn run). The site grades cells from the
+acceptance record and pools economics from the results rows, so today a published mean is
+taken over rows the same corpus calls invalid — a defensible policy that nothing states,
+resting on a contradiction nothing detects.
+
+**Corrected 2026-08-20 — the original diagnosis in this paragraph was wrong, and a plan
+built on it would not have fixed anything.** It read the two runs that agree on the count
+(`20260816-113302-as-shipped` 3 and 3, `20260817-162601-sonnet-three-questions` 4 and 4) as
+evidence that "the harness was corrected at some point and the earlier records were never
+regenerated", and the implied remedy is to regenerate the older records. Comparing the
+*reasons* rather than the counts falsifies that:
+
+| run | acceptance | results |
+|---|---|---|
+| `20260816-113302-as-shipped` | `killed-on-cell-timeout` ×3 | `unparseable result json` ×3 |
+| `20260817-162601-sonnet-three-questions` | `killed-on-cell-timeout` ×4 | `unparseable result json` ×4 |
+| `20260816-010513-backend-and-dead-frontend` | `api_error: session limit` ×74, `api_error: not logged in` ×1, `api_error: computer slept` ×2, `no-work` ×1 | none |
+| `20260816-094958-as-shipped-partial` | `aborted_streaming` ×1, `aborted_tools` ×1 | none |
+| `20260816-092732-caveman-blocked` | `no-work` ×1 | none |
+
+The two "agreeing" runs never agreed on anything but the number. A cell killed on a timeout
+writes no parseable result JSON, so the same event trips both fields for mechanically
+different reasons — the counts coincide because one cause produces both, not because a fix
+landed. And `results.valid` is not a weaker version of `acceptance.valid`; it is a different
+predicate that **structurally cannot** see 74 of the 88. A cell that dies on a session-limit
+API error still writes well-formed JSON, so nothing regeneration could do would make the
+results record mark it invalid.
+
+That changes what this ticket has to do. The remedy is not to re-run a generator until the
+two fields match — they cannot match, because only one of them is asking about validity at
+all. `results.valid` is a **parse-success flag wearing the name of a validity verdict**, and
+the fix is to give it its own name and make one record the single source of the verdict.
+Also unequal in two runs: row counts, not just invalid counts (76 vs 72 in the withdrawn
+run, 20 vs 18 in `as-shipped-partial`), so a join that assumes parity is a second latent
+defect.
 
 **Second, the validity predicate discards a behaviour rather than a failure.**
 `bench/harness/acceptance.py:313` reads
@@ -63,10 +93,22 @@ recorded fact with a stated rule, re-grades the corpus under it, and publishes w
       `invalid_reason` as normative, and the other either omits them or is derived from the
       first at write time. The choice is written down with its reason. A loader that reads
       the non-normative copy fails a test that plants a contradiction between the two.
-- [ ] AC-2: the 83-cell disagreement is **gone by regeneration, not by editing**: the
-      acceptance and results records for every run agree on validity for every cell, and the
-      script that produced the agreement is in the repository and re-runnable offline
-      against the preserved workspaces.
+- [ ] AC-2: the disagreement is **gone by derivation, not by editing and not by re-running
+      the original generator**. Rewritten 2026-08-20: the previous wording said "gone by
+      regeneration", which §1's correction shows would reproduce it exactly — `results.valid`
+      is a parse-success flag and cannot see the 74 session-limit cells however many times it
+      is regenerated. What must hold instead: the normative record chosen in AC-1 is the only
+      thing that computes a verdict, the other kind's field is written from it or dropped, and
+      the script that does so is in the repository and re-runnable offline against the
+      preserved workspaces. Verified by re-deriving the comparison this ticket's §1 table
+      shows: **acceptance 88 invalid against results 7, differing on 30 of 93
+      `(task, arm, model)` keys**, must come out equal, with the reasons equal too — equal
+      counts are not agreement, which is the trap §1 fell into.
+- [ ] AC-2b: **the row counts are reconciled as well as the verdicts.** Two runs hold
+      different numbers of rows in the two kinds (76 vs 72 in the withdrawn run, 20 vs 18 in
+      `20260816-094958-as-shipped-partial`), so any join assuming parity is a second latent
+      defect. Either the counts match after this ticket, or the join names the asymmetry and
+      a test plants a row present in one kind and absent in the other.
 - [ ] AC-3: **the validity rule is stated as a predicate over recorded fields**, each clause
       justified by a failure it catches, and `turns<=1` is not among them. A cell with
       `terminal_reason: completed`, a positive cost and no error is valid whatever its turn
