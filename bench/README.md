@@ -39,8 +39,21 @@ ticket with no extra instruction:
 | `20260816-020247` + `20260816-094325` | frontend | 6 | 72 | **47%** | 64% |
 | `20260816-010513` | backend | 6 | 69 | **42%** | — |
 
-Two domains, two different gate stacks, 141 cells that produced code: **55% of it does not
-build.** Lenient ignores unused-variable diagnostics.
+Two domains, two different gate stacks, 141 cells that produced code: **55% of it fails its
+domain's gate.** Lenient ignores unused-variable diagnostics.
+
+**Corrected 2026-08-19 (CLAIM-01).** This sentence used to read "55% of it does not build",
+and for part of the pool that verb is false. The backend gate is not a build: it is
+`bool(be_files and ok_import and not new_diags)` — the code imports and introduces no new
+lint or type diagnostic. Over the published `blocked` pool, 11 of 51 backend failures fail
+on exactly one diagnostic, ruff `I001`, an unsorted import block. That code builds, imports
+and runs. Read strictly as "did not build or did not import", the figure over the 189
+code-producing cells of that pool is **52%**, not 58%; read as "failed its gate" it is 58%.
+Both are stated because they answer different questions, and the original sentence answered
+neither. Also undisclosed here until now: this 141-cell pool is the four arms common to both
+frontend runs and silently drops caveman's cells; including them the pool is larger and the
+rate moves. The per-domain figures the site publishes carry their own denominators and are
+unaffected.
 
 That is a level, not a ranking, so it needs no significance test. Rankings between packs
 are a different claim and this repository does not make one.
@@ -141,7 +154,9 @@ Four of eight injected defects passed **every** gate:
 | **component renders nothing** | **nothing** |
 
 So the honest scope is: this measures whether delivered code is alive, not whether it is
-correct. The 55% that fails is real. The 45% that passes is unproven.
+correct. The share that fails its gate is real. The share that passes is unproven — and for
+the backend half, "passes" means it imported cleanly and added no diagnostic, which is a
+weaker statement than "it builds" and a much weaker one than "it works".
 
 One probe prediction failed and is recorded as failed: `be-swallow-404` (a missing item returns
 `None` instead of raising 404) was predicted to slip through, and the repository's own test suite

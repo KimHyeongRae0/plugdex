@@ -216,10 +216,12 @@ packages/              pnpm workspace (planned; absence OK until each package's 
 
 ## Model policy
 
-Design, plans, and cross-reviews (REV-01 plan/report reviews) = **Fable**; ticket
-implementation and mechanical code work = **Opus** subagents. Reviews loop
-autonomously until they pass. Rationale: judgment quality where it matters,
-throughput where it counts.
+**Opus by default, for every role** — plans, cross-reviews, implementation, and mechanical
+work alike. Reviews loop autonomously until they pass.
+
+This replaces a split that sent design and review work to Fable. The split is retired by
+the user's instruction on 2026-08-19; a subagent is spawned with no model override so it
+inherits the session's model rather than naming one.
 
 ## Browser verification
 
