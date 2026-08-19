@@ -1,5 +1,16 @@
 export { entries, excludedArms } from './entries.js';
 export {
+  INSTALLABILITY_DIR,
+  installabilityFor,
+  installabilityRecords,
+  loadInstallabilityRecords,
+  MalformedInstallabilityError,
+  type BlockedRecord,
+  type InstallabilityRecord,
+  type InstallFailureSignature,
+  type InstallsRecord,
+} from './installability.js';
+export {
   buildMarketplace,
   DuplicatePackIdError,
   MARKETPLACE_PATH,

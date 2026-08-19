@@ -1,0 +1,10 @@
+{
+  "attemptedAt": "2026-08-18T22:55:14Z",
+  "cliVersion": "2.1.233 (Claude Code)",
+  "installedVersion": "1.2.3",
+  "outcome": "installs",
+  "pack": "mattpocock",
+  "repo": "mattpocock/skills",
+  "transport": "https",
+  "upstreamHead": "9c9f36ccd3995266cd675468af71639c8dde1ec5"
+}

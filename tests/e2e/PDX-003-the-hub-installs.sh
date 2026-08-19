@@ -188,11 +188,21 @@ fi
 # ---------------------------------------------------------------------------
 # AC-5 — the hub actually installs. The one that matters.
 #
-# The marketplace is added from a local path so nothing is published (CR-01), but the
-# install itself reaches GitHub because the source is a github repo. So this proves
-# end-to-end delivery of a real pack from a real upstream. What it does NOT prove is that
-# our marketplace is addable remotely — that needs this repository public, and the report
+# The marketplace is added from a local path so nothing is published (CR-01), but each
+# install reaches GitHub because the sources are github repos. So this proves end-to-end
+# delivery of real packs from real upstreams. What it does NOT prove is that our
+# marketplace is addable remotely — that needs this repository public, and the report
 # states the limit in those terms rather than the reverse.
+#
+# This assertion used to install the FIRST plugin in the manifest and stop. That was a cap
+# nobody had chosen: coverage depended on sort order, and on 2026-08-18 it only caught the
+# `caveman` breakage because `caveman` sorts first. Had the broken pack sorted second, the
+# suite would have gone green over a listing that does not install. PDX-023 replaced it
+# with `scripts/check-installability.sh`, which sweeps EVERY listing and compares each
+# outcome against its recorded state — so a pack recorded as installable must install, and
+# a pack recorded as blocked must still fail the same way. Marking a pack blocked is
+# therefore not a route to a green gate, which is the property that makes recording the
+# state honest rather than convenient.
 #
 # A missing `claude` binary is recorded and FAILS. The ticket calls this a loud skip; a
 # skip that leaves the run green would let the product's premise go unproven on any machine
@@ -203,51 +213,31 @@ if ! command -v claude >/dev/null 2>&1; then
 elif [[ ! -f "$MARKET" ]]; then
   fail "AC-5: no marketplace manifest to add"
 else
-  export CLAUDE_CONFIG_DIR="$SB/claude-home"
-  mkdir -p "$CLAUDE_CONFIG_DIR"
+  INST_LOG="$SB/installability.log"
+  INST_STATUS=0
 
-  PACK_REPORT=$(python3 -c "
+  ./scripts/check-installability.sh >"$INST_LOG" 2>&1 || INST_STATUS=$?
+
+  # The gate prints one line per listing. Counting them against the manifest is what turns
+  # "the gate exited 0" into "the gate looked at everything": an early return would exit 0
+  # having checked nothing, and the floor makes an empty sweep a failure rather than a
+  # vacuous pass (ASSERT-01).
+  SWEPT=$(grep -c '^INST-01 PACK ' "$INST_LOG" 2>/dev/null || echo 0)
+  LISTED_COUNT=$(python3 -c "
 import json
-d = json.load(open('$MARKET'))
-plugins = d.get('plugins') or []
-print('SENTINEL ' + (plugins[0]['name'] + ' ' + d['name'] if plugins else ''))
-" 2>/dev/null)
+print(len(json.load(open('$MARKET')).get('plugins') or []))
+" 2>/dev/null || echo 0)
 
-  if [[ "$PACK_REPORT" != SENTINEL* ]]; then
-    fail "AC-5: $MARKET could not be read"
-  elif [[ -z "${PACK_REPORT#SENTINEL }" ]]; then
-    fail "AC-5: no plugin in the marketplace to install"
+  if [[ "$INST_STATUS" -ne 0 ]]; then
+    fail "AC-5: INST-01 blocked — $(grep -E '✗|INST-01' "$INST_LOG" | head -2 | tr '\n' ' ' | cut -c1-220)"
+  elif [[ -z "$LISTED_COUNT" || "$LISTED_COUNT" -lt 1 ]]; then
+    fail "AC-5: the manifest lists no plugins, so the sweep asserted nothing"
+  elif [[ "$SWEPT" -ne "$LISTED_COUNT" ]]; then
+    fail "AC-5: the gate reported on $SWEPT listing(s) but the manifest carries $LISTED_COUNT — a partial sweep is not a pass"
+  elif ! grep -q '^INST-01 PACK caveman ' "$INST_LOG"; then
+    fail "AC-5: caveman is not among the listings the gate swept — a pack that stops installing must stay listed and stay checked, not disappear (CLAIM-01)"
   else
-    read -r FIRST_PACK MKT_NAME <<<"${PACK_REPORT#SENTINEL }"
-
-    # The CLI clones the install source over SSH. On a machine with no GitHub SSH key
-    # that fails with a publickey error, which says nothing about our manifest or the
-    # author's repository — both are fine over HTTPS. So the plain install is tried
-    # first, and only a recognised transport failure earns one retry with an HTTPS
-    # rewrite scoped to this process via GIT_CONFIG_*, leaving the developer's global
-    # git config untouched. Which path succeeded is reported rather than smoothed over.
-    TRANSPORT="ssh"
-
-    install_pack() {
-      claude plugin install "${FIRST_PACK}@${MKT_NAME}" >"$SB/install.log" 2>&1
-    }
-
-    if ! claude plugin marketplace add "$PROJECT_ROOT" >"$SB/add.log" 2>&1; then
-      fail "AC-5: 'claude plugin marketplace add' rejected our generated manifest — $(tail -2 "$SB/add.log" | tr '\n' ' ')"
-    elif ! install_pack && ! {
-      grep -qE 'Permission denied \(publickey\)|Could not read from remote repository' "$SB/install.log" &&
-        TRANSPORT="https" &&
-        GIT_CONFIG_COUNT=1 \
-        GIT_CONFIG_KEY_0='url.https://github.com/.insteadOf' \
-        GIT_CONFIG_VALUE_0='git@github.com:' \
-        install_pack
-    }; then
-      fail "AC-5: install failed for ${FIRST_PACK}@${MKT_NAME} — $(tail -2 "$SB/install.log" | tr '\n' ' ')"
-    elif INSTALLED=$(claude plugin list 2>/dev/null) && grep -q "$FIRST_PACK" <<<"$INSTALLED"; then
-      pass "AC-5: ${FIRST_PACK}@${MKT_NAME} installed over ${TRANSPORT} and appears in the installed list"
-    else
-      fail "AC-5: install exited 0 but ${FIRST_PACK} is not in 'claude plugin list' — exit code alone asserted nothing"
-    fi
+    pass "AC-5: INST-01 swept all $LISTED_COUNT listings and every recorded install state reproduced, caveman included"
   fi
 fi
 

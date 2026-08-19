@@ -1,0 +1,10 @@
+{
+  "attemptedAt": "2026-08-18T22:55:14Z",
+  "cliVersion": "2.1.233 (Claude Code)",
+  "installedVersion": "4.9.0",
+  "outcome": "installs",
+  "pack": "ponytail",
+  "repo": "DietrichGebert/ponytail",
+  "transport": "https",
+  "upstreamHead": "2ed6c52c9d7e5e56942508591085fd45dea277d3"
+}
