@@ -70,10 +70,11 @@ is not defensible is a card that reads as a verdict on a pack.
 - [ ] AC-2: **an arm whose treatment never activated is labelled on the site**, in the same
       view as its rate, in words a reader cannot miss. The rate is not deleted and not
       recomputed; it is annotated with what it measured.
-- [ ] AC-3: **the two kinds of null are separated** in `bench/README.md` under CLAIM-01: the
-      previous sentence stays visible with its date and cause, and the replacement states
-      that karpathy's text was in context in 78/78 cells while mattpocock's skills were
-      invoked in 0/69.
+- [x] ~~AC-3: the two kinds of null are separated in `bench/README.md` under CLAIM-01.~~
+      **Absorbed by PDX-033 AC-1.8**, which rewrites `bench/README.md` in one pass. AC-2
+      above is **not** absorbed and stays here: it labels the arm on the site beside its rate,
+      which renders the derived activation field AC-1 produces, and PDX-033 writes no derived
+      field.
 - [ ] AC-4: **activation is verified for every arm, both directions.** The positive controls
       already exist in the transcripts and must be asserted rather than assumed: ponytail's
       marker text in its cells, superpowers' subagent marker, caveman's verbatim ruleset, and

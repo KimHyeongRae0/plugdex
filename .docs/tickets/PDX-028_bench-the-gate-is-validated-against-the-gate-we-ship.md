@@ -59,9 +59,12 @@ breaking unrelated functionality). The cost is a Postgres container in the gradi
       `shipped+tests` — so a catch by a gate the benchmark does not use can never again be
       counted as a catch. The two sets are read from one shared definition that
       `acceptance.py` also uses, so they cannot drift apart again.
-- [ ] AC-2: **the published table is corrected under CLAIM-01.** `bench/README.md` states 3
-      of 8 caught under the shipped gate, keeps the previous 4-of-8 reading visible with the
-      date and the cause, and stops implying the 60-test suite is part of the measurement.
+- [x] ~~AC-2: the published table is corrected under CLAIM-01.~~ **Absorbed by PDX-033
+      AC-1.5.** It is a sentence edit over `bench/README.md`, which PDX-033 rewrites in one
+      pass with seven other claims; running it here would conflict with that pass over the
+      same file. The substance is unchanged: 3 of 8 under the shipped gate, the previous
+      4-of-8 reading kept visible with its date and cause, and no implication that the
+      60-test suite is part of the measurement.
 - [ ] AC-3: **the backend gate runs the fixture's test suite as PASS_TO_PASS**, compared as
       a delta against the pristine baseline exactly as the diagnostics already are — a test
       failing before the agent touched anything is not the agent's failure. Each cell records

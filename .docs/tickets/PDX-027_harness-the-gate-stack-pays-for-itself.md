@@ -29,6 +29,21 @@ gates are not the problem and this ticket does not touch them — a gate that co
 a second is not worth a decision, and removing one to save 0.1s while it holds a rule in
 place is the kind of tidying that trades a guarantee for nothing.
 
+**Re-measured 2026-08-20, after PDX-005 merged**, because a table in a ticket is exactly the
+kind of fact PLAN-01 says goes stale: 4,622 records now, `check-gates` at 2.93 hours over 671
+runs and still 6 catches, so **89.9% of leaf-gate wall clock** and **29.3 minutes per catch**.
+Timed live rather than averaged: `check-gates` **32.03s** (71/71), the seven cheap gates
+**1.78s combined**, full `verify.sh` **51.10s** — so `check-gates` is **62.7% of a verify run
+today**, up from the 14.4s historical average because the case set grew to 71. At ~98 verify
+runs per ticket (492 runs over 5 tickets), scoping saves roughly 49 minutes per ticket, which
+is about one ticket-cycle of payback.
+
+**The obvious cheaper alternative was tried and does not work.** Sharding the existing
+per-case selector with `xargs -P8` gives **22.70s against 32.03s — 1.4×**, because the cost is
+per-case sandbox setup rather than CPU. Parallelism is not the answer; scoping is. This is
+recorded so the next person does not spend a cycle re-deriving it, and so AC-5's measurement
+has a baseline to beat.
+
 `check-gates` is expensive for a good reason: it replays 71 planted violations against
 sandbox copies of the gates, and it grew from ~20 cases to 71 as the rules grew. It is also
 the reason GATE-01 means anything. **This ticket does not shrink the golden set and does not
@@ -119,5 +134,10 @@ and a change that touches no gate and no case cannot break it.
   built from; re-derive rather than trusting the table, it will have moved
 - GATE-01 in `CLAUDE.md` — the rule this ticket must not weaken
 - `.github/workflows/ci.yml`, the `changed` job — the scoping pattern this reuses
-- PDX-026 — the other half of the same directive; it lands first, because a validity change
-  re-grades every pool and this ticket only changes scheduling
+- PDX-026 — the other half of the same directive. **This ticket previously claimed PDX-026
+  "lands first"; that ordering was wrong and is withdrawn (2026-08-20).** The two touch
+  disjoint trees — PDX-026 is `bench/harness/`, `bench/data/runs/`, `packages/data/`; this is
+  `scripts/`, hooks, CI, `tests/meta/cases/`. The reason given for the ordering ("a validity
+  change re-grades every pool and this ticket only changes scheduling") is an argument that
+  they are *independent*, not that one precedes the other. Either order works, and they can
+  run concurrently.

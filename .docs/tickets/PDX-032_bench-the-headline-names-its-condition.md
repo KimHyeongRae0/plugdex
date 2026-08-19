@@ -1,7 +1,13 @@
 # PDX-032 — bench: the headline names its condition
 
-- Status: TODO
+- Status: SUPERSEDED by PDX-033 (2026-08-20)
 - Created: 2026-08-19
+
+> **Superseded in whole by `.docs/tickets/PDX-033_docs-every-published-claim-is-true-in-one-pass.md`.**
+> Same reason as PDX-030: this ticket and three others edit one prose surface. Its ACs are
+> carried into PDX-033 AC-1.7 and AC-3 through AC-8, including the parts that are not prose —
+> the derived matched comparison and the condition-naming sweep over built output. Nothing
+> here is dropped. Kept unedited for the record of what was scoped and when.
 
 ## 1. Goal
 

@@ -1,7 +1,15 @@
 # PDX-030 — docs: the premise is narrower than we published
 
-- Status: TODO
+- Status: SUPERSEDED by PDX-033 (2026-08-20)
 - Created: 2026-08-19
+
+> **Superseded in whole by `.docs/tickets/PDX-033_docs-every-published-claim-is-true-in-one-pass.md`.**
+> The premise correction is one of eight claims that share `README.md`, `CLAUDE.md`,
+> `DESIGN.md`, `bench/README.md` and `bench/DERIVATIONS.md`. Correcting them in four
+> separate cycles means four plan reviews, four report reviews and a merge conflict between
+> each pair over the same four files — and it leaves a reader who arrives mid-sequence with a
+> half-corrected story. The ACs below are carried into PDX-033 AC-1.6, AC-2 and AC-9; nothing
+> here is dropped. Kept unedited for the record of what was scoped and when.
 
 ## 1. Goal
 
