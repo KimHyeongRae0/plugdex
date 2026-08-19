@@ -18,7 +18,73 @@ export {
   UnreasonedWithdrawalError,
 } from './load.js';
 
-export { verdictFor, formatRate, percentOf } from './verdict.js';
+export { verdictFor, percentOf } from './verdict.js';
+
+export { gradeCell, domainOf, graderLabel, stateLabel } from './grade.js';
+
+export type { CellState, Domain } from './grade.js';
+
+export {
+  armOrder,
+  armSummary,
+  formatCellLabel,
+  cellGrid,
+  domainSummary,
+  invalidByTask,
+  rateFraction,
+  taskOrder,
+  taskSummary,
+} from './aggregate.js';
+
+export type {
+  ArmSummary,
+  CellGrid,
+  CellMark,
+  GridSquare,
+  GridTotals,
+  InvalidByTask,
+  RateSummary,
+  TaskSummary,
+} from './aggregate.js';
+
+export {
+  axisTicks,
+  formatAbsent,
+  formatMeasured,
+  formatCountOverCount,
+  formatDomainLabel,
+  formatDenominator,
+  formatGradedCells,
+  formatIntervalPercent,
+  formatLoc,
+  formatMoney,
+  formatMoneyTick,
+  formatPercentTick,
+  formatRate,
+  formatSeconds,
+  formatSecondsTick,
+  formatShortfall,
+  formatTaskLabel,
+  formatTokens,
+  formatTurns,
+  secondsOf,
+  wilson,
+} from './stats.js';
+
+export type { AxisTick, Interval, Population } from './stats.js';
+
+export {
+  loadEconomics,
+  measuredOrZero,
+  MalformedResultsRecordError,
+  OrphanResultsRecordError,
+} from './economics.js';
+
+export type { ArmEconomics, Economics, TokenShares } from './economics.js';
+
+export { paretoFrontier } from './pareto.js';
+
+export type { ParetoPoint } from './pareto.js';
 
 export type {
   AcceptanceCorpus,

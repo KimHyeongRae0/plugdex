@@ -1,0 +1,181 @@
+---
+import { axisTicks, formatMoneyTick, formatPercentTick, formatSecondsTick } from '@plugdex/data';
+import type { ParetoPoint } from '@plugdex/data';
+
+/**
+ * Build rate against what it costs you, with the Pareto frontier drawn only where one
+ * exists (AC-4).
+ *
+ * Every reader-visible token here — the tick labels, the dot labels, the sentence under a
+ * chart with no line — arrives formatted from `@plugdex/data`. Everything this component
+ * computes is a coordinate, which is the line DEC-017 draws: a number that becomes a
+ * position is layout, a number that becomes text is a figure.
+ *
+ * **A frontier of fewer than two distinct positions is drawn as nothing**, and the chart
+ * says which arm it is and why there is no line. An empty chart with no explanation is the
+ * shape AC-4 was written against.
+ */
+interface Props {
+  kind: 'cost' | 'seconds';
+  title: string;
+  axisTitle: string;
+  points: readonly ParetoPoint[];
+  frontier: readonly ParetoPoint[];
+}
+
+const { kind, title, axisTitle, points, frontier } = Astro.props;
+
+const chartWidth = 420;
+const chartHeight = 300;
+const plotPaddingLeft = 42;
+const plotPaddingRight = 18;
+const plotPaddingTop = 30;
+const plotPaddingBottom = 44;
+const dotRadius = 6;
+const dotLabelGap = 9;
+const tickRows = 4;
+const headroomScale = 1.15;
+const coordinateScale = 100;
+const originIndex = 0;
+const labelBaselineGap = 3;
+const axisLabelGap = 15;
+const halfScale = 2;
+const fullScale = 1;
+
+const plotWidth = chartWidth - plotPaddingLeft - plotPaddingRight;
+const plotHeight = chartHeight - plotPaddingTop - plotPaddingBottom;
+const baseline = chartHeight - plotPaddingBottom;
+
+const xMax = Math.max(...points.map((point) => point.x)) * headroomScale;
+
+const round = ({ value }: { value: number }) =>
+  Math.round(value * coordinateScale) / coordinateScale;
+
+const atX = ({ value }: { value: number }) =>
+  round({ value: plotPaddingLeft + (value / xMax) * plotWidth });
+
+const atY = ({ value }: { value: number }) => round({ value: baseline - value * plotHeight });
+
+const verticalTicks = axisTicks({ max: fullScale, count: tickRows, format: formatPercentTick });
+const horizontalTicks = axisTicks({
+  max: xMax,
+  count: tickRows,
+  format: kind === 'cost' ? formatMoneyTick : formatSecondsTick,
+});
+
+const drawn = points.map((point) => ({
+  id: point.id,
+  cx: atX({ value: point.x }),
+  cy: atY({ value: point.y }),
+}));
+
+/**
+ * A line needs two distinct positions on the x axis; one point is not a trade-off.
+ *
+ * The `Set` is belt-and-braces rather than the working part: `paretoFrontier` already
+ * collapses x-ties to the best y, so on any frontier it returns this is the same test as
+ * `frontier.length >= 2`. It stays because the component should not draw a vertical segment
+ * even if handed one, and a reader of this line should know the two conditions coincide
+ * rather than assume the deduplication happens here.
+ */
+const drawsLine = new Set(frontier.map((point) => point.x)).size >= 2;
+
+const geometry = frontier
+  .map(
+    (point, index) =>
+      `${index === originIndex ? 'M' : 'L'}${atX({ value: point.x })},${atY({ value: point.y })}`,
+  )
+  .join(' ');
+
+const sole = frontier[originIndex];
+---
+
+<figure class="card" data-scatter={kind}>
+  <h3>{title}</h3>
+  <p class="note">Higher and further left is better.</p>
+
+  <svg
+    data-chart={`scatter-${kind}`}
+    viewBox={`${originIndex} ${originIndex} ${chartWidth} ${chartHeight}`}
+    role="img"
+    aria-label={title}
+  >
+    <g class="axis">
+      {
+        verticalTicks.map((tick) => (
+          <>
+            <line
+              class="gridline"
+              x1={plotPaddingLeft}
+              x2={chartWidth - plotPaddingRight}
+              y1={atY({ value: tick.fraction })}
+              y2={atY({ value: tick.fraction })}
+            />
+            <text
+              x={plotPaddingLeft - dotLabelGap}
+              y={atY({ value: tick.fraction }) + labelBaselineGap}
+              text-anchor="end"
+            >
+              {tick.label}
+            </text>
+          </>
+        ))
+      }
+
+      {
+        horizontalTicks.map((tick) => (
+          <text
+            x={plotPaddingLeft + tick.fraction * plotWidth}
+            y={baseline + axisLabelGap}
+            text-anchor="middle"
+          >
+            {tick.label}
+          </text>
+        ))
+      }
+
+      <line x1={plotPaddingLeft} x2={chartWidth - plotPaddingRight} y1={baseline} y2={baseline} />
+
+      <text
+        x={plotPaddingLeft + plotWidth / halfScale}
+        y={chartHeight - labelBaselineGap}
+        text-anchor="middle"
+      >
+        {axisTitle}
+      </text>
+
+      <text x={originIndex} y={labelBaselineGap * halfScale + labelBaselineGap} class="axistitle">
+        frontend build rate, %
+      </text>
+    </g>
+
+    {drawsLine ? <path class="pareto" d={geometry} /> : null}
+
+    {
+      drawn.map((point) => (
+        <>
+          <circle class="dot" cx={point.cx} cy={point.cy} r={dotRadius} />
+          <text class="dotlabel" x={point.cx + dotLabelGap} y={point.cy + labelBaselineGap}>
+            {point.id}
+          </text>
+        </>
+      ))
+    }
+  </svg>
+
+  {
+    drawsLine ? (
+      <p class="note">
+        The dashed line is the Pareto frontier: an arm below and to the right of it is beaten
+        on both axes at once by something already on this chart.
+      </p>
+    ) : (
+      <p class="note" data-frontier-note="sole">
+        No frontier is drawn, because the frontier holds one position and a line through one
+        position would draw a trade-off that is not there. The single member is
+        {sole ? sole.id : 'the only measured arm'}, which nothing on this chart beats on both
+        axes at once.
+      </p>
+    )
+  }
+</figure>

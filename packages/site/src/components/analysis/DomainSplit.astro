@@ -1,0 +1,102 @@
+---
+import {
+  formatCountOverCount,
+  formatIntervalPercent,
+  formatRate,
+  rateFraction,
+} from '@plugdex/data';
+import type { RateSummary } from '@plugdex/data';
+
+/**
+ * The two populations, side by side, per arm.
+ *
+ * This is the section AC-2 exists for. The bar is the Wilson interval and the tick is the
+ * point estimate, so a reader sees at once that the frontend rates spread across the track
+ * while the backend intervals all overlap each other — which is why the two are never
+ * folded into one number and why the card's headline had to start naming its population.
+ *
+ * No comparison is drawn. Two tracks, four counts, and the reader does the arithmetic the
+ * corpus can support.
+ */
+interface Props {
+  arms: readonly { arm: string; frontend: RateSummary; backend: RateSummary }[];
+  note: string;
+}
+
+const { arms, note } = Astro.props;
+
+/** A fraction becomes a percentage offset along the track. Named, so the literal is layout. */
+const fullWidthScale = 100;
+
+const track = ({
+  summary,
+  population,
+}: {
+  summary: RateSummary;
+  population: 'frontend' | 'backend';
+}) => {
+  if (summary.n === 0 || summary.wilson === null) {
+    // The population is still named: at a narrow viewport the column headers stack away
+    // and this track's only remaining identification is its own text.
+    return { population, empty: true as const };
+  }
+
+  const { lo, hi } = summary.wilson;
+
+  return {
+    population,
+    empty: false as const,
+    bandLeft: lo * fullWidthScale,
+    bandWidth: (hi - lo) * fullWidthScale,
+    // Non-null: this branch runs only where the interval exists, which needs n > 0.
+    pointLeft: (rateFraction({ summary }) as number) * fullWidthScale,
+    counts: formatCountOverCount({ hits: summary.hits, n: summary.n }),
+    rate: formatRate({ hits: summary.hits, n: summary.n, population }),
+    interval: formatIntervalPercent(summary.wilson),
+  };
+};
+
+const rows = arms.map(({ arm, frontend, backend }) => ({
+  arm,
+  tracks: [
+    track({ summary: frontend, population: 'frontend' as const }),
+    track({ summary: backend, population: 'backend' as const }),
+  ],
+}));
+---
+
+<div class="domhead">
+  <div>Pack</div>
+  <div>frontend — does the repository build accept it</div>
+  <div>backend — imports, and adds no new diagnostic</div>
+</div>
+
+{
+  rows.map((row) => (
+    <div class="domrow">
+      <div class="name">{row.arm}</div>
+
+      {row.tracks.map((entry) =>
+        entry.empty === false ? (
+          <div class="dtrack">
+            <span
+              class="band"
+              aria-hidden="true"
+              style={`left: ${entry.bandLeft}%; width: ${entry.bandWidth}%`}
+            />
+            <span class="pt" aria-hidden="true" style={`left: ${entry.pointLeft}%`} />
+            <span class="lab" data-rate={`${row.arm}-${entry.population}`} data-population={entry.population}>
+              {entry.counts} {entry.rate}
+            </span>
+          </div>
+        ) : (
+          <div class="dtrack">
+            <span class="lab na">no graded {entry.population} cell</span>
+          </div>
+        ),
+      )}
+    </div>
+  ))
+}
+
+<p class="callout">{note}</p>

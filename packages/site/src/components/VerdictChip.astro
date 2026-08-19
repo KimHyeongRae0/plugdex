@@ -1,5 +1,5 @@
 ---
-import { percentOf } from '@plugdex/data';
+import { formatRate, percentOf } from '@plugdex/data';
 import type { PackVerdict } from '@plugdex/data';
 
 /**
@@ -10,6 +10,10 @@ import type { PackVerdict } from '@plugdex/data';
  * literal a reader could see — which is what makes DATA-01 hold at this boundary rather
  * than by review. The shape glyph is the primary signal (SC 1.4.1) and renders in ink;
  * the status hue is background and border only (DEC-018).
+ *
+ * The build-rate chip names its population (PDX-005 AC-2). `percentOf` stays for the
+ * no-code chip, whose percentage is a share of silent cells and has no frontend or backend
+ * to name — the denominator sits in the same element either way.
  */
 interface Props {
   verdict: PackVerdict;
@@ -33,9 +37,17 @@ const describe = ({ value }: { value: PackVerdict }): { glyph: string; label: st
   }
 
   if (value.verdict === 'build-rate') {
-    const percent = percentOf({ hits: value.builds, n: value.n });
+    // The population is part of the rate, not a caption beside it: this chip counts
+    // frontend cells and said so nowhere until PDX-005. `formatRate` bakes the name in,
+    // so a chip cannot render the number without it.
+    if (value.n <= 0) {
+      return { glyph: '▫', label: 'no graded frontend cell' };
+    }
 
-    return { glyph: '▪', label: `${percent}% builds, n=${value.n}` };
+    return {
+      glyph: '▪',
+      label: `builds ${formatRate({ hits: value.builds, n: value.n, population: 'frontend' })}`,
+    };
   }
 
   return { glyph: '·', label: 'unmeasured' };

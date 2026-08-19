@@ -1,0 +1,197 @@
+---
+import {
+  formatAbsent,
+  formatCountOverCount,
+  formatDomainLabel,
+  formatGradedCells,
+  formatTaskLabel,
+  rateFraction,
+} from '@plugdex/data';
+import type { TaskSummary } from '@plugdex/data';
+
+/**
+ * One radar per measured pack, and the same numbers as a table (AC-5).
+ *
+ * **The band is the finding.** Every spoke rests on about three repetitions, so the pale
+ * shape behind the solid one — the upper bound of the interval — swallows most of the axis.
+ * That is the honest rendering and it is not clipped to look tidier: it is the page's most
+ * legible argument for why there is no ranking here.
+ *
+ * Small multiples, never one stacked chart (DESIGN.md section 4.3). And beside them the
+ * counts table, which is the same data with no angular artefact — because the area a radar
+ * encloses changes with the order of its axes, and area is not a metric.
+ *
+ * Every cell of the table prints `k/n` in ink. The tint is redundant: a colour without its
+ * count is the violation AC-5 names.
+ */
+interface Props {
+  tasks: readonly string[];
+  radars: readonly {
+    arm: string;
+    graded: number;
+    spokes: readonly { task: string; hi: number; estimate: number }[];
+  }[];
+  counts: readonly { arm: string; cells: readonly TaskSummary[] }[];
+}
+
+const { tasks, radars, counts } = Astro.props;
+
+const radarSize = 168;
+const labelGap = 30;
+const halfScale = 2;
+const coordinateScale = 100;
+const originIndex = 0;
+const tintScale = 30;
+
+/** A cell with nothing graded is left untinted — an absence, not a rate of zero. */
+const noTintOpacity = 0;
+
+const centreX = radarSize / halfScale;
+const centreY = radarSize / halfScale;
+const unitRadius = radarSize / halfScale - labelGap;
+
+/** The rings a reader reads the radius against. Named for the radius they carry. */
+const ringRadiusFractions = [0.25, 0.5, 0.75, 1];
+
+const round = ({ value }: { value: number }) =>
+  Math.round(value * coordinateScale) / coordinateScale;
+
+const angleAt = ({ index, count }: { index: number; count: number }) =>
+  (Math.PI * halfScale * index) / count - Math.PI / halfScale;
+
+const pointAt = ({ index, count, radius }: { index: number; count: number; radius: number }) => {
+  const angle = angleAt({ index, count });
+
+  return {
+    x: round({ value: centreX + Math.cos(angle) * radius }),
+    y: round({ value: centreY + Math.sin(angle) * radius }),
+  };
+};
+
+const polygonOf = ({ radii }: { radii: readonly number[] }) =>
+  radii
+    .map((fraction, index) => {
+      const { x, y } = pointAt({ index, count: radii.length, radius: fraction * unitRadius });
+
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+const charts = radars.map((radar) => ({
+  arm: radar.arm,
+  subtitle: formatGradedCells({ count: radar.graded, population: 'frontend' }),
+  spokeOrder: radar.spokes.map((spoke) => spoke.task).join(','),
+  band: polygonOf({ radii: radar.spokes.map((spoke) => spoke.hi) }),
+  estimate: polygonOf({ radii: radar.spokes.map((spoke) => spoke.estimate) }),
+  rings: ringRadiusFractions.map((fraction) => round({ value: unitRadius * fraction })),
+  spokes: radar.spokes.map((spoke, index) => {
+    const end = pointAt({ index, count: radar.spokes.length, radius: unitRadius });
+    const label = pointAt({ index, count: radar.spokes.length, radius: unitRadius + labelGap / halfScale });
+
+    return { label: formatTaskLabel({ task: spoke.task }), end, at: label };
+  }),
+}));
+
+const domains = tasks.map((task) => {
+  const found = counts
+    .flatMap((row) => row.cells)
+    .find((cell) => cell.task === task && cell.domain !== null);
+
+  return { task, label: formatDomainLabel({ domain: found?.domain ?? null }) };
+});
+
+const table = counts.map((row) => ({
+  arm: row.arm,
+  cells: row.cells.map((cell) => ({
+    key: `${row.arm}|${cell.task}`,
+    text: cell.n > 0 ? formatCountOverCount({ hits: cell.hits, n: cell.n }) : formatAbsent(),
+    // The fraction arrives from @plugdex/data; what happens here is a multiplication by a
+    // named scale, and an ungraded cell takes the untinted opacity rather than a rate.
+    tintOpacity: ((fraction) => (fraction === null ? noTintOpacity : fraction * tintScale))(
+      rateFraction({ summary: cell }),
+    ),
+  })),
+}));
+---
+
+<div class="radars">
+  {
+    charts.map((chart) => (
+      <figure
+        class="radar"
+        data-radar={chart.arm}
+        data-center-x={String(centreX)}
+        data-center-y={String(centreY)}
+        data-unit-radius={String(unitRadius)}
+        data-spokes={chart.spokeOrder}
+      >
+        <h4>{chart.arm}</h4>
+        <p data-radar-subtitle="graded">
+          {chart.subtitle}, and about three repetitions behind every spoke
+        </p>
+
+        <svg
+          data-chart={`radar-${chart.arm}`}
+          viewBox={`${originIndex} ${originIndex} ${radarSize} ${radarSize}`}
+          role="img"
+          aria-label={`per-ticket rates for ${chart.arm}`}
+        >
+          {chart.rings.map((radius) => <circle class="ring" cx={centreX} cy={centreY} r={radius} />)}
+
+          {
+            chart.spokes.map((spoke) => (
+              <>
+                <line class="spoke" x1={centreX} y1={centreY} x2={spoke.end.x} y2={spoke.end.y} />
+                <text class="axlabel" x={spoke.at.x} y={spoke.at.y} text-anchor="middle">
+                  {spoke.label}
+                </text>
+              </>
+            ))
+          }
+
+          <polygon class="band" data-band="interval" points={chart.band} />
+          <polygon class="estimate" data-estimate="point" points={chart.estimate} />
+        </svg>
+
+        <figcaption>
+          The pale shape is the upper bound of the interval, drawn behind and never clipped.
+          Area is not a metric — it changes with the order of the axes — so the table below is
+          the same numbers with no angular artefact.
+        </figcaption>
+      </figure>
+    ))
+  }
+</div>
+
+<div class="scroll-x">
+  <table class="heat">
+    <thead>
+      <tr>
+        <th class="left" />
+        {tasks.map((task) => <th>{formatTaskLabel({ task })}</th>)}
+      </tr>
+      <tr>
+        <td class="dom left" />
+        {domains.map((entry) => <td class="dom">{entry.label}</td>)}
+      </tr>
+    </thead>
+
+    <tbody>
+      {
+        table.map((row) => (
+          <tr>
+            <th class="left arm">{row.arm}</th>
+            {row.cells.map((cell) => (
+              <td
+                data-counts-cell={cell.key}
+                style={`background: color-mix(in srgb, var(--pass) ${cell.tintOpacity}%, transparent)`}
+              >
+                {cell.text}
+              </td>
+            ))}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>

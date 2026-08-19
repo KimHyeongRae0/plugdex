@@ -1,0 +1,113 @@
+---
+import { formatCellLabel, formatTaskLabel, graderLabel, stateLabel } from '@plugdex/data';
+import type { CellMark, CellState, GridSquare } from '@plugdex/data';
+
+/**
+ * Every cell of the published corpus, one mark per repetition (AC-6).
+ *
+ * Nothing is aggregated away and no square carries a verdict: three repetitions that
+ * disagree are drawn as three marks that disagree, because a majority over three is a
+ * number with no interval and the disagreement is what a reader came here to see. The
+ * invalid cells are drawn rather than dropped, so a reader can judge how much each column
+ * is worth.
+ *
+ * **Shape first, hue second** (DEC-018). Each state draws its own glyph in ink and carries
+ * its own border treatment; the status hue is a tint behind it and never the only thing
+ * separating two states. The legend prints the glyph and the word.
+ *
+ * The drawer is a native `<dialog>` per mark with its content already in the HTML, opened
+ * by the same handful of lines the catalogue's install dialog uses. It is the one thing on
+ * this page that needs JavaScript, and the page says so in a `<noscript>` rather than
+ * leaving a reader to discover it.
+ */
+interface Props {
+  arms: readonly string[];
+  tasks: readonly string[];
+  squares: readonly GridSquare[];
+  states: readonly CellState[];
+  invalidNote: string;
+}
+
+const { arms, tasks, squares, states, invalidNote } = Astro.props;
+
+const squareAt = ({ arm, task }: { arm: string; task: string }): readonly CellMark[] =>
+  squares.find((square) => square.arm === arm && square.task === task)?.marks ?? [];
+
+const drawerId = ({ mark }: { mark: CellMark }): string => `cell-${mark.cell}`;
+---
+
+<div class="scroll-x" data-grid-scroll="x">
+  <table class="cells">
+    <thead>
+      <tr>
+        <th class="left" />
+        {tasks.map((task) => <th class="task">{formatTaskLabel({ task })}</th>)}
+      </tr>
+    </thead>
+
+    <tbody>
+      {
+        arms.map((arm) => (
+          <tr>
+            <th class="left arm">{arm}</th>
+
+            {tasks.map((task) => (
+              <td>
+                <div class="sq" data-square={`${arm}|${task}`}>
+                  {squareAt({ arm, task }).map((mark) => (
+                    <>
+                      <button
+                        type="button"
+                        class={`c c-${mark.state}`}
+                        data-cell-mark={mark.state}
+                        data-cell-trigger
+                        data-dialog={drawerId({ mark })}
+                        aria-label={formatCellLabel({ mark })}
+                      />
+
+                      <dialog id={drawerId({ mark })} class="drawer" data-cell-dialog>
+                        <h3>{mark.cell}</h3>
+
+                        <dl>
+                          <dt>pack</dt>
+                          <dd>{mark.arm}</dd>
+                          <dt>ticket</dt>
+                          <dd>{mark.task}</dd>
+                          <dt>model</dt>
+                          <dd>{mark.model}</dd>
+                          <dt>repetition</dt>
+                          <dd>{mark.rep}</dd>
+                          <dt>state</dt>
+                          <dd>{stateLabel({ state: mark.state })}</dd>
+                          <dt>graded by</dt>
+                          <dd>{graderLabel({ domain: mark.domain })}</dd>
+                          {mark.invalidReason ? <dt>why it is invalid</dt> : null}
+                          {mark.invalidReason ? <dd>{mark.invalidReason}</dd> : null}
+                        </dl>
+
+                        <button class="close" data-close-dialog>Close</button>
+                      </dialog>
+                    </>
+                  ))}
+                </div>
+              </td>
+            ))}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<ul class="legend">
+  {
+    states.map((state) => (
+      <li data-legend-item={state}>
+        <span class={`c c-${state}`} aria-hidden="true" />
+        {stateLabel({ state })}
+      </li>
+    ))
+  }
+</ul>
+
+<p class="callout">{invalidNote}</p>

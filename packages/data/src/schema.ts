@@ -117,7 +117,15 @@ export type Cell = {
   readonly importOk?: boolean;
   readonly importOut?: string;
 
-  /** Backend gate: did the delivered tests pass? */
+  /**
+   * Backend gate: did the delivered code import and introduce no new diagnostic?
+   *
+   * Named for what `bench/harness/acceptance.py:390` computes —
+   * `bool(be_files and ok_import and not new_diags)` — rather than for what a reader might
+   * assume a field called `passes` means. No test suite is executed for a backend cell, and
+   * an earlier version of this comment said the delivered tests pass, which claimed a
+   * stronger check than the one performed.
+   */
   readonly passes?: boolean;
 
   /** Diagnostics the agent's change introduced, beyond those already present. */

@@ -55,6 +55,12 @@ const withdrawn = corpus.withdrawnRecords.length;
 
   <body>
     <div class="wrap">
+      <nav class="sitenav" aria-label="sections">
+        <span class="brand">plugdex</span>
+        <a href="/" aria-current="page">catalogue</a>
+        <a href="/analysis">analysis</a>
+      </nav>
+
       <header class="masthead">
         <h1>plugdex</h1>
         <p>
@@ -72,6 +78,15 @@ const withdrawn = corpus.withdrawnRecords.length;
           baselines is as wide as the widest gap any pack opens on its own baseline — so
           this page reports one condition and names it rather than publishing a rate that
           describes neither.
+        </p>
+        <p>
+          The headline on every card is the <strong>frontend build rate</strong>: the share
+          of frontend tickets whose delivered code the repository's own build accepted. The
+          backend tickets are graded by a different gate — whether the delivered code imports
+          and introduces no new lint or type diagnostic
+          — so they are printed beside it rather than folded into it. Two populations, two
+          denominators, no single number spanning both. The
+          <a href="/analysis">analysis page</a> shows what each of them is made of.
         </p>
         <p>
           Runs withdrawn as instrument failures are excluded and stay on record; the

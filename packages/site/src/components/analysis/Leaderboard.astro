@@ -1,0 +1,198 @@
+---
+import {
+  formatAbsent,
+  formatCountOverCount,
+  formatDenominator,
+  formatIntervalPercent,
+  formatLoc,
+  formatMeasured,
+  formatMoney,
+  formatRate,
+  formatSeconds,
+  formatShortfall,
+  formatTokens,
+  formatTurns,
+  rateFraction,
+} from '@plugdex/data';
+import type { ArmEconomics, ArmSummary } from '@plugdex/data';
+
+/**
+ * One row per listed pack plus the baseline arm (AC-1).
+ *
+ * Every cell in this table is a string `@plugdex/data` produced. The component's own
+ * arithmetic is one multiplication and its product is the width of a bar — layout
+ * vocabulary, not a figure a reader reads (DEC-017).
+ *
+ * **Sorted, and bounded** (plan section 6.5 D3). DEC-005 refuses a leaderboard as a landing
+ * view, because a grid ordered by verdict asserts a confidence this corpus lacks. This is
+ * the evidence page, one click deep, and it prints the interval beside every point estimate
+ * — which is how a benchmark reader audits a claim rather than how a league table publishes
+ * one. The sentence under the table says which arms clear the baseline's interval, which on
+ * this corpus is the whole of what the ordering is worth.
+ *
+ * An arm with no graded frontend cell renders `no graded cell` and no percentage. A rate of
+ * zero would report a measurement that was never taken.
+ */
+interface Props {
+  rows: readonly { arm: string; summary: ArmSummary; econ: ArmEconomics | null }[];
+  refusal: string;
+}
+
+const { rows, refusal } = Astro.props;
+
+/** A fraction becomes a percentage width. The scale is named, so the literal is layout. */
+const fullWidthScale = 100;
+
+/**
+ * One economics cell: the mean, and the denominator it was taken over when that is not the
+ * whole pool.
+ *
+ * The shortfall is what makes the column honest. Baseline's cost mean is over 52 of the 54
+ * rows in its pool, and printing `$0.0849` alone under a note claiming a mean over every
+ * cell is the same class of defect as a rate without its denominator — which this page
+ * already refuses everywhere else. The suffix is absent, not zero-width, when the mean used
+ * every row: a denominator repeated on 34 of 36 cells is noise that trains a reader to stop
+ * reading it on the two where it matters.
+ */
+const econCell = ({
+  econ,
+  pick,
+  format,
+}: {
+  econ: ArmEconomics | null;
+  pick: (input: { econ: ArmEconomics }) => ArmEconomics['cost'];
+  format: (input: { value: number }) => string;
+}) => {
+  if (econ === null) {
+    return { value: formatAbsent(), shortfall: null };
+  }
+
+  const measured = pick({ econ });
+
+  return {
+    value: formatMeasured({ measured, format }),
+    shortfall: formatShortfall({ measured, pool: econ.econN }),
+  };
+};
+
+const rendered = rows.map(({ arm, summary, econ }) => {
+  const fraction = rateFraction({ summary });
+
+  return {
+    arm,
+    rate:
+      summary.n > 0
+        ? formatRate({ hits: summary.hits, n: summary.n, population: 'frontend' })
+        : null,
+    counts: formatCountOverCount({ hits: summary.hits, n: summary.n }),
+    interval: summary.wilson === null ? null : formatIntervalPercent(summary.wilson),
+    denominator: formatDenominator({ n: summary.n, population: 'frontend' }),
+    // The division is gone: the fraction arrives from @plugdex/data, and what is left here
+    // is a multiplication by the named scale and a round, both of which produce a width.
+    barWidth: fraction === null ? 0 : Math.round(fraction * fullWidthScale),
+    noCode: formatCountOverCount({ hits: summary.silent, n: summary.valid }),
+    cost: econCell({
+      econ,
+      pick: ({ econ: entry }) => entry.cost,
+      format: ({ value }) => formatMoney({ usd: value }),
+    }),
+    turns: econCell({
+      econ,
+      pick: ({ econ: entry }) => entry.turns,
+      format: ({ value }) => formatTurns({ turns: value }),
+    }),
+    outputTokens: econCell({
+      econ,
+      pick: ({ econ: entry }) => entry.outputTokens,
+      format: ({ value }) => formatTokens({ count: value }),
+    }),
+    loc: econCell({
+      econ,
+      pick: ({ econ: entry }) => entry.loc,
+      format: ({ value }) => formatLoc({ loc: value }),
+    }),
+    seconds: econCell({
+      econ,
+      pick: ({ econ: entry }) => entry.seconds,
+      format: ({ value }) => formatSeconds({ seconds: value }),
+    }),
+  };
+});
+---
+
+<div class="scroll-x">
+  <table class="board">
+    <thead>
+      <tr>
+        <th class="left">Pack</th>
+        <th>Frontend build rate</th>
+        <th>Wilson interval</th>
+        <th>Wrote no code</th>
+        <th>Cost / cell</th>
+        <th>Turns</th>
+        <th>Output tokens</th>
+        <th>Lines delivered</th>
+        <th>Seconds</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {
+        rendered.map((row) => (
+          <tr data-leaderboard-row={row.arm}>
+            <td class="left name">{row.arm}</td>
+
+            {row.rate ? (
+              <td class="rate" data-rate={row.arm} data-population="frontend">
+                <span class="minibar" aria-hidden="true">
+                  <span class="minibar-fill" style={`width: ${row.barWidth}%`} />
+                </span>
+                {row.counts} {row.rate}
+              </td>
+            ) : (
+              <td class="na">no graded cell</td>
+            )}
+
+            {row.interval ? (
+              <td
+                class="ci"
+                data-interval="wilson"
+                data-rate={`${row.arm}-interval`}
+                data-population="frontend"
+              >
+                {row.interval} {row.denominator}
+              </td>
+            ) : (
+              <td class="na" data-interval="wilson">
+                no graded cell
+              </td>
+            )}
+
+            <td data-no-code="silent">{row.noCode}</td>
+
+            {(
+              [
+                ['cost', row.cost],
+                ['turns', row.turns],
+                ['outputTokens', row.outputTokens],
+                ['loc', row.loc],
+                ['seconds', row.seconds],
+              ] as const
+            ).map(([field, cell]) => (
+              <td data-econ={field}>
+                {cell.value}
+                {cell.shortfall ? (
+                  <span class="shortfall" data-shortfall={field}>
+                    {cell.shortfall}
+                  </span>
+                ) : null}
+              </td>
+            ))}
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<p class="callout" data-composite-index="refused">{refusal}</p>

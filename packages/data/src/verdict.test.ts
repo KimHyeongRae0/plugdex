@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import type { Cell } from './schema.js';
-import { formatRate, percentOf, verdictFor } from './verdict.js';
+import { formatRate } from './stats.js';
+import { percentOf, verdictFor } from './verdict.js';
 
 /**
  * Synthetic cells throughout. The verdict fold is a set of properties, and a test that
@@ -140,12 +141,18 @@ test('both sides of baseline return the same verdict, with both pairs of counts'
     cells: [...baseline, ...arm({ name: 'weak', count: 10, builds: 1 })],
   });
 
+  // The backend counts are zero on these fixtures because no fixture cell names a backend
+  // domain — not because they are optional. A build-rate verdict always carries both pairs.
   assert.deepEqual(above, {
     verdict: 'build-rate',
     builds: 9,
     n: 10,
     baselineBuilds: 5,
     baselineN: 10,
+    backendPasses: 0,
+    backendN: 0,
+    baselineBackendPasses: 0,
+    baselineBackendN: 0,
   });
   assert.deepEqual(below, {
     verdict: 'build-rate',
@@ -153,6 +160,10 @@ test('both sides of baseline return the same verdict, with both pairs of counts'
     n: 10,
     baselineBuilds: 5,
     baselineN: 10,
+    backendPasses: 0,
+    backendN: 0,
+    baselineBackendPasses: 0,
+    baselineBackendN: 0,
   });
 });
 
@@ -184,6 +195,10 @@ test('an ungraded outcome is skipped, not counted as a failure', () => {
   });
 
   assert.deepEqual(verdict, {
+    backendPasses: 0,
+    backendN: 0,
+    baselineBackendPasses: 0,
+    baselineBackendN: 0,
     verdict: 'build-rate',
     builds: 4,
     n: 4,
@@ -260,15 +275,15 @@ test('no input produces the struck verdict', () => {
   }
 });
 
-test('a rate never appears without its denominator', () => {
-  assert.equal(formatRate({ hits: 5, n: 20 }), '25% n=20');
-  assert.equal(formatRate({ hits: 8, n: 11 }), '73% n=11');
+test('a rate never appears without its denominator, and never without its population', () => {
+  assert.equal(formatRate({ hits: 5, n: 20, population: 'frontend' }), '25% n=20 (frontend)');
+  assert.equal(formatRate({ hits: 8, n: 11, population: 'backend' }), '73% n=11 (backend)');
 });
 
 test('an empty denominator has no rate, and does not quietly become zero percent', () => {
   // Returning "0% n=0" would state a measurement that was never made, which is the
   // failure DATA-01 exists to prevent — one level down from the site.
-  assert.throws(() => formatRate({ hits: 0, n: 0 }), RangeError);
+  assert.throws(() => formatRate({ hits: 0, n: 0, population: 'frontend' }), RangeError);
   assert.throws(() => percentOf({ hits: 0, n: 0 }), RangeError);
   assert.throws(() => percentOf({ hits: 1, n: -1 }), RangeError);
 });
@@ -280,6 +295,129 @@ test('percentOf rounds the same way the formatted rate does', () => {
     [16, 22],
     [1, 3],
   ] as const) {
-    assert.equal(formatRate({ hits, n }), `${String(percentOf({ hits, n }))}% n=${String(n)}`);
+    assert.equal(
+      formatRate({ hits, n, population: 'frontend' }),
+      `${String(percentOf({ hits, n }))}% n=${String(n)} (frontend)`,
+    );
   }
+});
+
+test('a build-rate verdict carries both populations, so a card cannot publish one alone', () => {
+  // The defect PDX-005 fixes, as a property: every build-graded cell in the live corpus is
+  // a frontend ticket, and the backend cells carry their own gate. A verdict that held only
+  // the frontend counts let a card render them as the whole result, so both arrive together
+  // or the verdict is not a build rate.
+  const cells: Cell[] = [
+    ...arm({ name: 'baseline', count: 4, builds: 2 }).map((cell) => ({
+      ...cell,
+      domain: 'frontend' as const,
+    })),
+    ...arm({ name: 'pack', count: 4, builds: 3 }).map((cell) => ({
+      ...cell,
+      domain: 'frontend' as const,
+    })),
+    // Backend cells: no `build` at all, graded by `passes`, and one of them carries
+    // `importOk` without a passing test — the shape the doc comment refuses to grade on.
+    {
+      cell: 'be-0',
+      task: 'be',
+      arm: 'pack',
+      model: 'haiku',
+      rep: 0,
+      valid: true,
+      domain: 'backend' as const,
+      wroteCode: true,
+      importOk: true,
+      passes: true,
+    },
+    {
+      cell: 'be-1',
+      task: 'be',
+      arm: 'pack',
+      model: 'haiku',
+      rep: 1,
+      valid: true,
+      domain: 'backend' as const,
+      wroteCode: true,
+      importOk: true,
+      passes: false,
+    },
+    {
+      cell: 'be-2',
+      task: 'be',
+      arm: 'baseline',
+      model: 'haiku',
+      rep: 0,
+      valid: true,
+      domain: 'backend' as const,
+      wroteCode: true,
+      importOk: true,
+      passes: false,
+    },
+  ];
+
+  const verdict = verdictFor({ packId: 'pack', cells });
+
+  assert.equal(verdict.verdict, 'build-rate');
+
+  if (verdict.verdict !== 'build-rate') return;
+
+  assert.deepEqual(
+    {
+      builds: verdict.builds,
+      n: verdict.n,
+      backendPasses: verdict.backendPasses,
+      backendN: verdict.backendN,
+      baselineBackendPasses: verdict.baselineBackendPasses,
+      baselineBackendN: verdict.baselineBackendN,
+    },
+    {
+      builds: 3,
+      n: 4,
+      backendPasses: 1,
+      backendN: 2,
+      baselineBackendPasses: 0,
+      baselineBackendN: 1,
+    },
+  );
+});
+
+test('the backend rate counts backend cells, not every cell carrying a passes field', () => {
+  // `passes` is recorded on frontend cells too in the live corpus. Counting the field
+  // rather than the domain reported 12/35 where the backend tickets say 7/15, which is a
+  // rate over a population that is mostly the other domain.
+  const cells: Cell[] = [
+    {
+      cell: 'fe-0',
+      task: 'fe',
+      arm: 'pack',
+      model: 'haiku',
+      rep: 0,
+      valid: true,
+      domain: 'frontend' as const,
+      wroteCode: true,
+      build: false,
+      passes: true,
+    },
+    {
+      cell: 'be-0',
+      task: 'be',
+      arm: 'pack',
+      model: 'haiku',
+      rep: 0,
+      valid: true,
+      domain: 'backend' as const,
+      wroteCode: true,
+      passes: false,
+    },
+  ];
+
+  const verdict = verdictFor({ packId: 'pack', cells });
+
+  assert.equal(verdict.verdict, 'build-rate');
+
+  if (verdict.verdict !== 'build-rate') return;
+
+  assert.equal(verdict.backendN, 1, 'the frontend cell carrying `passes` is not a backend cell');
+  assert.equal(verdict.backendPasses, 0);
 });

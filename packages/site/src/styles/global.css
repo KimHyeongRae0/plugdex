@@ -89,6 +89,10 @@ pre {
   margin: 0;
 }
 
+.masthead p + p {
+  margin-top: 0.75rem;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
@@ -254,4 +258,625 @@ dialog::backdrop {
   margin: 0 0 1rem;
   font-size: 0.9rem;
   overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------------------
+ * The analysis page.
+ *
+ * Same tokens, same two rules. Status hues stay tint-and-border and every mark draws its
+ * own glyph in ink, so the four cell states are told apart in greyscale before colour is
+ * consulted at all (DEC-018, AC-7). And nothing on this page is styled by which number is
+ * larger: two rates, two tracks, one class each (DEC-016).
+ *
+ * Everything wide — the leaderboard, the heat table, the cell grid — scrolls inside its own
+ * container. The page body never scrolls sideways at 360px (AC-10), which is the whole
+ * reason `.scroll-x` exists rather than a min-width on the tables.
+ * --------------------------------------------------------------------------- */
+
+.sitenav {
+  display: flex;
+  align-items: baseline;
+  gap: 1.1rem;
+  margin: 0 0 2rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+.sitenav .brand {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.sitenav a {
+  color: var(--ink);
+  opacity: 0.7;
+  text-decoration: none;
+}
+
+.sitenav a[aria-current='page'] {
+  opacity: 1;
+  border-bottom: 2px solid var(--ink);
+}
+
+.sitenav a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.kicker {
+  margin: 0 0 0.3rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+section {
+  margin-top: 3rem;
+}
+
+section h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+
+.note {
+  max-width: var(--measure);
+  margin: 0 0 1.2rem;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.callout {
+  max-width: var(--measure);
+  margin: 1.2rem 0 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--ink);
+  font-size: 0.88rem;
+}
+
+.scroll-x {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.na {
+  opacity: 0.7;
+}
+
+/* ---------- leaderboard ---------- */
+
+table.board {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+table.board th {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--ink);
+  font-weight: 400;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: right;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+table.board td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--rule);
+  text-align: right;
+  white-space: nowrap;
+}
+
+table.board .left {
+  text-align: left;
+}
+
+table.board .name {
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.minibar {
+  display: inline-block;
+  width: 3.4rem;
+  height: 7px;
+  margin-right: 0.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 1px;
+  vertical-align: baseline;
+}
+
+.minibar-fill {
+  display: block;
+  height: 100%;
+  background: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+/*
+ * The denominator a mean fell short by, under the mean it qualifies.
+ *
+ * Quieter than the figure and on its own line, because it is a caveat rather than a second
+ * number — but in ink rather than in a tint, since a reader who cannot see it is reading
+ * the mean as though it were taken over the whole pool.
+ */
+.shortfall {
+  display: block;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  opacity: 0.75;
+}
+
+/* ---------- charts ---------- */
+
+.charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1.4rem;
+}
+
+figure.card {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: var(--tint);
+}
+
+figure.card h3 {
+  margin: 0 0 0.2rem;
+  font-size: 0.95rem;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+.axis line {
+  stroke: color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+.axis text {
+  fill: var(--ink);
+  font-family: var(--mono);
+  font-size: 9px;
+  opacity: 0.85;
+}
+
+.gridline {
+  stroke: var(--rule);
+  stroke-dasharray: 2 3;
+}
+
+.pareto {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.dot {
+  fill: color-mix(in srgb, var(--accent) 80%, var(--ink));
+  stroke: var(--paper);
+  stroke-width: 1.5;
+}
+
+.dotlabel {
+  fill: var(--ink);
+  font-family: var(--mono);
+  font-size: 9.5px;
+}
+
+/* ---------- domain split ---------- */
+
+.domhead,
+.domrow {
+  display: grid;
+  grid-template-columns: minmax(6rem, 8rem) 1fr 1fr;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.domhead {
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.domrow {
+  margin-bottom: 0.45rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+
+.domrow .name {
+  overflow-wrap: anywhere;
+}
+
+/* At a narrow viewport the three columns become three rows: a 24px track squeezed into a
+   third of 360px cannot hold its own label, and a label that overlaps its own bar is a
+   figure a reader cannot read (AC-10). */
+@media (max-width: 40rem) {
+  .domhead {
+    display: none;
+  }
+
+  .domrow {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.dtrack {
+  position: relative;
+  height: 24px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--tint);
+}
+
+.dtrack .band {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.dtrack .pt {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: 2px;
+  background: var(--ink);
+}
+
+.dtrack .lab {
+  position: absolute;
+  right: 0.4rem;
+  top: 2px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- radars ---------- */
+
+.radars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+}
+
+figure.radar {
+  margin: 0;
+  padding: 0.7rem 0.8rem 0.6rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+figure.radar h4 {
+  margin: 0 0 0.1rem;
+  font-size: 0.9rem;
+}
+
+figure.radar p,
+figure.radar figcaption {
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
+  opacity: 0.8;
+}
+
+figure.radar figcaption {
+  margin: 0.3rem 0 0;
+}
+
+.ring,
+.spoke {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 0.6;
+}
+
+.axlabel {
+  fill: var(--ink);
+  font-family: var(--mono);
+  font-size: 6.5px;
+  opacity: 0.75;
+}
+
+.band {
+  fill: color-mix(in srgb, var(--accent) 18%, transparent);
+  stroke: none;
+}
+
+.estimate {
+  fill: color-mix(in srgb, var(--accent) 42%, transparent);
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+
+/* ---------- heat table ---------- */
+
+table.heat {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+table.heat th {
+  padding: 0.3rem 0.25rem;
+  border-bottom: 1px solid var(--ink);
+  font-weight: 400;
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+table.heat th.arm {
+  border-bottom: none;
+  font-size: 0.76rem;
+  text-align: right;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+  opacity: 1;
+}
+
+table.heat td {
+  padding: 0.3rem 0.25rem;
+  border: 1px solid var(--paper);
+  color: var(--ink);
+  text-align: center;
+  white-space: nowrap;
+}
+
+table.heat td.dom {
+  border: none;
+  font-size: 0.6rem;
+  opacity: 0.7;
+}
+
+/* ---------- token bars ---------- */
+
+.tokrow {
+  display: grid;
+  grid-template-columns: minmax(6rem, 8rem) 1fr 6rem;
+  gap: 0.7rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tokrow .name {
+  overflow-wrap: anywhere;
+}
+
+.tokbar {
+  display: flex;
+  height: 15px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.seg {
+  display: block;
+  height: 100%;
+}
+
+.seg-output {
+  background: color-mix(in srgb, var(--ink) 62%, transparent);
+}
+
+.seg-input {
+  background: color-mix(in srgb, var(--ink) 34%, transparent);
+}
+
+.seg-cache-read {
+  background: color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+.toktotal {
+  text-align: right;
+}
+
+.tokparts {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 1rem;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+/* ---------- the cell grid ---------- */
+
+table.cells {
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+}
+
+table.cells th {
+  padding: 0.2rem 0.3rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+table.cells th.task {
+  height: 6rem;
+  text-align: left;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+table.cells th.arm {
+  color: var(--ink);
+  text-align: right;
+  white-space: nowrap;
+  opacity: 1;
+}
+
+table.cells td {
+  padding: 2px;
+  border-top: 1px solid var(--rule);
+}
+
+.sq {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  width: 3.4rem;
+}
+
+/* One mark. The glyph is the signal and it is ink; the hue is a tint behind it and a
+   border around it, and no two states share a glyph (DEC-018, AC-7). */
+.c {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ink) 45%, transparent);
+  border-radius: 1px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 9px;
+  line-height: 1;
+  appearance: none;
+  cursor: pointer;
+}
+
+button.c:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.c-built {
+  border-style: solid;
+  background: color-mix(in srgb, var(--pass) 20%, transparent);
+}
+
+.c-built::before {
+  content: '■';
+}
+
+.c-failed {
+  border-style: solid;
+  border-width: 2px;
+  background: color-mix(in srgb, var(--fail) 18%, transparent);
+}
+
+.c-failed::before {
+  content: '✕';
+}
+
+.c-no-code {
+  border-style: dotted;
+  background: color-mix(in srgb, var(--no-code) 30%, transparent);
+}
+
+.c-no-code::before {
+  content: '·';
+}
+
+.c-ungraded {
+  border-style: double;
+  border-width: 3px;
+  background: transparent;
+}
+
+.c-ungraded::before {
+  content: '?';
+}
+
+.c-invalid {
+  border-style: dashed;
+  background: transparent;
+}
+
+.c-invalid::before {
+  content: '○';
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.2rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 0.76rem;
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ink);
+}
+
+/* ---------- the cell drawer ---------- */
+
+dialog.drawer h3 {
+  margin: 0 0 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+dialog.drawer dl {
+  display: grid;
+  grid-template-columns: minmax(6rem, auto) 1fr;
+  gap: 0.25rem 0.9rem;
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+}
+
+dialog.drawer dt {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+dialog.drawer dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+footer {
+  margin-top: 4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+  max-width: var(--measure);
+  font-size: 0.82rem;
+  opacity: 0.8;
 }
