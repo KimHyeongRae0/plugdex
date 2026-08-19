@@ -1,56 +1,111 @@
 # plugdex
 
-**The hub for agent behaviour packs — with the build receipts.**
+**Agent behaviour packs, measured by whether the code they wrote builds.**
 
-Ponytail, superpowers, caveman, Karpathy's `CLAUDE.md`, Matt Pocock's skills, and
-whatever ships next week. Browse them in one place, install them with one command, and
-see what actually happened when we ran them.
+Ponytail, superpowers, caveman, Karpathy's `CLAUDE.md`, Matt Pocock's skills, and whatever
+ships next week. Browse them in one place, install them with one command, and see what
+actually happened when we ran them.
 
-Every pack in the catalogue advertises a headline: less code, fewer tokens, lower cost.
-Those are real measurements. They are also, in every published benchmark we could find,
-measured **without checking that the delivered code compiles**. plugdex runs each pack
-against real tickets in a real repository, builds the code it delivers with that
-repository's own build configuration, and publishes the result beside the listing —
-including the exact ticket sent, the diff produced, and the compiler output verbatim.
+Every pack advertises a headline: less code, fewer tokens, lower cost. Those are real
+measurements. They are also, in every published benchmark we could find, measured **without
+checking that the delivered code compiles**. plugdex runs each pack against the same tickets
+in the same repository, builds what it delivers with that repository's own toolchain, and
+publishes every cell beside the listing.
 
-Some of what that turns up:
+![The leaderboard: build rate with its interval, cost per cell, turns, tokens, lines of code](docs/images/analysis-leaderboard.png)
 
-- Roughly **half the delivered code does not build**, across two domains and two
-  independent gate stacks.
-- One widely installed pack **produces no code at all** in an unattended session — it
-  classifies the ticket, asks a clarifying question, and stops. In 68 of 69 valid cells,
-  across two models and two tool policies.
-- A published token-reduction headline **did not reproduce**; the measured confidence
-  interval excludes it.
+## What the measurements say
+
+All figures below are the **`blocked` condition** — Bash withheld, the agent told to write
+rather than run — over 312 cells, 229 of them valid. The other condition ran at a smaller
+sample and is reported separately rather than averaged in, because averaging them produces a
+rate that describes neither.
+
+- **Frontend work separates the packs; backend work does not.** Frontend build rates run
+  from 25% (no pack) to 73%; backend rates sit between 35% and 47% for every arm, with every
+  interval overlapping every other one. On this corpus the backend tickets cannot tell the
+  packs apart — a finding about the tickets as much as about the packs.
+- **One widely installed pack writes no code at all** in an unattended session. `superpowers`
+  produced code in 1 of 41 valid cells; it classifies the ticket, asks a clarifying question,
+  and stops. It is also the cheapest and fastest arm on the board, which is what "does
+  nothing" looks like in a cost column.
+- **Only one pack separates from the baseline outright.** `ponytail`'s 95% interval
+  (52–87%) starts above where the baseline's ends (11–47%). Every other measured pack's
+  interval overlaps the baseline's, so at these sample sizes they are not distinguishable
+  from installing nothing.
+- **The corpus is thin in a specific place, and says so.** 83 of 312 cells are invalid, 74
+  of them from a single instrument failure, and they cluster on the frontend tickets.
+
+There is **no composite index** on the site. A single score would need weights across build
+rate, cost, turns and silence, and this corpus gives no basis for choosing them — an index
+would advertise a ranking the data cannot support.
+
+### Where each pack is strong
+
+![Per-ticket radar: one spoke per ticket, with the 95% interval drawn behind the measured rate](docs/images/analysis-radar.png)
+
+One spoke per ticket. The solid shape is the measured rate; the pale shape behind it is the
+upper bound of the 95% interval. Every spoke rests on about three repetitions, so the pale
+shape is enormous — which is the honest reading, and the reason this project publishes cells
+rather than a ranking.
+
+![Per-ticket pass counts, packs by tickets, coloured by rate with the counts printed](docs/images/analysis-heat.png)
+
+### What it costs you
+
+![Build rate against cost per cell and against wall clock, with a Pareto frontier](docs/images/analysis-tradeoffs.png)
+
+### Every cell, nothing aggregated away
+
+![The cell grid: six packs by twelve tickets, one square per repetition](docs/images/analysis-cells.png)
 
 ## Two faces, one dataset
 
 | | |
 |---|---|
-| **the site** | a browsable catalogue — one card per pack, a verdict chip, an install button, and a receipt behind every number |
+| **the site** | a browsable catalogue and analysis — a card per pack, a verdict chip, an install button, and the cells behind every number |
 | **the registry** | a generated Claude Code marketplace, so `claude plugin marketplace add plugdex` makes every listed pack installable by name |
+
+![A pack card and its install dialog, naming the repository it pulls from](docs/images/install.png)
 
 The registry points at each pack's own repository. plugdex indexes; it does not vendor
 anyone's code.
 
+### Does the listing still install?
+
+Every listing carries a recorded install state, written by a real
+`claude plugin install` and re-checked on every run. It is not decoration: on 2026-08-18 an
+upstream pack added a manifest field the CLI rejects, and this catalogue's own gate caught it
+within a day of the measurement it publishes.
+
+A pack recorded as blocked that starts installing again is a **failure**, not a pass — the
+record is stale and has to be refreshed. Without that rule, marking a pack broken would be a
+way to silence the check forever, and the honest record would be the one nobody could afford
+to write.
+
 ## Status
 
-Early. The catalogue is being built ticket by ticket on top of measurements that are
-already in this repository: [`bench/`](bench/) holds the harness and every graded run,
-imported with its history intact so a preregistration still provably precedes the runs
-it predicts. Numbers on the site are traceable to a fingerprinted run or they are not on
-the site (DATA-01).
+Early, and built ticket by ticket on measurements already in this repository:
+[`bench/`](bench/) holds the harness and every graded run, imported with its history intact
+so a preregistration still provably precedes the runs it predicts. A number reaches the site
+from a fingerprinted record or it does not reach the site (DATA-01).
+
+The screenshots above are the analysis view, which is being implemented now. The catalogue
+page — cards, verdict chips, install dialogs — is live in the repository today.
 
 ## Withdrawals
 
 Claims this project has published and then retracted stay reachable, with the original
-number, the cause, and what replaced it (CLAIM-01). A benchmark that only shows its wins
-is a brochure.
+number, the cause, and what replaced it (CLAIM-01). This applies to the README as well: an
+earlier version of this file said "roughly half the delivered code does not build" without
+naming a condition, and reported a no-code figure of 68 of 69 cells. Both are corrected
+above — the first pooled two conditions whose rates are 56% and 17%, and the second matched
+neither pool's count. A benchmark that only shows its wins is a brochure.
 
 ## Development
 
-Work here runs a 9-stage gate cycle — ticket, plan, cross review, test first, implement,
-verify, report, cross review — where "done" means a script exited zero.
+Work runs a 9-stage gate cycle — ticket, plan, cross review, test first, implement, verify,
+report, cross review — where "done" means a script exited zero.
 
 - [`CLAUDE.md`](CLAUDE.md) — project instructions and rules
 - [`DESIGN.md`](DESIGN.md) — normative spec, reference designs, decision log
@@ -64,8 +119,8 @@ verify, report, cross review — where "done" means a script exited zero.
 
 ## Listing or removing a pack
 
-Every listing names its author and links upstream (SRC-01). If you wrote a pack and want
-it listed, corrected, or removed, open an issue — a removal request is honoured without
+Every listing names its author and links upstream (SRC-01). If you wrote a pack and want it
+listed, corrected, or removed, open an issue — a removal request is honoured without
 argument.
 
 ## License
