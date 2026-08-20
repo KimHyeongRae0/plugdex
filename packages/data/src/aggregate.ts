@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { domainOf, gradeCell, stateLabel } from './grade.js';
 import type { CellState, Domain } from './grade.js';
 import type { Cell } from './schema.js';
@@ -253,3 +255,144 @@ export const invalidByTask = ({ cells }: { cells: readonly Cell[] }): readonly I
 export const formatCellLabel = ({ mark }: { mark: CellMark }): string =>
   `${mark.arm} on ${mark.task}, ${mark.model}, repetition ${String(mark.rep)} — ` +
   stateLabel({ state: mark.state });
+
+/** One shape of work in the corpus: a task-id family paired with a domain. */
+export type CorpusShape = {
+  readonly shape: string;
+  readonly tasks: number;
+  readonly cells: number;
+};
+
+/** What the corpus actually covers, counted rather than described. */
+export type CorpusInventory = {
+  readonly tasks: number;
+  readonly shapes: readonly CorpusShape[];
+  /** The distinct task-id families. A consistency check against the cited fixture, not a claim. */
+  readonly families: readonly string[];
+};
+
+/** `tmpl-fe-datepicker` → `tmpl-fe`. Two segments, because the third is the task. */
+const SHAPE = /^([a-z]+)-([a-z]+)-/;
+
+/**
+ * The corpus inventory, derived from the cells it is handed.
+ *
+ * **What this does not do is the point.** It counts tasks, shapes and cells. It does not
+ * decide how many fixtures the corpus used: no cell carries that, and an earlier design
+ * inferred it from how many `tmpl-` families the task ids happened to show — which would have
+ * made a rename inside one fixture publish "two repositories". DEC-019 already records the
+ * rule that broke: a filename is not the fact. `families` is exported so a caller can check
+ * the ids against the fixture its documentation names, and say so when they disagree.
+ */
+export const corpusInventory = ({ cells }: { cells: readonly Cell[] }): CorpusInventory => {
+  const tasks = new Set<string>();
+  const byShape = new Map<string, { tasks: Set<string>; cells: number }>();
+
+  /*
+   * Valid cells only, because that is what every rate on the page is over.
+   *
+   * `armSummary` counts `cell.valid === true`, so a coverage sentence counting the whole
+   * corpus would describe a different pool than the figures it sits beside — 204 frontend
+   * cells against rates taken over 127. A scope note whose denominator disagrees with the
+   * denominators it is explaining is the defect this ticket exists to remove, committed in
+   * the sentence meant to remove it.
+   */
+  for (const cell of cells.filter((entry) => entry.valid === true)) {
+    tasks.add(cell.task);
+
+    const match = SHAPE.exec(cell.task);
+
+    if (match === null) continue;
+
+    const shape = `${match[1] as string}-${match[2] as string}`;
+    const entry = byShape.get(shape) ?? { tasks: new Set<string>(), cells: 0 };
+
+    entry.tasks.add(cell.task);
+    entry.cells += 1;
+    byShape.set(shape, entry);
+  }
+
+  return {
+    tasks: tasks.size,
+    shapes: [...byShape.entries()]
+      .map(([shape, entry]) => ({ shape, tasks: entry.tasks.size, cells: entry.cells }))
+      .sort((left, right) => left.shape.localeCompare(right.shape)),
+    families: [
+      ...new Set([...byShape.keys()].map((shape) => shape.split('-')[0] as string)),
+    ].sort(),
+  };
+};
+
+/** Where an arm sits relative to the baseline's interval — three outcomes, not two. */
+export type SeparationTier = 'clears' | 'overlaps' | 'unmeasured';
+
+/**
+ * The tier an arm belongs to, decided by the intervals and nothing else.
+ *
+ * **`unmeasured` is its own outcome and that is the whole design.** An arm with no graded
+ * cell has no interval, and a two-way "overlaps or does not" reads that absence as *does
+ * not* — which on the live corpus put `superpowers` (n=0, no interval) in the same tier as
+ * `ponytail`, the one arm whose interval clears the baseline's. The pack that writes no code
+ * would have been shown beside the only pack that beats installing nothing. Plan review round
+ * 1 caught it before any of this was written, which is the reason the null case is tested
+ * first here rather than falling through to an else.
+ *
+ * A tier is a statement about intervals, not a rank: it says whether this corpus can tell an
+ * arm apart from the baseline, and nothing about how two arms in the same tier compare.
+ */
+export const separationTier = ({
+  summary,
+  baseline,
+}: {
+  summary: ArmSummary;
+  baseline: ArmSummary;
+}): SeparationTier => {
+  if (summary.wilson === null || baseline.wilson === null) {
+    return 'unmeasured';
+  }
+
+  return summary.wilson.lo > baseline.wilson.hi ? 'clears' : 'overlaps';
+};
+
+/** The fixture a run was graded against, as its own documentation states it. */
+export type Fixture = {
+  readonly repo: string;
+  readonly commit: string;
+};
+
+/** The row `bench/REPRODUCE.md` writes the fixture on. */
+const FIXTURE_ROW = /\|\s*Fixture\s*\|\s*`([^`]+)`\s*@\s*`([^`]+)`/;
+
+/** A record file that does not state the fixture the site is about to publish. */
+export class MissingFixtureError extends Error {
+  constructor({ file }: { file: string }) {
+    super(
+      `${file} states no fixture — the site cites this file rather than inferring provenance ` +
+        `from task ids, so an absent row is a missing fact and not a default`,
+    );
+    this.name = 'MissingFixtureError';
+  }
+}
+
+/**
+ * The fixture, read from the file that documents it.
+ *
+ * Cited rather than derived. No cell carries a fixture, and the alternative considered and
+ * rejected was counting task-id families: rename one task inside a fixture and that count
+ * becomes two, so the page would state "two repositories" on the strength of a string
+ * convention. DEC-019 — a filename is not the fact — and `corpusInventory().families` exists
+ * so a caller can check the ids against this and report a disagreement rather than silently
+ * preferring either.
+ *
+ * @throws {MissingFixtureError} the file names no fixture. Publishing provenance nobody
+ * recorded is worse than publishing none.
+ */
+export const readFixture = ({ file }: { file: string }): Fixture => {
+  const match = FIXTURE_ROW.exec(readFileSync(file, 'utf8'));
+
+  if (match === null) {
+    throw new MissingFixtureError({ file });
+  }
+
+  return { repo: match[1] as string, commit: match[2] as string };
+};

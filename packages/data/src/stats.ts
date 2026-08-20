@@ -269,3 +269,66 @@ export const formatShortfall = ({
   pool: number;
 }): string | null =>
   measured.value === null || measured.n >= pool ? null : `n=${String(measured.n)}/${String(pool)}`;
+
+/**
+ * What the corpus covers, as a reader meets it.
+ *
+ * Every number a reader reads is produced here rather than in a component, for the reason
+ * DATA-01 exists: a count assembled in markup is a typed figure, and the gate reads a digit
+ * inside a rendered expression as one. The fixture is passed in rather than derived — it is
+ * cited from `bench/REPRODUCE.md`, because no cell records it and inferring it from task-id
+ * prefixes would let a rename publish a claim about provenance (DEC-019).
+ */
+export const formatCoverage = ({
+  inventory,
+  fixture,
+}: {
+  inventory: {
+    readonly tasks: number;
+    readonly shapes: readonly {
+      readonly shape: string;
+      readonly tasks: number;
+      readonly cells: number;
+    }[];
+  };
+  fixture: { readonly repo: string; readonly commit: string };
+}): string => {
+  const shapes = inventory.shapes
+    .map((shape) => `${String(shape.tasks)} ${shape.shape} (${String(shape.cells)} cells)`)
+    .join(', ');
+
+  return (
+    `${String(inventory.tasks)} tasks, all in one repository — ` +
+    `${fixture.repo} at ${fixture.commit}. ${shapes}.`
+  );
+};
+
+/**
+ * A claim this project published and then retracted.
+ *
+ * Named `ClaimWithdrawal` rather than `Withdrawal`: this package already has the second, and
+ * it means a withdrawn *run* — an instrument failure excluded from the corpus. A retracted
+ * claim and a discarded run are different objects and sharing a name would let a reader of
+ * either think they had met the other.
+ *
+ * A withdrawal is a record, not a paragraph. It carries the date it was made, and DATA-01 is
+ * right to block that date being typed into markup: a date a reader reads is a figure, and
+ * the rule has no exemption for one that happens to be about our own mistake. Keeping the
+ * record here means the page renders it the same way it renders a rate.
+ */
+export type ClaimWithdrawal = {
+  readonly id: string;
+  readonly withdrawnOn: string;
+  readonly previously: string;
+  readonly cause: string;
+};
+
+/** The scope claim withdrawn by PDX-035. */
+export const SCOPE_WITHDRAWAL: ClaimWithdrawal = {
+  id: 'withdrawal-scope',
+  withdrawnOn: '2026-08-20',
+  previously: 'run against real tickets in a real repository',
+  cause:
+    'nobody had counted. The scope was discoverable from the analysis page and from the ' +
+    'records, and never stated beside the headline where a reader forms an impression.',
+};

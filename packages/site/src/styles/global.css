@@ -1480,3 +1480,51 @@ html {
 .stop {
   margin-left: -0.25rem;
 }
+
+/* The scope note and the limit that follows it (PDX-035). The note sits with the figure it
+   qualifies, not in a footnote — a reader who sees the rate must be able to see what the
+   denominator is over in the same view. */
+.coverage {
+  margin: 1.1rem 0 0;
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  border-left: 2px solid var(--rule-2);
+  padding-left: 0.9rem;
+}
+
+.limit {
+  margin: 0.7rem 0 0;
+  font-family: var(--serif);
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  padding-left: 0.9rem;
+  border-left: 2px solid transparent;
+}
+
+.disagree {
+  display: block;
+  margin-top: 0.5rem;
+  color: var(--fail);
+  font-weight: 600;
+}
+
+/* A tier caption says what the group means, in words. A colour or a gap alone would leave a
+   reader to infer the claim, and the claim is the reason the grouping exists (DEC-028). */
+.tier-head {
+  margin: 0.9rem 0 0.1rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  padding-left: 9.35rem;
+}
+
+.tier-head:first-child {
+  margin-top: 0;
+}
+
+@media (max-width: 66rem) {
+  .tier-head {
+    padding-left: 0;
+  }
+}

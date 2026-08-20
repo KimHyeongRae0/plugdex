@@ -129,7 +129,14 @@ sys.path.insert(0, os.environ["SB"])
 from read_html import strip_tags  # noqa: F401  (proves the reader loaded)
 from report import verdict
 
+import glob
+
 LEGAL = {"installs", "blocked", "unmeasured"}
+
+records_on_disk = [
+    json.load(open(path, encoding="utf-8"))
+    for path in sorted(glob.glob(os.path.join(os.environ.get("INSTALL_DIR", ""), "*.json")))
+] if os.environ.get("INSTALL_DIR") else []
 CARD = re.compile(r'<li[^>]*class="[^"]*\bcard\b[^"]*"[^>]*>', re.I)
 STATE = re.compile(r'data-install-state="([^"]*)"')
 PACK = re.compile(r'data-pack-id="([^"]*)"')
@@ -162,11 +169,25 @@ if illegal:
 
 counts = {v: values.count(v) for v in set(values)}
 
-# Both directions. A corpus where every listing installs would make every blocked assertion
-# below vacuous, and the scenario must break loudly rather than quietly prove nothing.
-if counts.get("blocked", 0) < 1:
-    problems.append("no card renders `blocked` — the blocked assertions would prove nothing")
-if counts.get("installs", 0) < 1:
+# Both directions, against the RECORDS rather than against a hope about upstream.
+#
+# This required "at least one blocked card" until 2026-08-20, when caveman's upstream fixed
+# its manifest mid-session and INST-01c fired: a pack recorded as blocked that starts
+# installing is a failure, not a pass. The record was refreshed, the page correctly rendered
+# five installing listings — and this assertion failed, because it had been standing in for
+# "the blocked render path works" by hoping a third party's repository stayed broken.
+#
+# A proxy that depends on someone else's bug is not a test. What must hold is that the page
+# agrees with the records, which `agreement.py` asserts in full; the blocked branch itself is
+# pinned by `installStateFor`'s unit tests and by the planted control below. So this checks
+# what the records actually support, and says so when they support only one direction.
+expected_states = {r["outcome"] for r in records_on_disk}
+
+for state in sorted(expected_states):
+    if counts.get(state, 0) < 1:
+        problems.append(f"a record says `{state}` but no card renders it")
+
+if counts.get("installs", 0) < 1 and "installs" in expected_states:
     problems.append("no card renders `installs` — the scenario cannot tell the states apart")
 
 print("SENTINEL " + json.dumps(verdict(
@@ -280,8 +301,20 @@ for path in sorted(glob.glob(os.path.join(os.environ["INSTALL_DIR"], "*.json")))
     record = json.load(open(path, encoding="utf-8"))
     (blocked if record["outcome"] == "blocked" else installs)[record["pack"]] = record
 
-if not blocked:
-    print("SENTINEL " + json.dumps({"ok": False, "detail": "no blocked record on disk — nothing to assert"}))
+# A corpus where nothing is blocked is a legitimate state, not a broken test.
+#
+# On 2026-08-20 caveman's upstream fixed its manifest, INST-01c fired, and the refreshed
+# record turned the last blocked listing into an installing one. This probe used to exit
+# `ok: False` here — correct at the time, because it was standing in for "the blocked render
+# path works" and could not check it. That path is pinned instead by `installStateFor`'s unit
+# tests in `packages/registry`, which assert the blocked branch directly. What this probe
+# asserts is what the records support: every blocked record shows its receipt and offers no
+# copy control, every installing record keeps one, and the installing side is never empty.
+if not installs:
+    print("SENTINEL " + json.dumps({
+        "ok": False,
+        "detail": "no installing record on disk — the marketplace lists nothing that works",
+    }))
     sys.exit(0)
 
 for pack, record in blocked.items():
@@ -318,11 +351,137 @@ for pack in installs:
 print("SENTINEL " + json.dumps(verdict(
     problems,
     f"{len(blocked)} blocked listing(s) carry the recorded error and offer no copy control; "
-    f"{len(installs)} installing listing(s) keep theirs",
+    f"{len(installs)} installing listing(s) keep theirs"
+    + ("" if blocked else " (no listing is blocked today; the blocked render is covered by "
+                          "the planted-fixture assertion below, not by the live corpus)"),
 )))
 PY
 
 judge "$(python3 "$SB/blocked.py" 2>/dev/null)" "AC-2 (the receipt is shown, the affordance is withdrawn)"
+
+# ---------------------------------------------------------------------------
+# AC-2 — the blocked RENDER, proven by rendering it.
+#
+# The assertion above checks the live page against the live records, and when no listing is
+# blocked it has nothing to check. Report review round 1 caught the consequence: this
+# scenario's blocked coverage became structurally vacuous the day caveman's upstream fixed
+# its manifest, and the first fix's claim that `installStateFor`'s unit tests covered it was
+# wrong — those pin the derivation, not the markup, and `packages/site` has no tests at all.
+#
+# So the component is rendered against a planted blocked state, the way PDX-004's AC-6
+# fixture renders PackCard. Upstream can fix or break whatever it likes; this path stays
+# covered either way.
+# ---------------------------------------------------------------------------
+cat > "$SB/fixture.py" <<'FIXTURE'
+import json, os, pathlib, re, shutil, subprocess, sys, tempfile
+
+sys.path.insert(0, os.environ["SB"])
+from report import verdict
+
+root = pathlib.Path(os.environ["PROJECT_ROOT"])
+site = root / "packages" / "site"
+problems = []
+
+PAGE = """---
+import InstallDialog from '../components/InstallDialog.astro';
+import type { InstallState } from '@plugdex/registry';
+
+const blocked: InstallState = {
+  state: 'blocked',
+  shortHead: 'aaaaaaa',
+  record: {
+    pack: 'planted',
+    repo: 'example/planted',
+    cliVersion: 'fixture',
+    attemptedAt: '2026-01-01T00:00:00Z',
+    upstreamHead: 'a'.repeat(40),
+    transport: 'https',
+    outcome: 'blocked',
+    signature: { kind: 'manifest-validation', keys: ['agents'] },
+    verbatim: 'PLANTED-VERBATIM-MARKER: the CLI refused this manifest',
+  },
+};
+---
+
+<InstallDialog
+  packId="planted"
+  displayName="planted"
+  upstreamRepo="example/planted"
+  state={blocked}
+  measuredCommit={'b'.repeat(40)}
+/>
+"""
+
+sandbox = pathlib.Path(tempfile.mkdtemp())
+
+try:
+    target = sandbox / "site"
+    shutil.copytree(site / "src", target / "src")
+
+    for name in ("package.json", "astro.config.mjs", "tsconfig.json"):
+        shutil.copy(site / name, target / name)
+
+    (target / "node_modules").symlink_to(site / "node_modules")
+    (sandbox / "node_modules").symlink_to(root / "node_modules")
+    # Only the fixture page. The real pages read the corpus through a path relative to their
+    # own location, which does not resolve inside a scratch directory — and building them here
+    # would test the loader rather than the dialog this fixture exists to render.
+    for page in (target / "src" / "pages").glob("*.astro"):
+        page.unlink()
+
+    (target / "src" / "pages" / "blocked-fixture.astro").write_text(PAGE, encoding="utf-8")
+
+    entry = subprocess.run(
+        ["node", "-e", "process.stdout.write(require.resolve('astro/package.json'))"],
+        cwd=site, capture_output=True, text=True, timeout=120,
+    )
+    astro_bin = pathlib.Path(entry.stdout.strip()).parent / "astro.js" if entry.returncode == 0 else None
+
+    built = subprocess.run(
+        ["node", str(astro_bin), "build"] if astro_bin and astro_bin.exists() else ["npx", "astro", "build"],
+        cwd=target, capture_output=True, text=True, timeout=600,
+    )
+
+    out = None
+    for candidate in (target / "dist" / "blocked-fixture.html",
+                      target / "dist" / "blocked-fixture" / "index.html"):
+        if candidate.exists():
+            out = candidate
+            break
+
+    if out is None:
+        problems.append(
+            "the blocked fixture did not build: "
+            + " ".join(
+                line for line in (built.stderr or built.stdout).splitlines()
+                if line.strip() and "node_modules" not in line
+            )[:400]
+        )
+    else:
+        html = out.read_text(encoding="utf-8")
+
+        if "PLANTED-VERBATIM-MARKER" not in html:
+            problems.append("a blocked dialog rendered without its recorded verbatim error")
+
+        if re.search(r'data-copy-command="[^"]*install planted@plugdex', html):
+            problems.append("a blocked dialog still offers a copy control for the failing command")
+
+        if "claude plugin install planted@plugdex" not in html:
+            problems.append("a blocked dialog dropped the command entirely, hiding what was attempted")
+
+        if 'data-install-gap="planted"' not in html:
+            problems.append("a blocked dialog omits the HEAD-vs-measured disclosure")
+finally:
+    shutil.rmtree(sandbox, ignore_errors=True)
+
+print("SENTINEL " + json.dumps(verdict(
+    problems,
+    "a planted blocked state renders its receipt, keeps the command visible, withdraws the "
+    "copy control and carries the gap — proven by rendering, not by the live corpus",
+)))
+FIXTURE
+
+judge "$(python3 "$SB/fixture.py" 2>/dev/null)" "AC-2 (the blocked render, proven by rendering it)"
 
 # ---------------------------------------------------------------------------
 # AC-3 — the counts line is derived, and the oldest/newest distinction is real.

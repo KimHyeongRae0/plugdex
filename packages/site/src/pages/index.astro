@@ -1,6 +1,12 @@
 ---
 import {
   armSummary,
+  corpusInventory,
+  domainSummary,
+  formatCoverage,
+  readFixture,
+  SCOPE_WITHDRAWAL,
+  separationTier,
   loadAcceptanceRecords,
   loadEconomics,
   paretoFrontier,
@@ -149,6 +155,53 @@ const inQuadrant =
 
 const withdrawn = corpus.withdrawnRecords.length;
 
+/**
+ * What the corpus covers, counted — and the fixture, cited from the file that documents it.
+ *
+ * The page used to say only that packs were run "against real tickets in a real repository".
+ * True, and read as far wider than what happened. The counts come from the records; the
+ * fixture comes from `bench/REPRODUCE.md`, because no cell carries one and inferring it from
+ * task-id prefixes would let a rename publish a claim about provenance (DEC-019).
+ */
+const inventory = corpusInventory({ cells });
+
+const fixture = readFixture({
+  file: new URL('../../../../bench/REPRODUCE.md', import.meta.url).pathname,
+});
+
+const coverage = formatCoverage({ inventory, fixture });
+
+/**
+ * The page's own description, derived from the same inventory the scope note renders.
+ *
+ * It said "run against real tickets in a real repository" until report review round 1 found
+ * it: the exact sentence this ticket withdraws, still being served to search engines and
+ * link previews from the page that withdraws it. A withdrawal that leaves the claim in the
+ * `<meta>` has withdrawn nothing where most readers first meet it.
+ */
+const metaDescription = `Every listed pack was installed and run unattended, and the code it delivered was built. ${coverage}`;
+
+/** Task ids against the cited fixture. A disagreement is reported, never silently resolved. */
+const fixtureAgrees = inventory.families.length === 1;
+
+/**
+ * Which arms this corpus can tell apart from the baseline — three outcomes, not two.
+ *
+ * An arm with no graded cell has no interval, and reading that absence as "does not overlap"
+ * put the pack that writes no code in the same tier as the only pack that beats the baseline.
+ * `separationTier` tests the null case first for exactly that reason (DEC-028).
+ */
+const baselineSummary = rows.find((row) => row.arm === 'baseline')?.summary;
+
+const tiers = Object.fromEntries(
+  rows.map((row) => [
+    row.arm,
+    baselineSummary === undefined
+      ? 'unmeasured'
+      : separationTier({ summary: row.summary, baseline: baselineSummary }),
+  ]),
+);
+
 const measured = rows.filter((row) => row.summary.n > 0);
 const baselineRow = rows.find((row) => row.arm === 'baseline');
 const baselineHigh = baselineRow?.summary.wilson?.hi ?? null;
@@ -164,7 +217,37 @@ const clears = measured
   )
   .map((row) => row.arm);
 
+/**
+ * The backend half of the decision, derived — not asserted.
+ *
+ * Report review round 1 found this sentence typed: the page stated "no pack separates from
+ * the baseline at all" as prose, so a corpus change would have left a false recommendation
+ * published with every gate green. `analysis.astro` was already deriving the same fact.
+ */
+const backendIntervals = arms
+  .map((arm) => domainSummary({ cells, arm, domain: 'backend' as const }).wilson)
+  .filter((interval): interval is { lo: number; hi: number } => interval !== null);
+
+const backendAllOverlap = backendIntervals.every((left) =>
+  backendIntervals.every((right) => left.lo <= right.hi && right.lo <= left.hi),
+);
+
+/**
+ * Whether the clearing arm is also the cheaper one, derived from the same economics the
+ * scatter draws. The page said "it costs more per cell than the baseline" as a literal.
+ */
+const baselineCost = economics.arms.find((entry) => entry.arm === 'baseline')?.cost.value ?? null;
+
+const clearingCost =
+  clears.length === 1
+    ? (economics.arms.find((entry) => entry.arm === clears[0])?.cost.value ?? null)
+    : null;
+
+const clearingCostsMore =
+  baselineCost !== null && clearingCost !== null ? clearingCost > baselineCost : null;
+
 const anyClears = clears.length > 0;
+const oneClears = clears.length === 1;
 const anyInQuadrant = inQuadrant.length > 0;
 
 const sections = [
@@ -182,7 +265,7 @@ const sections = [
     <title>plugdex — behaviour packs, measured</title>
     <meta
       name="description"
-      content="Every listed pack was run against real tickets in a real repository, and the code it delivered was built."
+      content={metaDescription}
     />
   </head>
 
@@ -223,7 +306,55 @@ const sections = [
               corpus this size.
             </p>
 
-            <RankedBars rows={rows} hues={hues} />
+            <RankedBars rows={rows} hues={hues} tiers={tiers} />
+
+            <p class="coverage" data-coverage="corpus">
+              <strong>What these numbers are over.</strong> {coverage} Every frontend task
+              adds a React component to that template; every backend task adds an endpoint to
+              it, or a constraint on one. There is no mobile or client-app task here, no
+              design task, no refactor, no debugging, no test authoring, and no task in a
+              second repository.{' '}
+              <a href="#withdrawal-scope" data-withdrawal="scope"
+                >This page used to say less than that</a
+              >.
+              {
+                fixtureAgrees ? null : (
+                  <span class="disagree">
+                    The task ids and the cited fixture disagree about how many repositories
+                    this corpus used; neither is preferred and the record needs correcting.
+                  </span>
+                )
+              }
+            </p>
+
+            <p class="limit">
+              So these results describe this kind of work in this repository. Whether they
+              transfer to other repositories, other stacks, or other kinds of ticket is not
+              something anything here has measured — and a benchmark that lets you assume it
+              did is doing the thing this one exists to object to.
+            </p>
+
+            <p class="callout" data-decision="summary">
+              <strong>If you came to decide.</strong>
+              {
+                anyClears
+                  ? ` On frontend work in this corpus, ${clears.join(', ')} ${oneClears ? 'is the only arm' : 'are the arms'} whose interval clears the baseline's outright — every other pack overlaps it, so at these sample sizes they are not distinguishable from installing nothing.`
+                  : ' On frontend work in this corpus, no arm clears the baseline outright, so no pack here is distinguishable from installing nothing.'
+              }
+              {
+                clearingCostsMore === null
+                  ? ''
+                  : clearingCostsMore
+                    ? ' It is not the cheapest way to get there: it costs more per cell than the baseline, so the choice is a trade rather than a free win.'
+                    : ' It also costs less per cell than the baseline, so on this corpus it is not a trade.'
+              }
+              {' '}
+              {
+                backendAllOverlap
+                  ? 'On backend work, no pack separates from the baseline at all — every interval overlaps it. Nothing on this page supports choosing a pack for backend tickets.'
+                  : 'On backend work, at least one pair of intervals does not overlap, so the backend split is worth reading before choosing — this page does not say which pair, because a pairwise test is not a ranking.'
+              }
+            </p>
 
             <p class="callout" data-composite-index="refused">
               <strong>There is no composite index here, and that is deliberate.</strong> A
@@ -232,7 +363,7 @@ const sections = [
               wearing a number's clothes. What the ordering above supports is one sentence:
               {
                 anyClears
-                  ? ` of the measured arms, ${clears.join(', ')} clears the baseline's interval outright. Every other interval overlaps the baseline's, so at these sample sizes those packs are not distinguishable from installing nothing.`
+                  ? ` of the measured arms, ${clears.join(', ')} ${oneClears ? 'clears' : 'clear'} the baseline's interval outright. Every other interval overlaps the baseline's, so at these sample sizes those packs are not distinguishable from installing nothing.`
                   : ' no measured arm clears the baseline’s interval outright, so at these sample sizes none of them is distinguishable from installing nothing.'
               }
             </p>
@@ -343,6 +474,26 @@ const sections = [
             <p>
               Runs withdrawn as instrument failures are excluded and stay on record; the
               count of them is <span class="mono">{withdrawn}</span>.
+            </p>
+
+            <h3 id="withdrawal-scope">Withdrawn: what this page used to say about scope</h3>
+
+            <p>
+              Until <span class="mono">{SCOPE_WITHDRAWAL.withdrawnOn}</span> this page said
+              only that every pack was <em>{SCOPE_WITHDRAWAL.previously}</em>, and stopped
+              there. That
+              sentence is true and it is read as far wider than what happened — a reader
+              pictures a range of work, and the corpus is one template repository and two
+              shapes of task. Nothing was measured that the page did not report; what the page
+              did not report was the shape of what it measured, which is the same defect as a
+              rate without its denominator.
+            </p>
+
+            <p>
+              The cause: {SCOPE_WITHDRAWAL.cause} It was found by the project's owner and,
+              independently, by an outside review of this site. The replacement is the
+              paragraph beside the chart above, derived from the records so a corpus change
+              rewrites it rather than outdating it.
             </p>
           </section>
         </main>

@@ -16,9 +16,12 @@ Two faces, one dataset:
 - **the site** — a browsable catalogue, one card per pack, verdict chip, install button
 - **the registry** — a Claude Code marketplace generated from the same records:
   `claude plugin marketplace add plugdex` adds every listed pack by name, and the site
-  states which of them install. Not all do — `caveman` is listed and its own record says
-  `blocked`, so the catalogue labels it and withdraws the copy control rather than handing
-  out a command the repository knows fails (PDX-024)
+  states which of them install, derived per listing from a record written by a real install.
+  A listing whose upstream stops installing is labelled and loses its copy control rather
+  than handing out a command the repository knows fails; a listing whose upstream is fixed
+  moves back on the next run, because INST-01c treats a stale `blocked` record as a failure
+  (PDX-024). Do not write a pack's install state into prose — it changed twice on
+  2026-08-20 alone
 
 The product philosophy — *a claim is worth what its receipt is worth* — is applied
 to this repository's own harness. Work proceeds via workflow tickets (`PDX-###`),

@@ -2,6 +2,8 @@
 
 **Agent behaviour packs, measured by whether the code they wrote builds.**
 
+**→ [plugdex.pages.dev](https://plugdex.pages.dev)** · [the evidence](https://plugdex.pages.dev/analysis)
+
 Ponytail, superpowers, caveman, Karpathy's `CLAUDE.md`, Matt Pocock's skills, and whatever
 ships next week. Browse them in one place, install them with one command, and see what
 actually happened when we ran them.
@@ -12,7 +14,17 @@ checking that the delivered code compiles**. plugdex runs each pack against the 
 in the same repository, builds what it delivers with that repository's own toolchain, and
 publishes every cell beside the listing.
 
-![The leaderboard: build rate with its interval, cost per cell, turns, tokens, lines of code](docs/images/analysis-leaderboard.png)
+![The landing figure: one bar per pack ordered by build rate, the Wilson interval drawn on each, grouped into arms that clear the baseline, arms that do not separate from it, and arms with no measurement](docs/images/landing-hero.png)
+
+**What the front page leads with, and why it is grouped.** One bar per pack with its Wilson
+interval drawn on it, and the arms sorted into three tiers: clears the baseline, not
+distinguishable from it, not measured. A ranked bar chart says *this one won* at a glance
+whatever the whiskers show — so the separation the intervals support is drawn, not argued.
+On this corpus that puts the baseline in the same tier as three of the five packs.
+
+Beside it, the page states what the numbers are over: **12 tasks, one repository, two shapes
+of work** — and what is absent from them. That paragraph is derived from the records, so a
+corpus change rewrites it rather than outdating it.
 
 ## What the measurements say
 
@@ -21,10 +33,14 @@ rather than run — over 312 cells, 229 of them valid. The other condition ran a
 sample and is reported separately rather than averaged in, because averaging them produces a
 rate that describes neither.
 
+![The leaderboard: every listed pack in one row, build rate with its Wilson interval, and the cost, turns, tokens and lines of code each one spent](docs/images/analysis-leaderboard.png)
+
 - **Frontend work separates the packs; backend work does not.** Frontend build rates run
   from 25% (no pack) to 73%; backend rates sit between 35% and 47% for every arm, with every
   interval overlapping every other one. On this corpus the backend tickets cannot tell the
   packs apart — a finding about the tickets as much as about the packs.
+
+  ![Frontend and backend build rates side by side, each arm with its Wilson interval: the frontend rates fan out, the backend rates sit on top of one another](docs/images/analysis-domains.png)
 - **The two are graded by different gates and are never blended.** A frontend ticket is
   graded by whether the repository's own build accepted the delivered code; a backend ticket
   by whether that code imports and introduces no new lint or type diagnostic. No test suite
@@ -57,6 +73,11 @@ rather than a ranking.
 ### What it costs you
 
 ![Build rate against cost per cell and against wall clock, with a Pareto frontier](docs/images/analysis-tradeoffs.png)
+
+Where the spend goes is its own view — input, output and cache-read tokens per arm, so a
+cheap arm that is cheap because it wrote nothing is visible as such:
+
+![Token economics per arm: input, output and cache-read shares stacked per pack](docs/images/analysis-tokens.png)
 
 ### Every cell, nothing aggregated away
 
@@ -110,11 +131,20 @@ A third, withdrawn 2026-08-20: this file and `CLAUDE.md` both said the marketpla
 "makes every listed pack installable by name". That was false the day it was written and
 the repository's own records said so — `.claude-plugin/marketplace.json` lists `caveman`
 while `packages/registry/installability/caveman.json` has recorded `"outcome": "blocked"`
-since 2026-08-18, with the CLI's verbatim error. Re-measured on 2026-08-20 against a
-*newer* upstream commit than the record names, it still fails the same way. The sentence is
-replaced above with the count and a pointer to where the site states it per listing. The
-site had the same gap and closed it in the same change (PDX-024); this entry exists because
-the front door kept the claim for two days after the record contradicted it.
+since 2026-08-18, with the CLI's verbatim error. The sentence is replaced above with the
+count and a pointer to where the site states it per listing. The site had the same gap and
+closed it in the same change (PDX-024); this entry exists because the front door kept the
+claim for two days after the record contradicted it.
+
+**And then the world moved, which is the part worth reading.** Later on 2026-08-20 —
+hours after the correction — `caveman`'s upstream fixed its manifest. INST-01c fired on the
+next run: *a pack recorded as blocked that starts installing is a FAILURE, not a pass*, which
+is the rule that exists so marking something broken can never be a way to keep a gate green.
+The record was regenerated by a real install (`outcome: installs`, `702da5ce`), and because
+every install state on the site is derived rather than written, the catalogue moved with it
+in the same build — five installing, none blocked. The corrected sentence above needed no
+edit, which is the whole argument for deriving it. What did need an edit was every place a
+person had typed `caveman` and `blocked` into the same sentence, including this one.
 
 ## Development
 

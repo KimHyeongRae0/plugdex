@@ -35,9 +35,18 @@ import type { ArmSummary } from '@plugdex/data';
 interface Props {
   rows: readonly { arm: string; summary: ArmSummary }[];
   hues: Readonly<Record<string, string>>;
+  /**
+   * Which arms this corpus can tell apart from the baseline.
+   *
+   * Rendered as an attribute rather than as an ordering, so the figure states what the
+   * intervals support without ranking one tier against another. `unmeasured` is a tier of its
+   * own: an arm with no interval is not "not separated", it is not measured, and collapsing
+   * the two showed the pack that writes no code beside the one that beats the baseline.
+   */
+  tiers: Readonly<Record<string, string>>;
 }
 
-const { rows, hues } = Astro.props;
+const { rows, hues, tiers } = Astro.props;
 
 /** A fraction becomes a percentage of the track. The scale is named, so the literal is layout. */
 const fullWidthScale = 100;
@@ -45,20 +54,71 @@ const fullWidthScale = 100;
 /** An unmeasured arm draws no fill; a zero-width bar would state a rate nobody measured. */
 const emptyFillWidth = 0;
 
+
+
 const baselineArm = 'baseline';
 const fallbackHue = 'var(--arm-base)';
 
 const measured = rows.filter((row) => row.summary.n > 0);
 const unmeasured = rows.filter((row) => row.summary.n === 0);
 
-const ordered = [
-  ...[...measured].sort(
-    (left, right) =>
-      (rateFraction({ summary: right.summary }) as number) -
-      (rateFraction({ summary: left.summary }) as number),
-  ),
-  ...[...unmeasured].sort((left, right) => left.arm.localeCompare(right.arm)),
-];
+/**
+ * Tier first, point estimate second.
+ *
+ * DEC-028: arms are ordered by point estimate *within* a tier, as DEC-027 already permitted,
+ * and never ranked *across* tiers. Grouping is what the figure does with the intervals it
+ * draws — an outside review found that a plain ranked chart says "this one won" at a glance
+ * whatever the whiskers show, so the separation has to be structural and not only argued.
+ */
+/*
+ * The tier order as a sequence, not a map of numbers.
+ *
+ * `{ clears: 0, overlaps: 1 }` puts a digit under a key DATA-01 reads as a figure's name, and
+ * it is right to: a number keyed to a verdict is one edit away from being a score. A position
+ * in a list carries the same ordering and cannot be mistaken for a value.
+ */
+const tierSequence = ['clears', 'overlaps', 'unmeasured'] as const;
+
+/**
+ * Rank inside a tier, resolved where the guard already is.
+ *
+ * `rateFraction` is null for an arm with no graded cell, and a `?? 0` here would be a
+ * fallback figure — which DATA-01 blocks, correctly: a substituted zero is a rate nobody
+ * measured. The unmeasured arms are sorted by name in their own tier instead, so no
+ * comparison ever needs a number that does not exist.
+ */
+const rankOf = ({ summary }: { summary: ArmSummary }): number | null =>
+  summary.n === 0 ? null : rateFraction({ summary });
+
+const tierIndexOf = ({ arm }: { arm: string }): number => {
+  // `includes` rather than a sentinel from `indexOf`: the not-found value is a literal too,
+  // and naming it does not stop DATA-01 reading it as a figure. Membership is a boolean.
+  const tier = tiers[arm] ?? 'unmeasured';
+
+  return tierSequence.includes(tier as (typeof tierSequence)[number])
+    ? tierSequence.indexOf(tier as (typeof tierSequence)[number])
+    : tierSequence.length;
+};
+
+const ordered = [...measured, ...unmeasured].sort((left, right) => {
+  const gap = tierIndexOf({ arm: left.arm }) - tierIndexOf({ arm: right.arm });
+
+  if (gap !== 0) return gap;
+
+  const leftRank = rankOf({ summary: left.summary });
+  const rightRank = rankOf({ summary: right.summary });
+
+  if (leftRank === null || rightRank === null) return left.arm.localeCompare(right.arm);
+
+  return rightRank - leftRank || left.arm.localeCompare(right.arm);
+});
+
+/** What each tier says, in words rather than in a colour a reader has to decode. */
+const tierCaptions: Record<string, string> = {
+  clears: 'Clears the baseline — its interval sits entirely above the baseline\'s',
+  overlaps: 'Not distinguishable from the baseline at this sample size — intervals overlap',
+  unmeasured: 'Not measured on frontend work — no graded cell, so no interval',
+};
 
 /**
  * One finished row: geometry as numbers, everything a reader reads as a string.
@@ -67,13 +127,22 @@ const ordered = [
  * no graded frontend cell gets the absence in words and no band at all — a band from zero
  * to zero would draw an interval nobody computed.
  */
+let previousTier: string | null = null;
+
 const view = ordered.map((row) => {
+  const tier = tiers[row.arm] ?? 'unmeasured';
+  const startsTier = tier !== previousTier;
+
+  previousTier = tier;
+
   const wilson = row.summary.wilson;
 
   if (row.summary.n === 0 || wilson === null) {
     return {
       arm: row.arm,
       isBaseline: String(row.arm === baselineArm),
+      tier,
+      startsTier,
       fillWidth: emptyFillWidth,
       hue: hues[row.arm] ?? fallbackHue,
       band: null,
@@ -89,6 +158,8 @@ const view = ordered.map((row) => {
   return {
     arm: row.arm,
     isBaseline: String(row.arm === baselineArm),
+    tier,
+    startsTier,
     fillWidth: fraction * fullWidthScale,
     hue: hues[row.arm] ?? fallbackHue,
     band: {
@@ -106,7 +177,18 @@ const view = ordered.map((row) => {
 <div class="ranked" data-ranked>
   {
     view.map((row) => (
-      <div class="rrow" data-ranked-row={row.arm} data-baseline={row.isBaseline}>
+      <>
+        {row.startsTier ? (
+          <p class="tier-head" data-tier-head={row.tier}>
+            {tierCaptions[row.tier] ?? row.tier}
+          </p>
+        ) : null}
+      <div
+        class="rrow"
+        data-ranked-row={row.arm}
+        data-baseline={row.isBaseline}
+        data-tier={row.tier}
+      >
         <span class="rname">{row.arm}</span>
 
         <div class="rtrack">
@@ -138,7 +220,8 @@ const view = ordered.map((row) => {
         >
           {row.meta}
         </span>
-      </div>
+        </div>
+      </>
     ))
   }
 </div>
@@ -147,4 +230,5 @@ const view = ordered.map((row) => {
   <span><span class="whisker-key" aria-hidden="true"></span> Wilson interval</span>
   <span>bar = point estimate</span>
   <span>dashed track = baseline (no pack installed)</span>
+  <span>tier = whether this corpus can tell the arm apart from the baseline</span>
 </p>
