@@ -149,8 +149,28 @@ jobs:
       # absent — a skip would leave the premise unproven while the run stayed green.
       # The install itself needs no credentials: it clones the pack's public repository
       # and writes into a scratch CLAUDE_CONFIG_DIR the scenario creates.
+      # PINNED, and the pin is the point.
+      #
+      # This step installed the CLI unpinned until 2026-08-20, when PDX-003's real-install
+      # sweep passed at 00:52 and the same code failed at 00:57 on main with
+      # "'claude --version' printed nothing". Nothing in this repository changed between
+      # those two runs.
+      #
+      # What is NOT known, and is not asserted here: which version each run installed.
+      # 2.1.237 shipped at 23:57 the night before, so both runs were after it and a version
+      # bump does not cleanly explain a pass followed by a failure. The cause may be the
+      # release, a partially-populated npm cache on the runner, or something else entirely.
+      # The honest statement is that an unpinned tool inside a gate makes the question
+      # unanswerable — which is the same unnamed-condition defect this project corrects in
+      # its own published claims, and it does not get to keep one in its CI.
+      #
+      # So: pin it, and echo the version the run actually used. Raising the pin becomes a
+      # deliberate act with a visible diff, and the next failure names its version instead
+      # of leaving the reader to diff two green runs.
       - name: Install the Claude Code CLI (PDX-003 AC-5 needs a real install)
-        run: npm install -g @anthropic-ai/claude-code
+        run: |
+          npm install -g @anthropic-ai/claude-code@2.1.236
+          echo "claude CLI: $(claude --version 2>&1 || echo '<printed nothing>')"
       # The step this comment used to defer. Its earlier text said the browser
       # driver returns "with the first UI scenario, and the ticket that adds it is
       # the ticket that adds this back" — PDX-004 is that ticket and it did not,
