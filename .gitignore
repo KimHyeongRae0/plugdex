@@ -11,3 +11,6 @@ node_modules/
 dist/
 # Astro build output.
 .astro/
+
+# wrangler writes a local deploy cache here; it is not repository content
+.wrangler/
