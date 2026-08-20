@@ -69,7 +69,14 @@ const packs = [...entries]
     measuredCommit: readSource({ packId: entry.packId }).commit,
   }));
 
-/** How many listings install, how many do not, and the date the oldest attempt was made. */
+/**
+ * How many listings install, how many do not, and the date of the oldest attempt behind that.
+ *
+ * Rendered as noun phrases — "4 installing, 2 blocked" — rather than as a sentence. A derived
+ * count governs a verb, and the first version shipped "1 do not" to the live page because the
+ * plural was written once for a number that changes. The phrasing that cannot disagree is the
+ * one that does not conjugate.
+ */
 const installability = installabilitySummary();
 
 const arms = [...entries.map((entry) => entry.packId), 'baseline'];
@@ -283,12 +290,12 @@ const sections = [
             </p>
 
             <p class="install-counts" data-install-counts="summary">
-              <span class="mono">{installability.installs}</span> of these listings install
-              from this marketplace today; <span class="mono">{installability.blocked}</span>
-              do not. Measured by a real install into a scratch config directory, oldest
-              attempt <span class="mono">{installability.attemptedOn}</span>. A listing that
-              stopped installing keeps its card and its figures — the measurement happened;
-              what changed is upstream.
+              <span class="mono">{installability.installs}</span> installing,{' '}
+              <span class="mono">{installability.blocked}</span> blocked — measured by a real
+              install into a scratch config directory, oldest attempt{' '}
+              <span class="mono">{installability.attemptedOn}</span>. A listing that stopped
+              installing keeps its card and its figures — the measurement happened; what
+              changed is upstream.
             </p>
 
             <ul class="grid">
