@@ -229,7 +229,28 @@ print(len(json.load(open('$MARKET')).get('plugins') or []))
 " 2>/dev/null || echo 0)
 
   if [[ "$INST_STATUS" -ne 0 ]]; then
-    fail "AC-5: INST-01 blocked — $(grep -E '✗|INST-01' "$INST_LOG" | head -2 | tr '\n' ' ' | cut -c1-220)"
+    # The reason, or the log's tail when no line matches — never an empty reason.
+    #
+    # This printed `INST-01 blocked — ` with nothing after it on a CI run, because the
+    # pattern looked for `✗` and `INST-01` while the gate's own fatal path prints `❌`, and
+    # because the log lives in a sandbox this scenario deletes on exit. A failure whose
+    # cause is unavailable is worse than the failure: the run said the gate blocked and gave
+    # nobody a way to find out why. The fallback is unconditional, so an unmatched log still
+    # produces evidence.
+    INST_WHY="$(grep -E '❌|✗|INST-01|Error|error' "$INST_LOG" 2>/dev/null | head -3 | tr '\n' ' ')"
+
+    if [[ -z "${INST_WHY// /}" ]]; then
+      INST_WHY="no matching line; log tail: $(tail -5 "$INST_LOG" 2>/dev/null | tr '\n' ' ')"
+    fi
+
+    if [[ -z "${INST_WHY// /}" ]]; then
+      INST_WHY="the gate wrote nothing at all (exit ${INST_STATUS})"
+    fi
+
+    fail "AC-5: INST-01 blocked — $(printf '%s' "$INST_WHY" | cut -c1-400)"
+    echo "    ---- check-installability.sh output ----" >&2
+    sed 's/^/    /' "$INST_LOG" >&2 || true
+    echo "    ---- end ----" >&2
   elif [[ -z "$LISTED_COUNT" || "$LISTED_COUNT" -lt 1 ]]; then
     fail "AC-5: the manifest lists no plugins, so the sweep asserted nothing"
   elif [[ "$SWEPT" -ne "$LISTED_COUNT" ]]; then
