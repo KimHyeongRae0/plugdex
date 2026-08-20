@@ -19,6 +19,8 @@ export {
 } from './load.js';
 
 export { verdictFor, percentOf } from './verdict.js';
+export { corpusInventory, MissingFixtureError, readFixture, separationTier } from './aggregate.js';
+export type { CorpusInventory, CorpusShape, Fixture, SeparationTier } from './aggregate.js';
 
 export { gradeCell, domainOf, graderLabel, stateLabel } from './grade.js';
 
@@ -72,6 +74,8 @@ export {
 } from './stats.js';
 
 export type { AxisTick, Interval, Population } from './stats.js';
+export { formatCoverage, SCOPE_WITHDRAWAL } from './stats.js';
+export type { ClaimWithdrawal } from './stats.js';
 
 export {
   loadEconomics,

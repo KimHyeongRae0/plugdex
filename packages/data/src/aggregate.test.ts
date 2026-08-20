@@ -1,15 +1,23 @@
 import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 
 import {
   armOrder,
   armSummary,
   cellGrid,
+  corpusInventory,
   domainSummary,
   invalidByTask,
+  MissingFixtureError,
+  readFixture,
+  separationTier,
   taskOrder,
   taskSummary,
 } from './aggregate.js';
+import type { ArmSummary } from './aggregate.js';
 import type { Cell } from './schema.js';
 
 /**
@@ -148,4 +156,90 @@ test('the invalid cells are reported per ticket, worst first', () => {
 
   assert.equal(worst?.task, 'tmpl-fe-one');
   assert.deepEqual({ invalid: worst?.invalid, cells: worst?.cells }, { invalid: 1, cells: 5 });
+});
+
+test('an arm with no interval is its own tier, not a failure to overlap', () => {
+  // The live trap plan review round 1 found. `superpowers` has no graded frontend cell, so
+  // its Wilson interval is null; a two-way "overlaps or does not" reads that as *does not*
+  // and puts the pack that writes no code in the same tier as the only pack that beats the
+  // baseline. The null case is tested first in the implementation for exactly this reason.
+  const baseline = { arm: 'baseline', hits: 5, n: 20, wilson: { lo: 0.112, hi: 0.469 } };
+  const nothing = { arm: 'superpowers', hits: 0, n: 0, wilson: null };
+  const clearing = { arm: 'ponytail', hits: 16, n: 22, wilson: { lo: 0.518, hi: 0.868 } };
+  const overlapping = { arm: 'karpathy', hits: 8, n: 20, wilson: { lo: 0.219, hi: 0.613 } };
+
+  assert.equal(
+    separationTier({ summary: nothing as ArmSummary, baseline: baseline as ArmSummary }),
+    'unmeasured',
+  );
+  assert.equal(
+    separationTier({ summary: clearing as ArmSummary, baseline: baseline as ArmSummary }),
+    'clears',
+  );
+  assert.equal(
+    separationTier({ summary: overlapping as ArmSummary, baseline: baseline as ArmSummary }),
+    'overlaps',
+  );
+
+  assert.notEqual(
+    separationTier({ summary: nothing as ArmSummary, baseline: baseline as ArmSummary }),
+    separationTier({ summary: clearing as ArmSummary, baseline: baseline as ArmSummary }),
+    'an unmeasured arm must never share a tier with one that clears the baseline',
+  );
+});
+
+test('a baseline with no interval leaves every arm unmeasured rather than clearing', () => {
+  const noBaseline = { arm: 'baseline', hits: 0, n: 0, wilson: null };
+  const clearing = { arm: 'ponytail', hits: 16, n: 22, wilson: { lo: 0.518, hi: 0.868 } };
+
+  assert.equal(
+    separationTier({ summary: clearing as ArmSummary, baseline: noBaseline as ArmSummary }),
+    'unmeasured',
+    'clearing a baseline nobody measured is a comparison against nothing',
+  );
+});
+
+test('the inventory counts valid cells, because that is what every rate is over', () => {
+  // `armSummary` pools `valid === true`. An inventory over the whole corpus would describe a
+  // different pool than the figures it sits beside — 204 frontend cells against rates taken
+  // over 127 — which is the defect this ticket exists to remove, made in its own sentence.
+  const cells = [
+    { arm: 'a', task: 'tmpl-fe-one', valid: true, domain: 'frontend' },
+    { arm: 'a', task: 'tmpl-fe-two', valid: true, domain: 'frontend' },
+    { arm: 'a', task: 'tmpl-be-one', valid: true, domain: 'backend' },
+    { arm: 'a', task: 'tmpl-fe-one', valid: false, domain: 'frontend' },
+  ] as unknown as Cell[];
+
+  const inventory = corpusInventory({ cells });
+
+  assert.equal(inventory.tasks, 3, 'the invalid cell adds no task');
+  assert.deepEqual(inventory.families, ['tmpl']);
+  assert.deepEqual(
+    inventory.shapes.map((shape) => [shape.shape, shape.tasks, shape.cells]),
+    [
+      ['tmpl-be', 1, 1],
+      ['tmpl-fe', 2, 2],
+    ],
+  );
+});
+
+test('a second task family is reported rather than collapsed', () => {
+  // The consistency check the site runs against the cited fixture. Two families do not mean
+  // two repositories — that inference is what DEC-019 forbids — but they do mean the ids and
+  // the citation disagree, and the page says so instead of preferring either.
+  const cells = [
+    { arm: 'a', task: 'tmpl-fe-one', valid: true, domain: 'frontend' },
+    { arm: 'a', task: 'other-fe-one', valid: true, domain: 'frontend' },
+  ] as unknown as Cell[];
+
+  assert.deepEqual(corpusInventory({ cells }).families, ['other', 'tmpl']);
+});
+
+test('a fixture nobody recorded is refused rather than invented', () => {
+  const scratch = mkdtempSync(join(tmpdir(), 'pdx035-fixture-'));
+  const empty = join(scratch, 'REPRODUCE.md');
+
+  writeFileSync(empty, '# No fixture row here\n');
+
+  assert.throws(() => readFixture({ file: empty }), MissingFixtureError);
 });
