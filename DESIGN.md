@@ -14,9 +14,8 @@ Two faces over one dataset:
 | the site | static catalogue | "which pack should I install, and what happens if I do?" |
 | the registry | `marketplace.json` | "make it installable from inside my agent" |
 
-The packs advertise less code, fewer tokens, lower cost. Those are real measurements
-taken without checking that the delivered code compiles. plugdex is the catalogue that
-checks.
+The packs advertise less code, fewer tokens, lower cost. Those are real measurements,
+measured against tools that report tokens, cost and diff size — not against a build. We found no published work that grades behaviour-norm packs by whether the code they deliver compiles — what we read is recorded in [`.docs/references/README.md`](.docs/references/README.md). plugdex is the catalogue that checks.
 
 ## 2. What the visitor takes away, in order
 
@@ -281,7 +280,7 @@ after this strengthens it; nothing after it is required to be useful.
 | # | Ticket | What it adds | Why it is not in the MVP |
 |---|---|---|---|
 | PDX-006 | site — shape summaries | Hexagon small multiples, baseline ghosted, bootstrap CI bands, axis order adjustable, "area is not a metric" caption | It is the prettiest thing on the site and the least load-bearing. Shipping it first would advertise a ranking we do not have |
-| PDX-007 | site — the exhibit | One pack, one number (68/69), the verbatim final message, toggles for model / tool policy / combination that all return the same result | Needs the drawer to link into |
+| PDX-007 | site — the exhibit | One pack, the verbatim final message, toggles for model / tool policy / combination that all return the same result. **The headline figure is not yet fixed**: this row named one, and that number is withdrawn — see the block below | Needs the drawer to link into |
 | PDX-008 | site — gate blind spots | The 8 probes as before/after diffs; 4 caught, 4 pass everything. The owner-filter leak leads | Self-limiting content; only credible once the gate results themselves are on the site |
 | PDX-009 | site — the withdrawal register + CLAIM-01 | Every retracted claim with its original value, cause, replacement. Two entries on day one. **CLAIM-01 gate**: a verdict whose value changed without a withdrawal record is a BLOCK | Needs at least one verdict to have changed |
 | PDX-010 | site — method and reproduce | Preregistration, delta gates, negative controls, the exact commands | Reference material, not a landing surface |
@@ -324,7 +323,7 @@ decision-relevant one; the rest live in the card body.
 
 | Priority | Chip | Condition | Example |
 |--:|---|---|---|
-| 1 | **produces no code unattended** | no code in ≥ 80% of valid cells under the as-shipped regime | superpowers, 0/9 |
+| 1 | **produces no code unattended** | no code in ≥ 80% of valid cells under the blocked regime | superpowers, 40/41 |
 | 2 | **published claim not reproduced** | the measured 95% CI for the claimed metric excludes the published figure | caveman, −65% claimed, CI [−17.2, +55.2] |
 | 3 | **N% builds** | produces code; the pass rate over its code-producing cells | ponytail and the rest |
 | 5 | **unmeasured** | listed, not run | everything in the queue |
@@ -363,3 +362,38 @@ Two rules that keep this honest:
 | PDX-018 | harness — `test-loop.sh` GREEN cannot pass on a stacked branch | Stage 4 runs the full `e2e.sh` and reports any failure as "your change broke an existing scenario". On a branch stacked over a ticket that is deliberately at the `red` stage, that sentence is false and the gate is unpassable by construction — PDX-017 sat on PDX-004's RED and could not get a green `test-loop` however correct it was. The consequence is worse than the inconvenience: the stage gets run by hand, stage by stage, and the OBS-01 log loses the one record that proves TDD happened. Found by the PDX-017 report review, which noticed the missing log entries rather than the missing run. The gate should read each ticket's stage stamp and require green only from scenarios whose ticket is past `red`, reporting the rest as known-red rather than as breakage. **Scope corrected after measuring it**: extracting PDX-017 onto PDX-016 in a scratch worktree gives `verify` PASS, `e2e` 5/5, and `test-loop` GREEN, so the gate is not broken for stacked work in general — it is unpassable only while the stack is *worked on in place*, which is a branch-hygiene problem (CLAUDE.md: mid-cycle RED states are never committed) as much as a gate one. Both halves are worth fixing and the gate half is the cheaper |
 | PDX-019 | harness — `gh-submit.sh pr` derives the PR title from HEAD, not from the ticket | The issue path derives its title from the ticket's H1; the PR path takes the HEAD commit title instead. Those agree only when the last commit of a ticket happens to describe the whole ticket. PDX-017's did not — its final commit was branch housekeeping, so PR #8 opened as "cut the ticket branch from main, and the scope violation went away", which names an operation rather than the change. The title was corrected with `gh pr edit`, which is the first hand-typed title in this repository and the thing the wrapper exists to prevent. Derive the PR title from the ticket H1 exactly as the issue path does, and keep the HEAD-commit title only as a fallback when no ticket file is found |
 | ~~PDX-017~~ | ~~data — regime is a record, not a filename~~ | **Closed** — merged to `main` as `62d76dd` (PR #8), which is when a debt item is actually paid. `load_cells` read `_regime` off the filename (`"as-shipped" in name`), and the regime moves the baseline build rate from 25% to 73% (corrected under CLAIM-01: 35% is the *passes* baseline in the blocked-haiku pool, D-001's figure, and this sentence says build — caught by the PDX-017 report review). Every record now carries it as a required field, both loaders select on it, DATA-02 gained rules e, f and g with four golden cases, and `acceptance.py` refuses to grade a run whose condition it cannot establish. No published figure moved: D-002's condition table and D-001's anchors re-derive unchanged, which is what makes the relocation reviewable. See DEC-019 and D-004 |
+
+## Withdrawn claims
+
+<!-- withdrawal: chip-regime -->
+> **Corrected 2026-08-20 (CLAIM-01).** The priority-1 row above read "under the as-shipped
+> regime". The catalogue does not publish that condition: `index.astro:47` sets
+> `REGIME = 'blocked'` and the loader filters there, so the chip has always been computed over
+> `blocked` cells. DEC-020 fixes the catalogue on one named condition and that condition is
+> `blocked`, so the **spec** was the side that was wrong — a row naming `as-shipped` described
+> a page this project decided not to build. Nothing published moves: superpowers is 40 of 41
+> silent under `blocked` and 9 of 9 under `as-shipped`, so the chip fires either way. What
+> changes is that the spec and the code now name the same pool, and an e2e reads both from
+> their own source and fails if they diverge again.
+<!-- /withdrawal: chip-regime -->
+
+<!-- withdrawal: sixty-eight-of-sixty-nine -->
+> **Withdrawn 2026-08-20 (CLAIM-01).** The PDX-007 roadmap row above stated its headline as
+> "one number (68/69)". `README.md` formally withdrew that figure on 2026-08-19 and
+> `bench/DERIVATIONS.md` proves it underivable — *"No pooling of the committed records
+> produces 68 of 69, 67 of 68, or the table's 47 of 48."* The row kept it for a further day,
+> which is how a withdrawn number survives in the document that is supposed to be normative.
+> The cause: the withdrawal was recorded where the figure was published and not where it was
+> specified. The replacement is above — the row names no figure, because none is derived yet.
+<!-- /withdrawal: sixty-eight-of-sixty-nine -->
+
+<!-- withdrawal: premise -->
+> **Withdrawn 2026-08-20 (CLAIM-01).** This paragraph used to say the packs' numbers were
+> measured *"in every published benchmark we could find, without checking that the delivered
+> code compiles"*, and `bench/README.md` opened with *"Almost nobody checks whether it
+> builds."* Both are universal claims about a literature nobody had surveyed. A research pass
+> on 2026-08-19 opened the cited works and found execution-based grading in more than one of
+> them, so the claim is false as written. What survives is narrower and is what the paragraph
+> now says: no published work grades **behaviour-norm packs** by whether the delivered code
+> builds. The cause was a pitch written before the survey; the replacement is above.
+<!-- /withdrawal: premise -->

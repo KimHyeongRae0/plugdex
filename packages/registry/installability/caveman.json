@@ -1,10 +1,10 @@
 {
-  "attemptedAt": "2026-08-20T03:54:05Z",
+  "attemptedAt": "2026-08-20T11:28:41Z",
   "cliVersion": "2.1.234 (Claude Code)",
-  "installedVersion": "702da5ce4c5e",
+  "installedVersion": "a42ef766cede",
   "outcome": "installs",
   "pack": "caveman",
   "repo": "JuliusBrussee/caveman",
   "transport": "https",
-  "upstreamHead": "702da5ce4c5ed08efa716927772b2216f246357f"
+  "upstreamHead": "a42ef766cedef6160407418a359a52939b2d20b9"
 }

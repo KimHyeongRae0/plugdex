@@ -1,11 +1,10 @@
 # does-it-compile
 
-**Agent skill packs promise less code. Almost nobody checks whether it builds.**
+**Agent skill packs promise less code. This measures whether it builds.**
 
 A growing category of "behavior norm packs" for coding agents — ponytail, superpowers, caveman,
 Karpathy's `CLAUDE.md`, Matt Pocock's skills — advertise headline numbers: less code, fewer tokens,
-lower cost. Those numbers are real measurements. They are also, in every published benchmark we
-could find, measured **without checking that the delivered code compiles**.
+lower cost. Those numbers are real measurements, measured against tools that report tokens, cost and diff size — not against a build. We found no published work that grades behaviour-norm packs by whether the code they deliver compiles — what we read is recorded in [`../.docs/references/`](../.docs/references/README.md).
 
 ponytail's own harness scores a task as correct like this:
 
@@ -138,15 +137,45 @@ lines across all frontend tasks: baseline 304, karpathy 303, mattpocock 271, pon
 
 Reporting "it compiles" as "it works" would be false. [`data/gate-limits.json`](data/gate-limits.json)
 records how false, by injecting known defects into the pristine fixture and checking which
-gates fire. The repository's own 60-test backend suite runs on every probe.
+gates fire.
 
-Four of eight injected defects passed **every** gate:
+**Five of eight** injected defects pass every gate this benchmark actually runs — three are
+caught. With `pytest` in the set it is four and four; the probe marked `pytest`-only below is
+the one that moves:
+
+<!-- withdrawal: probe-gate-set -->
+> **Corrected 2026-08-20 (CLAIM-01).** This section said *"The repository's own 60-test
+> backend suite runs on every probe"* and published *"Four of eight injected defects passed
+> every gate"*. The probe harness does run that suite — `bench/harness/gate_probes.py:82` —
+> but the grader that produced every published number does not: `grep -c pytest
+> bench/harness/acceptance.py` returns **0**. So the table credited a catch to a gate the
+> benchmark does not use. Under the shipped gate **three of eight are caught and five pass**.
+> Caught: `be-type-error` (mypy), `be-syntax-error` (mypy/ruff/import), `fe-type-error`
+> (typecheck/build). Passing: `be-owner-filter`, `be-sort-flip`, `be-off-by-one`,
+> `fe-render-nothing`, and `be-swallow-404` — the last is the probe that moves, because its
+> only catcher is `pytest`.
+>
+> **Corrected a second time, same day, before this shipped.** The first version of this
+> correction said *"the honest count under the shipped gate is three of eight"* in a sentence
+> about what **passed** — putting the caught count where the passed count goes, which
+> understates how much slips through and does so in the direction that flatters the
+> instrument. Report review round 1 found it by reading `data/gate-limits.json` rather than
+> the sentence; report review round 2 found it still standing in this record after the live
+> sentence above had been fixed. The assertion that let the first version through was a
+> string match for "three of eight"; it now derives both counts from the probe records and
+> checks that the published sentence states the passed one. The cause was a validation harness stricter than the thing it
+> validates, which overstates the instrument in exactly the direction that flatters it.
+> Adding the suite to the grader is PDX-028, and PDX-028's own AC-2b records why it cannot
+> land first.
+<!-- /withdrawal: probe-gate-set -->
+
+The eight, with the gate set each was caught by:
 
 | Injected defect | Caught by |
 |---|---|
 | type mismatch | mypy |
 | syntax error | mypy, ruff, import, pytest |
-| missing item returns `None` instead of 404 | pytest |
+| missing item returns `None` instead of 404 | pytest **only — a miss under the shipped gate** |
 | frontend type mismatch | tsc, vite |
 | **owner filter dropped — other users' rows leak** | **nothing** |
 | **sort direction reversed** | **nothing** |
@@ -202,3 +231,16 @@ No claim here extends past those conditions.
 ## License
 
 MIT.
+
+## Withdrawn claims
+
+<!-- withdrawal: premise -->
+> **Withdrawn 2026-08-20 (CLAIM-01).** This paragraph used to say the packs' numbers were
+> measured *"in every published benchmark we could find, without checking that the delivered
+> code compiles"*, and `bench/README.md` opened with *"Almost nobody checks whether it
+> builds."* Both are universal claims about a literature nobody had surveyed. A research pass
+> on 2026-08-19 opened the cited works and found execution-based grading in more than one of
+> them, so the claim is false as written. What survives is narrower and is what the paragraph
+> now says: no published work grades **behaviour-norm packs** by whether the delivered code
+> builds. The cause was a pitch written before the survey; the replacement is above.
+<!-- /withdrawal: premise -->

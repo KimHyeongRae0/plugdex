@@ -9,8 +9,7 @@ ships next week. Browse them in one place, install them with one command, and se
 actually happened when we ran them.
 
 Every pack advertises a headline: less code, fewer tokens, lower cost. Those are real
-measurements. They are also, in every published benchmark we could find, measured **without
-checking that the delivered code compiles**. plugdex runs each pack against the same tickets
+measurements, measured against tools that report tokens, cost and diff size — not against a build. We found no published work that grades behaviour-norm packs by whether the code they deliver compiles — what we read is recorded in [`.docs/references/`](.docs/references/README.md). plugdex runs each pack against the same tickets
 in the same repository, builds what it delivers with that repository's own toolchain, and
 publishes every cell beside the listing.
 
@@ -119,6 +118,18 @@ mockup. Both pages — the catalogue and the analysis — are in the repository 
 the same records.
 
 ## Withdrawals
+
+<!-- withdrawal: premise -->
+> **Withdrawn 2026-08-20 (CLAIM-01).** This paragraph used to say the packs' numbers were
+> measured *"in every published benchmark we could find, without checking that the delivered
+> code compiles"*, and `bench/README.md` opened with *"Almost nobody checks whether it
+> builds."* Both are universal claims about a literature nobody had surveyed. A research pass
+> on 2026-08-19 opened the cited works and found execution-based grading in more than one of
+> them, so the claim is false as written. What survives is narrower and is what the paragraph
+> now says: no published work grades **behaviour-norm packs** by whether the delivered code
+> builds. The cause was a pitch written before the survey; the replacement is above.
+<!-- /withdrawal: premise -->
+
 
 Claims this project has published and then retracted stay reachable, with the original
 number, the cause, and what replaced it (CLAIM-01). This applies to the README as well: an
