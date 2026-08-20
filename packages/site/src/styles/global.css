@@ -1366,3 +1366,117 @@ html {
     scroll-behavior: auto;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Install state (PDX-024).
+ *
+ * DEC-021 keeps a blocked pack's card, its figures and its attribution: the measurement
+ * happened and stays published, and what is added is that the current upstream does not
+ * install. So none of this may read as a verdict on the pack. The marker is small, sits
+ * with the delivery facts rather than beside the chip, and uses the `--fail` hue only as a
+ * border and a tint — never as text colour, which is DEC-018's rule and the reason the
+ * words stay in ink.
+ * --------------------------------------------------------------------------- */
+
+.install-state {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.install-state::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--ink-3);
+  flex: none;
+}
+
+.card[data-install-state='installs'] .install-state::before {
+  background: var(--pass);
+}
+
+.card[data-install-state='blocked'] .install-state::before {
+  background: var(--fail);
+}
+
+.card[data-install-state='blocked'] .install-state {
+  color: var(--ink);
+}
+
+/* The receipt. A claim of breakage with the CLI's own words attached — the same standard
+   every figure on this site meets. */
+.blocked-notice {
+  border: 1px solid color-mix(in srgb, var(--fail) 45%, transparent);
+  background: color-mix(in srgb, var(--fail) 8%, transparent);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  margin: 0 0 0.9rem;
+}
+
+.blocked-notice p {
+  margin: 0 0 0.6rem;
+  font-family: var(--serif);
+  font-size: 0.88rem;
+}
+
+.blocked-notice pre {
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  background: var(--tint);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 11rem;
+  overflow-y: auto;
+}
+
+/* Where the copy control was. The command stays visible; only the affordance is gone, and
+   the gap says so rather than leaving a reader to wonder whether it failed to render. */
+.no-copy {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+/* DEC-022's disclosure: what the button installs is not what the figures describe. */
+.gap {
+  margin: 0.9rem 0 0;
+  font-family: var(--serif);
+  font-size: 0.84rem;
+  color: var(--ink-2);
+  border-top: 1px solid var(--rule);
+  padding-top: 0.8rem;
+}
+
+.gap code {
+  font-size: 0.76rem;
+  padding: 0.05rem 0.3rem;
+  background: var(--tint);
+  border-radius: 4px;
+  color: var(--ink);
+}
+
+.install-counts {
+  margin: 0 0 1.1rem;
+  font-family: var(--serif);
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  max-width: 68ch;
+  border-left: 2px solid var(--rule-2);
+  padding-left: 0.9rem;
+}
+
+/* The sentence's full stop, kept tight against the last inline code rather than pushed off
+   it by the whitespace JSX inserts between elements. */
+.stop {
+  margin-left: -0.25rem;
+}

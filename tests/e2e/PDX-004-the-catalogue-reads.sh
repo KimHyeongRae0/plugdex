@@ -643,14 +643,38 @@ problems = []
 FIXTURE = """---
 import PackCard from '../components/PackCard.astro';
 import type { BuildRateVerdict } from '@plugdex/data';
+import type { InstallState } from '@plugdex/registry';
 
-/** Two cards, identical but for the rate: one above the baseline, one below it. */
+/**
+ * Two cards, identical but for the rate: one above the baseline, one below it.
+ *
+ * Both are given the SAME install state on purpose. PDX-024 added that prop, and a fixture
+ * that varied it would let the skeleton differ for a reason this assertion is not about —
+ * AC-6 is that the two RATES are indistinguishable to a stylesheet, and holding every other
+ * input equal is what keeps the comparison honest.
+ */
+const state: InstallState = {
+  state: 'installs',
+  shortHead: '0000000',
+  record: {
+    pack: 'fixture',
+    repo: 'example/fixture',
+    cliVersion: 'fixture',
+    attemptedAt: '2026-08-18T00:00:00Z',
+    upstreamHead: '0000000000000000000000000000000000000000',
+    transport: 'https',
+    outcome: 'installs',
+  },
+};
+
 const card = ({ builds, n }: { builds: number; n: number }) => ({
   packId: 'fixture',
   displayName: 'fixture',
   author: { value: 'fixture', tag: 'declared' as const },
   upstreamRepo: 'https://example.invalid/fixture',
   stars: { count: 1, readAt: '2026-08-18' },
+  state,
+  measuredCommit: '1111111111111111111111111111111111111111',
   verdict: {
     verdict: 'build-rate',
     packId: 'fixture',

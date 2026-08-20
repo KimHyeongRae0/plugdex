@@ -10,9 +10,13 @@ import {
   INSTALLABILITY_DIR,
   installabilityFor,
   installabilityRecords,
+  installStateFor,
   loadInstallabilityRecords,
   MalformedInstallabilityError,
+  shortCommit,
+  summariseInstallability,
 } from './installability.js';
+import type { InstallabilityRecord } from './installability.js';
 import { entries } from './entries.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -204,4 +208,84 @@ test('installabilityFor answers for a listed pack and stays undefined for one no
   assert.ok(first, 'no records loaded');
   assert.equal(installabilityFor({ packId: first })?.pack, first);
   assert.equal(installabilityFor({ packId: 'no-such-pack' }), undefined);
+});
+
+test('an unmeasured pack is an absence, never the flattering default', () => {
+  // The one default that must not ship. `installabilityFor` returns `undefined` for a pack
+  // nothing has measured, and `undefined` read as a boolean is `false` — which on a page
+  // about whether things install renders the answer that suits us. Report review round 1
+  // proved the site's scenario could not catch a regression here, so the branch is pinned
+  // at the source as well as in the built page.
+  const state = installStateFor({ packId: 'nothing-measured-this', records: {} });
+
+  assert.equal(state.state, 'unmeasured');
+  assert.ok(!('record' in state), 'an unmeasured state carries no record to read a verdict from');
+});
+
+test('a recorded pack gets its recorded outcome, and its head shortened once', () => {
+  const records = {
+    ok: {
+      pack: 'ok',
+      repo: 'example/ok',
+      cliVersion: 'x',
+      attemptedAt: '2026-08-18T00:00:00Z',
+      upstreamHead: 'abcdef1234567890abcdef1234567890abcdef12',
+      transport: 'https',
+      outcome: 'installs',
+    },
+    bad: {
+      pack: 'bad',
+      repo: 'example/bad',
+      cliVersion: 'x',
+      attemptedAt: '2026-08-19T00:00:00Z',
+      upstreamHead: '1234567abcdef1234567890abcdef1234567890a',
+      transport: 'https',
+      outcome: 'blocked',
+      signature: { kind: 'manifest-validation', keys: ['agents'] },
+      verbatim: 'boom',
+    },
+  } as unknown as Record<string, InstallabilityRecord>;
+
+  assert.equal(installStateFor({ packId: 'ok', records }).state, 'installs');
+  assert.equal(installStateFor({ packId: 'bad', records }).state, 'blocked');
+  assert.equal(shortCommit({ commit: 'abcdef1234567890' }), 'abcdef1');
+});
+
+test('the summary reports the OLDEST attempt, which one calendar date cannot distinguish', () => {
+  // The live corpus writes every record inside one two-minute window, so a date-level
+  // comparison passes even when the newest is reported. These two share a date on purpose.
+  const sameDay = {
+    early: {
+      pack: 'early',
+      repo: 'e/e',
+      cliVersion: 'x',
+      attemptedAt: '2026-08-18T22:55:14Z',
+      upstreamHead: 'a'.repeat(40),
+      transport: 'https',
+      outcome: 'installs',
+    },
+    late: {
+      pack: 'late',
+      repo: 'l/l',
+      cliVersion: 'x',
+      attemptedAt: '2026-08-18T22:57:08Z',
+      upstreamHead: 'b'.repeat(40),
+      transport: 'https',
+      outcome: 'blocked',
+      signature: { kind: 'k', keys: ['x'] },
+      verbatim: 'boom',
+    },
+  } as unknown as Record<string, InstallabilityRecord>;
+
+  const summary = summariseInstallability({ records: sameDay });
+
+  assert.equal(summary.installs, 1);
+  assert.equal(summary.blocked, 1);
+  assert.equal(summary.oldestAttemptedAt, '2026-08-18T22:55:14Z');
+  assert.notEqual(summary.oldestAttemptedAt, '2026-08-18T22:57:08Z');
+  assert.equal(summary.attemptedOn, '2026-08-18');
+});
+
+test('a summary over no record is refused rather than invented', () => {
+  assert.throws(() => summariseInstallability({ records: {} }), RangeError);
 });

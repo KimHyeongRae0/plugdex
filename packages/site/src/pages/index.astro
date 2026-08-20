@@ -7,7 +7,7 @@ import {
   verdictFor,
 } from '@plugdex/data';
 import type { ParetoPoint } from '@plugdex/data';
-import { entries } from '@plugdex/registry';
+import { entries, installabilitySummary, installStateFor, readSource } from '@plugdex/registry';
 
 import PackCard from '../components/PackCard.astro';
 import RankedBars from '../components/RankedBars.astro';
@@ -52,12 +52,25 @@ const economics = loadEconomics({
 
 const cells = corpus.cells;
 
+/**
+ * One card's inputs, including the two records that answer "does this install".
+ *
+ * The install state and the measured commit come from two different files — the
+ * installability record and the attribution record — and are read separately here. They are
+ * joined by pack id at read time, the same shape the attribution join already uses, because
+ * a value copied into the other file would be a second place for the fact to be wrong.
+ */
 const packs = [...entries]
   .sort((left, right) => left.displayName.localeCompare(right.displayName))
   .map((entry) => ({
     entry,
     verdict: verdictFor({ packId: entry.packId, cells: corpus.cells }),
+    state: installStateFor({ packId: entry.packId }),
+    measuredCommit: readSource({ packId: entry.packId }).commit,
   }));
+
+/** How many listings install, how many do not, and the date the oldest attempt was made. */
+const installability = installabilitySummary();
 
 const arms = [...entries.map((entry) => entry.packId), 'baseline'];
 
@@ -269,9 +282,18 @@ const sections = [
               them.
             </p>
 
+            <p class="install-counts" data-install-counts="summary">
+              <span class="mono">{installability.installs}</span> of these listings install
+              from this marketplace today; <span class="mono">{installability.blocked}</span>
+              do not. Measured by a real install into a scratch config directory, oldest
+              attempt <span class="mono">{installability.attemptedOn}</span>. A listing that
+              stopped installing keeps its card and its figures — the measurement happened;
+              what changed is upstream.
+            </p>
+
             <ul class="grid">
               {
-                packs.map(({ entry, verdict }) => (
+                packs.map(({ entry, verdict, state, measuredCommit }) => (
                   <PackCard
                     packId={entry.packId}
                     displayName={entry.displayName}
@@ -279,6 +301,8 @@ const sections = [
                     upstreamRepo={entry.installSource.repo}
                     stars={entry.stars}
                     verdict={verdict}
+                    state={state}
+                    measuredCommit={measuredCommit}
                   />
                 ))
               }
