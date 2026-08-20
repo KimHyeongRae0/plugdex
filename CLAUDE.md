@@ -7,8 +7,7 @@ carries a measured verdict: **we ran the pack against real tickets in a real
 repository and built the code it delivered.**
 
 The packs advertise headline numbers — less code, fewer tokens, lower cost. Those
-numbers are real measurements. They are also, in every published benchmark we could
-find, measured without checking that the delivered code compiles. plugdex is the
+numbers are real measurements, measured against tools that report tokens, cost and diff size — not against a build. We found no published work that grades behaviour-norm packs by whether the code they deliver compiles — what we read is recorded in [`.docs/references/README.md`](.docs/references/README.md). plugdex is the
 catalogue that checks, and publishes the receipt beside the listing.
 
 Two faces, one dataset:
@@ -246,3 +245,16 @@ rendered is a DEV-01 violation.
 - `./scripts/install-hooks.sh` — installs the pre-commit hook (run once per clone)
 - `./scripts/e2e.sh [<ID>]` — run ticket e2e scenarios (no arg = full regression)
 - `./scripts/test-loop.sh <ID> [--red]` — the combined TDD gate
+
+## Withdrawn claims
+
+<!-- withdrawal: premise -->
+> **Withdrawn 2026-08-20 (CLAIM-01).** This paragraph used to say the packs' numbers were
+> measured *"in every published benchmark we could find, without checking that the delivered
+> code compiles"*, and `bench/README.md` opened with *"Almost nobody checks whether it
+> builds."* Both are universal claims about a literature nobody had surveyed. A research pass
+> on 2026-08-19 opened the cited works and found execution-based grading in more than one of
+> them, so the claim is false as written. What survives is narrower and is what the paragraph
+> now says: no published work grades **behaviour-norm packs** by whether the delivered code
+> builds. The cause was a pitch written before the survey; the replacement is above.
+<!-- /withdrawal: premise -->

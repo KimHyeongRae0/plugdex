@@ -83,3 +83,52 @@ Written before any cell runs. Each is falsifiable and each has a stated way to f
 - Committed: see this file's commit in `git log` — it is the claim
 - The runs it predicts appear afterwards in `data/runs/`, and the gap is checkable the
   same way `PREREGISTRATION-2.md`'s is.
+
+## Outcome
+
+Recorded 2026-08-20, after the run. `PREREGISTRATION.md:127` commits that *"Predictions that
+fail will be reported as failed"*, and rounds 1 and 2 report outcomes; this round stopped at
+"Recorded before the run" for three days. Every figure below is re-derived from
+`data/runs/` rather than quoted, and the scenario `tests/e2e/PDX-033-*.sh` re-derives them
+again.
+
+All five predictions are reported. An earlier draft reported four and called one of those
+undecidable; both omissions are corrected below and named in the notes.
+
+| # | Prediction | Measured | Verdict |
+|---|---|---|---|
+| 1 | superpowers produces no code in all sonnet cells | 0 of 6 valid cells wrote a source file | **held** |
+| 2 | mattpocock produces code in at least 2 of 3 | 2 of 2 valid cells wrote code, and both built | **held** |
+| 3 | sonnet's build-failure rate is **below 40%** | **55%** — 6 of 11 code-producing cells failed their gate | **FAILED** |
+| 4 | no pack beats baseline by 2 or more cells out of 3 | baseline built 0; ponytail built 2, mattpocock built 2 | **FAILED** — the trigger fired |
+| 5 | caveman's −65% token headline does not reproduce | caveman mean out_tokens 6595 (n=3) against baseline 9902 (n=1) = **−33%** | **held** — a real reduction, and not the published one |
+
+**Prediction 3 failed, and it is the one this round said was worth being wrong about.** Its own
+text: *"if a stronger model does not deliver more buildable code, 'does it build' is a property
+of the task and the harness rather than the model."* The measured rate on sonnet is 55%, which
+is the same rate measured on haiku — the difference the prediction expected to be visible
+without statistics is not visible at all.
+
+**Prediction 4 failed, and an earlier version of this section said it was undecidable.** The
+condition is written as *"Fails if any pack's build rate exceeds baseline's by 2 or more cells
+out of 3."* Baseline built 0; ponytail built 2. The trigger fired, in the terms the
+preregistration itself set, and the first draft of this table reported it as "not decidable"
+on the ground that baseline contributed one valid sonnet cell. Report review round 1 caught
+that. **Softening a preregistered failure because the sample is thin is the exact move a
+preregistration exists to prevent** — the thinness was knowable when the condition was
+written, and rewriting the condition after seeing the result is what makes a prediction not a
+prediction.
+
+The caveat stands beside the verdict rather than replacing it: baseline's single valid sonnet
+cell makes this a weak observation, and it is one cell from being unmeasurable. That is a
+reason to distrust the margin, not a reason to withhold the failure. Round 4 should give
+baseline more cells before restating this null.
+
+**Prediction 5 was missing entirely from the first draft of this section**, which reported
+four of five. It is decidable and it held: caveman's output tokens are 33% below baseline on
+sonnet — a real reduction, and less than half the −65% its published headline claims.
+
+**What this round does not establish.** Eleven code-producing cells across five arms is a
+sample that supports one comparison — prediction 3's rate against haiku's — and not the
+per-arm ones. Nothing here re-opens the question of which pack is better; it closes the
+question of whether the model was the reason the build rate was low. It was not.
