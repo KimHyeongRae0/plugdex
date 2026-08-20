@@ -193,6 +193,7 @@ docs/WORKFLOW.md       9-stage gate workflow (full spec)
 .docs/drafts/          issue / PR drafts staged for the user to submit (TMPL-01, CR-01)
 .docs/scratch/         preflight stage output + gate logs (generated, not committed)
 .docs/state/           per-ticket stage stamps (generated, not committed)
+.wrangler/             Cloudflare Pages deploy cache (generated, gitignored, not committed)
 scripts/               deterministic gates (see docs/WORKFLOW.md §4)
 tests/e2e/             per-ticket scenarios: PDX-###-*.sh + all.sh regression
 tests/meta/            gate self-test golden set (lib.sh + cases/*.sh)
