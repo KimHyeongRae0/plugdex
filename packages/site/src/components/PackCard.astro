@@ -2,6 +2,8 @@
 import { formatRate } from '@plugdex/data';
 import type { PackVerdict } from '@plugdex/data';
 
+import type { InstallState } from '@plugdex/registry';
+
 import InstallDialog from './InstallDialog.astro';
 import VerdictChip from './VerdictChip.astro';
 
@@ -32,9 +34,26 @@ interface Props {
   upstreamRepo: string;
   stars: { count: number; readAt: string };
   verdict: PackVerdict;
+  state: InstallState;
+  measuredCommit: string;
 }
 
-const { packId, displayName, author, upstreamRepo, stars, verdict } = Astro.props;
+const { packId, displayName, author, upstreamRepo, stars, verdict, measuredCommit, state } =
+  Astro.props;
+
+/**
+ * The install state, in delivery language rather than quality language.
+ *
+ * DEC-021 keeps a blocked pack's card, its figures and its attribution: the measurement
+ * happened and stays published, and what is added is that the current upstream does not
+ * install. So this marker must not read as "this pack is bad" — it is not a verdict and it
+ * does not compete with the chip beside it.
+ */
+const stateLabels = {
+  installs: 'installs',
+  blocked: 'does not install right now',
+  unmeasured: 'install not measured',
+} as const;
 
 /**
  * The four rates, in two populations, formatted by the package that holds the records.
@@ -78,7 +97,7 @@ const rates =
     : null;
 ---
 
-<li class="card" data-pack-id={packId}>
+<li class="card" data-pack-id={packId} data-install-state={state.state}>
   <h2>{displayName}</h2>
 
   <p class="byline">
@@ -114,9 +133,19 @@ const rates =
     ) : null
   }
 
+  <p class="install-state" data-install-state-label={packId}>
+    {stateLabels[state.state]}
+  </p>
+
   <p class="stars">
     <span class="mono">{stars.count}</span> stars, read {stars.readAt}
   </p>
 
-  <InstallDialog packId={packId} displayName={displayName} upstreamRepo={upstreamRepo} />
+  <InstallDialog
+    packId={packId}
+    displayName={displayName}
+    upstreamRepo={upstreamRepo}
+    state={state}
+    measuredCommit={measuredCommit}
+  />
 </li>

@@ -162,3 +162,100 @@ export const installabilityFor = ({
 }: {
   packId: string;
 }): InstallabilityRecord | undefined => installabilityRecords[packId];
+
+/**
+ * The three states a listing can be in, as one value the site cannot get wrong.
+ *
+ * `installabilityFor` returns `undefined` for a pack nothing has measured, and `undefined`
+ * read as a boolean is `false` — which on a page about whether things install would render
+ * the flattering answer by accident. Narrowing here, once, in the package that owns the
+ * record, means no component re-derives it and the `installs` branch is reachable only from
+ * an `InstallsRecord`.
+ *
+ * The short forms are produced here too. DATA-01 blocks a typed literal in site source and
+ * reads a digit inside a rendered expression as a figure, so `{record.upstreamHead.slice(0, 7)}`
+ * written in a template does not survive the gate — verified against the gate's own regex
+ * during PDX-024's plan review. A truncation is a figure's presentation, so it belongs where
+ * the figure does.
+ */
+export type InstallState =
+  | { readonly state: 'installs'; readonly record: InstallsRecord; readonly shortHead: string }
+  | { readonly state: 'blocked'; readonly record: BlockedRecord; readonly shortHead: string }
+  | { readonly state: 'unmeasured' };
+
+/** How many characters of a commit a reader can compare at a glance. */
+const SHORT_SHA_LENGTH = 7;
+
+/** A commit, shortened for reading. Named here so no template performs the slice. */
+export const shortCommit = ({ commit }: { commit: string }): string =>
+  commit.slice(0, SHORT_SHA_LENGTH);
+
+/** One pack's install state, total over the three cases. */
+export const installStateFor = ({
+  packId,
+  records = installabilityRecords,
+}: {
+  packId: string;
+  records?: Readonly<Record<string, InstallabilityRecord>>;
+}): InstallState => {
+  const record = records[packId];
+
+  if (record === undefined) {
+    return { state: 'unmeasured' };
+  }
+
+  const shortHead = shortCommit({ commit: record.upstreamHead });
+
+  return record.outcome === 'installs'
+    ? { state: 'installs', record, shortHead }
+    : { state: 'blocked', record, shortHead };
+};
+
+/** What the counts line states, and the date it is honest about. */
+export type InstallabilitySummary = {
+  readonly installs: number;
+  readonly blocked: number;
+  /**
+   * The **oldest** attempt in the set, not the newest.
+   *
+   * A summary presented as current while its oldest member is a year stale is a figure
+   * without its denominator. On the live corpus every record was written inside one
+   * two-minute window, so the two are the same calendar date and a date-level comparison
+   * cannot tell them apart — which is why the field carries the full timestamp and the
+   * scenario asserts against it rather than against a rendered date.
+   */
+  readonly oldestAttemptedAt: string;
+  readonly attemptedOn: string;
+};
+
+/** Where the date ends and the time begins in an ISO timestamp. */
+const ISO_DATE_LENGTH = 10;
+
+/** The summary of a given set of records — the seam a test can hand a planted directory. */
+export const summariseInstallability = ({
+  records,
+}: {
+  records: Readonly<Record<string, InstallabilityRecord>>;
+}): InstallabilitySummary => {
+  const all = Object.values(records);
+
+  if (all.length === 0) {
+    throw new RangeError(
+      'a summary needs at least one record — an empty set has no oldest attempt',
+    );
+  }
+
+  const stamps = all.map((record) => record.attemptedAt).sort();
+  const oldestAttemptedAt = stamps[0] as string;
+
+  return {
+    installs: all.filter((record) => record.outcome === 'installs').length,
+    blocked: all.filter((record) => record.outcome === 'blocked').length,
+    oldestAttemptedAt,
+    attemptedOn: oldestAttemptedAt.slice(0, ISO_DATE_LENGTH),
+  };
+};
+
+/** The summary of the records on disk. */
+export const installabilitySummary = (): InstallabilitySummary =>
+  summariseInstallability({ records: installabilityRecords });

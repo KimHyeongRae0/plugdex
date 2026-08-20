@@ -14,8 +14,11 @@ catalogue that checks, and publishes the receipt beside the listing.
 Two faces, one dataset:
 
 - **the site** — a browsable catalogue, one card per pack, verdict chip, install button
-- **the registry** — a Claude Code marketplace generated from the same records, so
-  `claude plugin marketplace add plugdex` makes every listed pack installable by name
+- **the registry** — a Claude Code marketplace generated from the same records:
+  `claude plugin marketplace add plugdex` adds every listed pack by name, and the site
+  states which of them install. Not all do — `caveman` is listed and its own record says
+  `blocked`, so the catalogue labels it and withdraws the copy control rather than handing
+  out a command the repository knows fails (PDX-024)
 
 The product philosophy — *a claim is worth what its receipt is worth* — is applied
 to this repository's own harness. Work proceeds via workflow tickets (`PDX-###`),

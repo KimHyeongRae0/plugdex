@@ -10,17 +10,34 @@
  * Escape, and keyboard reachability without shipping a runtime, and a copy button does
  * not earn one. The script below is the whole of this page's JavaScript.
  */
+import { shortCommit } from '@plugdex/registry';
+import type { InstallState } from '@plugdex/registry';
+
 interface Props {
   packId: string;
   displayName: string;
   upstreamRepo: string;
+  state: InstallState;
+  /** The commit the figures on this card describe, from the attribution record. */
+  measuredCommit: string;
 }
 
-const { packId, displayName, upstreamRepo } = Astro.props;
+const { packId, displayName, upstreamRepo, state, measuredCommit } = Astro.props;
 
 const marketplaceCommand = 'claude plugin marketplace add plugdex';
 const installCommand = `claude plugin install ${packId}@plugdex`;
 const dialogId = `install-${packId}`;
+
+/**
+ * A blocked listing keeps its command visible and loses the control that hands it over.
+ *
+ * Removing the command would hide what was attempted; keeping the copy button would keep
+ * this page distributing an install its own receipt says fails. The middle is the honest
+ * one, and it is why the copy control is conditional rather than the whole block.
+ */
+const offersCopy = state.state !== 'blocked';
+
+const shortMeasured = shortCommit({ commit: measuredCommit });
 ---
 
 <button class="install" data-install-trigger data-dialog={dialogId}>
@@ -40,10 +57,50 @@ const dialogId = `install-${packId}`;
     <button class="copy" data-copy-command={marketplaceCommand}>Copy</button>
   </p>
 
+  {
+    state.state === 'blocked' ? (
+      <div class="blocked-notice" data-install-blocked={packId}>
+        <p>
+          <strong>This pack does not install right now.</strong> The measurement below
+          happened and stays published; what changed is upstream. plugdex re-checks every
+          listing and records what the CLI printed, so this is a receipt rather than a
+          report.
+        </p>
+        <pre data-install-verbatim={packId}>{state.record.verbatim}</pre>
+      </div>
+    ) : null
+  }
+
   <p class="command">
     <code>{installCommand}</code>
-    <button class="copy" data-copy-command={installCommand}>Copy</button>
+    {
+      offersCopy ? (
+        <button class="copy" data-copy-command={installCommand}>
+          Copy
+        </button>
+      ) : (
+        <span class="no-copy">not offered — see above</span>
+      )
+    }
   </p>
+
+  {
+    state.state === 'unmeasured' ? null : (
+      <p class="gap" data-install-gap={packId}>
+        The command installs <strong>upstream HEAD</strong>; the figures on this card
+        describe the commit plugdex measured. Those can differ, and here they are:
+        measured <code data-measured-commit={packId}>{shortMeasured}</code>, recorded head{' '}
+        <code data-upstream-head={packId}>{state.shortHead}</code>
+        {state.state === 'installs' && state.record.installedVersion !== undefined ? (
+          <>
+            , installed version{' '}
+            <code data-installed-version={packId}>{state.record.installedVersion}</code>
+          </>
+        ) : null}
+        <span class="stop">.</span>
+      </p>
+    )
+  }
 
   <button class="close" data-close-dialog>Close</button>
 </dialog>

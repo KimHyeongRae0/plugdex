@@ -11,9 +11,18 @@ directory, and `caveman.json` records `"outcome": "blocked"` with the verbatim C
 while `README.md:70` and `CLAUDE.md:18` tell a reader that
 `claude plugin marketplace add plugdex` "makes every listed pack installable by name" and the
 site's card and install dialog say nothing at all. PDX-023 made the fact exist and stated in
-its own AC-3 that publishing it was a separate ticket. This is that ticket, and it has been
-cited as a dependency in eleven places — including `DESIGN.md:174`, which pins it **ahead of
-PDX-014 (deploy)** — without ever being written. Deploying a catalogue whose front door
+its own AC-3 that publishing it was a separate ticket. This is that ticket, and it was cited
+as a dependency repeatedly without ever being written.
+
+**One of those citations was mine and it was false (corrected 2026-08-20).** An earlier draft
+of this ticket said `DESIGN.md:174` pins PDX-024 ahead of PDX-014 (deploy). It does not.
+Line 174 is DEC-021, it says only "PDX-024 is the ticket that tells them", the string
+`PDX-014` does not appear on it, and `grep -c PDX-024 DESIGN.md` returns 1 — that line and
+nowhere else. The "pinned ahead of deploy" wording comes from
+`.docs/analysis/PDX-023_plan.md:111`, which said the roadmap *would* name it; the roadmap
+edit never landed. So the ordering is a reasonable engineering judgement — a catalogue whose
+front door offers a failing install should not be advertised — and **not** a recorded
+decision. Whoever wants it recorded owes DESIGN.md a row. Deploying a catalogue whose front door
 advertises an install that its own committed receipt says fails is the one thing this project
 exists to object to.
 
@@ -27,9 +36,15 @@ not install.
 ### Allowed
 - `packages/site/**` — the card state, the counts line, the install dialog's measured-commit
   and upstream-HEAD disclosure
-- `packages/registry/src/index.ts` — only if an export needed for rendering is missing;
+- `packages/registry/src/installability.ts` and `packages/registry/src/index.ts` — the
+  three-way state and the counts line are derived here, in the package that owns the record.
+  Plan review round 1 raised this as a scope blocker and the answer is to widen the scope
+  rather than to move the derivation into `packages/site/src`, where `check-data.sh` scans
+  every literal and a date or a count would have to be laundered past DATA-01.
   `installabilityFor` and `loadInstallabilityRecords` already exist
   (`packages/registry/src/installability.ts:160`, `:128`)
+- `packages/registry/src/upstream.ts` — read-only use of `readSource` for AC-4's measured
+  commit (see the correction under AC-4)
 - `tests/e2e/PDX-024-*.sh`
 - `README.md`, `CLAUDE.md` — the two sentences that currently overstate installability
 
@@ -65,7 +80,14 @@ not install.
 - [ ] AC-4: **DEC-022's gap is disclosed in the install dialog**: the button installs upstream
       **HEAD**, the figures describe the measured commit, and those may differ. Both the
       measured commit and the recorded `upstreamHead` are shown, and for a pack that installs,
-      the `installedVersion` the CLI printed.
+      the `installedVersion` the CLI printed. **Corrected 2026-08-20:** the measured commit is
+      *not* on the installability record — `InstallabilityBase` carries pack, repo,
+      cliVersion, attemptedAt, upstreamHead and transport, and nothing else. It lives in
+      `packages/registry/attribution/<pack>/source.json` (`commit`, e.g. caveman's
+      `27d5a39…`), reached through `readSource`. So AC-4 requires a **join** between the
+      installability record and the attribution record, and the e2e must assert all three
+      values — measured commit, `upstreamHead`, and `installedVersion` where present — or the
+      half that is missing ships green.
 - [ ] AC-5: **`README.md:70` and `CLAUDE.md:18` stop overstating.** Both currently say the
       marketplace makes *every* listed pack installable by name; `caveman` is listed
       (`.claude-plugin/marketplace.json:9`) and blocked. Corrected under CLAIM-01 with the
@@ -85,10 +107,20 @@ not install.
 
 ## 4. Edge Cases & Error Handling
 
-- A listing has no installability record → AC-1's explicit absence. `loadInstallabilityRecords`
-  throws `MissingInstallabilityError`; the page must not render "installs" on a throw.
-- A record is malformed → `MalformedInstallabilityError` is a separate class from the missing
-  case (PDX-023 built two names so a test can prove which fired); the scenario asserts which.
+- A listing has no installability record → AC-1's explicit absence. **Corrected 2026-08-20:**
+  an earlier draft of this ticket said `loadInstallabilityRecords` throws
+  `MissingInstallabilityError` and that the scenario asserts which of two classes fired.
+  **That class does not exist.** `grep -rn MissingInstallabilityError --include='*.ts' packages/`
+  returns nothing, while the same grep for `MalformedInstallabilityError` returns five files,
+  so the pattern is sound and the absence is real. It was *proposed* in
+  `.docs/analysis/PDX-023_plan.md:103` and never built; this ticket cited a plan as though it
+  were the shipped tree. What actually happens: `installabilityFor` returns `undefined` for a
+  pack with no record. The scenario asserts the `unmeasured` state renders and that the
+  "installs" branch is unreachable from `undefined` — it does not assert an error class.
+- A record is malformed → `MalformedInstallabilityError` exists and is thrown at load; the
+  build fails rather than the page rendering a state it could not read. The scenario plants a
+  malformed record and asserts the build fails, which is the honest assertion now that there
+  is only one class.
 - A blocked pack starts installing again → not this ticket's to detect (INST-01c FAILs the
   gate), but the page must not cache a stale state: the render reads the record at build time
   and the counts line names its date, per AC-3.
@@ -116,5 +148,6 @@ not install.
   that created this ticket, and the list of what it inherits
 - `.docs/analysis/PDX-023_plan.md` §3 Handover, and step 2 — `installabilityFor` is named
   there as "the API PDX-024 renders from"
-- Blocks `PDX-014` (deploy), per `DESIGN.md:174`
+- Ordering against `PDX-014` (deploy) is a judgement stated in §1, **not** a recorded
+  decision — `DESIGN.md` carries no such row, and the Goal says so
 - Overlaps `PDX-033` AC-1.1 on the README/CLAUDE sentences
